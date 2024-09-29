@@ -203,7 +203,7 @@ void
 gcrDumpChannel(ch)
     GCRChannel * ch;
 {
-    char name[20];
+    char name[32];
     int track, col, netCount = 0, gcrNetName();
     short res;
     GCRNet * net, * netNames[500];

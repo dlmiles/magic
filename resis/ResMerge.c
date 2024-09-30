@@ -679,7 +679,8 @@ ResMergeNodes(node1, node2, pendingList, doneList)
 	    else
 	    {
 	       	TxError("Bad plug node: is (%d %d), should be (%d %d)\n",
-		    	    plug->rpl_node->rn_loc.x, plug->rpl_node->rn_loc.y, node2->rn_loc.x, node2->rn_loc.y);
+		    	    plug->rpl_node->rn_loc.p_x, plug->rpl_node->rn_loc.p_y,
+			    node2->rn_loc.p_x, node2->rn_loc.p_y);
 	       	plug->rpl_node = NULL;
 	    }
 	}

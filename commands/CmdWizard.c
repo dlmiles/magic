@@ -976,7 +976,7 @@ cmdTsrFunc(tp)
     Tile *tp;
 {
     if (cmdTsearchDebug)
-	TxPrintf("%x\n", tp);
+	TxPrintf("%p\n", tp);
     numTilesFound++;
     return 0;
 }

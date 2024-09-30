@@ -1950,8 +1950,7 @@ badTransform:
     /* points to a different target, then flag an error, as there are	*/
     /* now two versions of the same cell name coming from different	*/
     /* sources, and this must be corrected.				*/
-
-    if (*pathptr != '\0')
+    if (pathptr != NULL && *pathptr != '\0')
     {
 	if (subCellDef->cd_file != NULL)
 	{
@@ -2148,7 +2147,7 @@ badTransform:
 	    /* default path but the new cell has a (different) path.	*/
 	    /* The paths only match if pathptr is the CWD.		*/
 
-	    else if ((pathptr != NULL) && (*pathptr != '\0'))
+	    else if (*pathptr != '\0')
 	    {
 		bool pathOK = FALSE;
 		char *cwddir = getenv("PWD");

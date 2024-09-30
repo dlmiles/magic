@@ -1950,7 +1950,7 @@ badTransform:
     /* points to a different target, then flag an error, as there are	*/
     /* now two versions of the same cell name coming from different	*/
     /* sources, and this must be corrected.				*/
-    if (pathptr != NULL && *pathptr != '\0')
+    if (*pathptr != '\0')
     {
 	if (subCellDef->cd_file != NULL)
 	{

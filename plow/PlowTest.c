@@ -307,8 +307,8 @@ PlowTest(w, cmd)
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
 	    if (cmd->tx_argc == 3) trail = atoi(cmd->tx_argv[2]);
 	    else trail = editArea.r_xtop;
-	    TxPrintf("Trailing coordinate of tile 0x%x updated from %d to %d\n",
-			tp, TRAILING(tp), trail);
+	    TxPrintf("Trailing coordinate of tile %p updated from %d to %d\n",
+			(void *)tp, TRAILING(tp), trail);
 	    plowSetTrailing(tp, trail);
 	    break;
 	case PC_MOVE:
@@ -329,7 +329,7 @@ PlowTest(w, cmd)
 	    }
 	    TiToRect(tp, &area2);
 	    TxPrintf("Splitting tile %p at y=%d yielding %p\n",
-			tp, editArea.r_ybot, plowSplitY(tp, editArea.r_ybot));
+			(void *)tp, editArea.r_ybot, (void *)plowSplitY(tp, editArea.r_ybot));
 	    DBWAreaChanged(def, &area2, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_MERGEDOWN:

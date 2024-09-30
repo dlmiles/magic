@@ -328,13 +328,13 @@ PlowTest(w, cmd)
 		return;
 	    }
 	    TiToRect(tp, &area2);
-	    TxPrintf("Splitting tile 0x%x at y=%d yielding 0x%x\n",
+	    TxPrintf("Splitting tile %p at y=%d yielding %p\n",
 			tp, editArea.r_ybot, plowSplitY(tp, editArea.r_ybot));
 	    DBWAreaChanged(def, &area2, DBW_ALLWINDOWS, &DBAllButSpaceBits);
 	    break;
 	case PC_MERGEDOWN:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile 0x%x below\n", tp);
+	    TxPrintf("Merging tile %p below\n", tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -343,7 +343,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_MERGEUP:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Merging tile 0x%x above\n", tp);
+	    TxPrintf("Merging tile %p above\n", tp);
 	    TiToRect(tp, &editArea);
 	    TiToRect(RT(tp), &area2);
 	    (void) GeoInclude(&area2, &editArea);
@@ -352,7 +352,7 @@ PlowTest(w, cmd)
 	    break;
 	case PC_PRINT:
 	    tp = TiSrPointNoHint(plane, &editArea.r_ll);
-	    TxPrintf("Tile 0x%x  LEFT=%d RIGHT=%d BOTTOM=%d TOP=%d\n",
+	    TxPrintf("Tile %p  LEFT=%d RIGHT=%d BOTTOM=%d TOP=%d\n",
 		tp, LEFT(tp), RIGHT(tp), BOTTOM(tp), TOP(tp));
 	    TxPrintf("    TRAILING=%d LEADING=%d TYPE=%s\n",
 		TRAILING(tp), LEADING(tp), DBTypeLongName(TiGetTypeExact(tp)));

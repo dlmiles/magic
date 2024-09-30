@@ -311,9 +311,11 @@ WindAreaChanged(w, area)
      * get left lying around.
      */
 
-    biggerArea = *area;
-    biggerArea.r_xtop += 1;
-    biggerArea.r_ytop += 1;
+    if (area != (Rect *) NULL) {
+        biggerArea = *area;
+        biggerArea.r_xtop += 1;
+        biggerArea.r_ytop += 1;
+    }
 
     /* If no window is given, or if the window is unobscured,
      * then just paint an error tile over the area to be redisplayed.

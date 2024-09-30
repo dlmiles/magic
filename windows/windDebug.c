@@ -106,7 +106,7 @@ windDump()
     for (rc = windFirstClientRec; rc != (clientRec * ) NULL;
 	rc = rc->w_nextClient)
     {
-	TxPrintf("'%10s'  %x %x %x %x\n", rc->w_clientName,
+	TxPrintf("'%10s'  %p %p %p %p\n", rc->w_clientName,
 	    rc->w_create, rc->w_delete,
 	    rc->w_redisplay, rc->w_command);
     }

@@ -595,7 +595,7 @@ glPathPrint(path)
 	pin = rp->gl_pin;
 	ch = pin->gcr_ch;
 	tp = rp->gl_tile;
-	TxPrintf("(%d,%d) cost=%d pcost=%d pId=%d/%d\n",
+	TxPrintf("(%d,%d) cost=%d pcost=%d pId=%p/%d\n",
 		pin->gcr_point.p_x, pin->gcr_point.p_y,
 		rp->gl_cost, pin->gcr_cost,
 		pin->gcr_pId, pin->gcr_pSeg);

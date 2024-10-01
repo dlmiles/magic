@@ -81,7 +81,7 @@ jobs:
     - if: matrix.build-mode == 'manual'
       shell: bash
       run: |
-        sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+        sudo apt-get install -y zlib1g-dev libncurses-dev libreadline-dev tcl-dev tk-dev libcairo-dev libgl-dev libglu1-mesa-dev
         ./configure
         make database/database.h
         make -j$(nproc)

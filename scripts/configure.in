@@ -1072,7 +1072,9 @@ if test "x$enable_readline" = "xyes" ; then
 	], [
 	   AC_CHECK_LIB(ncurses, tgetent, [
 	      rl_libs="$rl_libs -lncurses"
-	   ], )
+	   ], [
+              AC_MSG_ERROR([no acceptable libtinfo for libreadline.a found, disable readline support or install ncurses])
+           ])
 	], )
     modules="$modules readline"
 else

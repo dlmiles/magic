@@ -1016,9 +1016,24 @@ AC_ARG_ENABLE(lef,
 if test "x$enable_lef" = "xyes" ; then
   AC_DEFINE(LEF_MODULE)
   modules="$modules lef"
-  extra_libs="$extra_libs \${MAGICDIR}/lef/liblef.o \${MAGICDIR}/extflat/libextflat.o"
+  extra_libs="$extra_libs \${MAGICDIR}/lef/liblef.o"
+  enable_extflat=yes
 else
   unused="$unused lef"
+fi
+
+AC_ARG_ENABLE(extflat,
+[  --disable-extflat	disable extflat package],
+[],
+[enable_extflat=yes])
+
+# extract resis
+if test "x$enable_extflat" = "xyes" ; then
+  AC_DEFINE(EXTFLAT_MODULE)
+  modules="$modules extflat"
+  extra_libs="$extra_libs \${MAGICDIR}/extflat/libextflat.o"
+else
+  unused="$unused extflat"
 fi
 
 AC_ARG_ENABLE(readline,

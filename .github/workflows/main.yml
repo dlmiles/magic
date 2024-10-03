@@ -69,7 +69,14 @@ jobs:
           sudo apt-get install -y zlib1g-dev libncurses-dev libreadline-dev tcl-dev tk-dev libcairo-dev libgl-dev libglu1-mesa-dev
       - name: Build
         run: |
+          # CFLAGS="-Wall" did not work as expected
           ./configure
+          sed -e 's# -Werror=# -Wall -Werror=#' -i defs.mak
+          # Non security/reliability related warnings
+          #sed -e 's# -Werror=# -Wno-unused-variable -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-local-typedefs -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-label -Werror=#' -i defs.mak
+          #sed -e 's# -Werror=# -Wno-unused-but-set-variable -Werror=#' -i defs.mak
           make database/database.h
           make -j$(nproc)
   simple_build_wasm:

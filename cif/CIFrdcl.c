@@ -593,8 +593,8 @@ cifMaskHintFunc(tile, lrecp)
  */
 
 int
-CIFPaintCurrent(filetype)
-    bool filetype;
+CIFPaintCurrent(
+    int filetype)
 {
     extern int cifMakeBoundaryFunc(Tile *tile, ClientData clientdata);	/* Forward declaration. */
     extern int cifPaintCurrentFunc(Tile *tile, TileType type);	/* Forward declaration. */
@@ -1613,8 +1613,8 @@ CIFParseUser()
  */
 
 void
-CIFReadCellCleanup(filetype)
-    bool filetype;
+CIFReadCellCleanup(
+    int filetype)
 {
     HashEntry *h;
     HashSearch hs;

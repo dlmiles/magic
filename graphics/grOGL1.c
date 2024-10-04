@@ -1078,7 +1078,8 @@ GrOGLIconUpdate(w,text)
 
      if (brack = strchr(text,'['))
      {
-     	  brack--;
+	  if (brack != text)
+	      brack--;
 	  *brack = 0;
 	  XSetIconName(grXdpy,wind,text);
 	  XStoreName(grXdpy,wind,text);

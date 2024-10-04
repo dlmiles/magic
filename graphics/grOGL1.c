@@ -527,6 +527,8 @@ pipehandler()
 
 	    entry = HashLookOnly(&grOGLWindowTable, (char *)VisEvent->window);
 	    mw = (entry)?(MagWindow *)HashGetValue(entry):0;
+	    if (!mw)
+		break;
 
 	    switch(VisEvent->state)
 	    {
@@ -1076,7 +1078,8 @@ GrOGLIconUpdate(w,text)
 
      if (brack = strchr(text,'['))
      {
-     	  brack--;
+	  if (brack != text)
+	      brack--;
 	  *brack = 0;
 	  XSetIconName(grXdpy,wind,text);
 	  XStoreName(grXdpy,wind,text);

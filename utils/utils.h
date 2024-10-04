@@ -21,12 +21,8 @@
 #ifndef _UTILS_H
 #define _UTILS_H 1
 
-#ifdef HAVE_ZLIB
-#include <zlib.h>
-#endif
-
-#include "utils/tech.h"
 #include "utils/magic.h"
+#include "utils/tech.h"
 
 /*
  * Cast second argument to LookupStruct() to (LookupTable *) to
@@ -77,19 +73,11 @@ extern void SetNoisyInt();
 extern void SetNoisyDI();
 extern bool ParsSplit();
 
-#ifdef HAVE_ZLIB
-extern gzFile PaZOpen(char *, char *, char *, char *, char *, char **);
-extern gzFile PaLockZOpen(char *, char *, char *, char *, char *, char **, bool *, int *);
-extern char *PaCheckCompressed(char *);
-#endif
 
 extern int SetNoisyBool(bool *, char *, FILE *);
 
 #ifdef FILE_LOCKS
 extern FILE *flock_open();
-#ifdef HAVE_ZLIB
-extern gzFile flock_zopen();
-#endif
 #endif
 
 /* The following macro takes an integer and returns another integer that

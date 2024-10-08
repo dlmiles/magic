@@ -106,3 +106,9 @@ DEPSRCS	  = ${SRCS}
 OBJS      = ${SRCS:.c=.o} ${CXXSRCS:.cpp=.o}
 LIB_OBJS  = ${LIB_SRCS:.c=.o}
 CLEANS    = Depend ${OBJS} ${LIB_OBJS} lib${MODULE}.a lib${MODULE}.o ${MODULE}
+
+# allows Makefile to be selective
+MAKE_GL            = @MAKE_GL@
+MAKE_GLU           = @MAKE_GLU@
+MAKE_CAIRO         = @MAKE_CAIRO@
+MAKE_READLINE      = @MAKE_READLINE@

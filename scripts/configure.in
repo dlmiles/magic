@@ -1054,6 +1054,7 @@ if test "x$enable_readline" = "xyes" ; then
     else
 	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
+        use_bundled_readline=1
     fi
     AC_CHECK_LIB(termcap, tgetent, [
 	rl_libs="$rl_libs -ltermcap"
@@ -1179,6 +1180,7 @@ fi
 
 if test "x$use_libglu" != "x" ; then
     AC_DEFINE(VECTOR_FONTS)
+    usingGLU=1
 fi
 	
 if test $usingOGL ; then
@@ -1826,6 +1828,11 @@ AC_SUBST(OA_LIBS)
 
 AC_SUBST(ALL_TARGET)
 AC_SUBST(INSTALL_TARGET)
+
+AC_SUBST(MAKE_GL,       [$usingOGL])
+AC_SUBST(MAKE_GLU,      [$usingGLU])
+AC_SUBST(MAKE_CAIRO,    [$usingCairo])
+AC_SUBST(MAKE_READLINE, [$use_bundled_readline])
 
 AC_CONFIG_FILES([defs.mak])
 AC_CONFIG_FILES([makedbh], [chmod +x makedbh])

@@ -622,6 +622,12 @@ ac_includes_default="\
 
 ac_subst_vars='LTLIBOBJS
 LIBOBJS
+MAKE_READLINE
+MAKE_CAIRO
+MAKE_GLU
+MAKE_GL
+MAKE_X11
+MAKE_TCL
 INSTALL_TARGET
 ALL_TARGET
 OA_LIBS
@@ -4754,6 +4760,94 @@ $as_echo "#define AC_APPLE_UNIVERSAL_BUILD 1" >>confdefs.h
  presetting ac_cv_c_bigendian=no (or yes) will help" "$LINENO" 5 ;;
  esac
 
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for inline" >&5
+$as_echo_n "checking for inline... " >&6; }
+if ${ac_cv_c_inline+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_inline=no
+for ac_kw in inline __inline__ __inline; do
+  cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+#ifndef __cplusplus
+typedef int foo_t;
+static $ac_kw foo_t static_foo () {return 0; }
+$ac_kw foo_t foo () {return 0; }
+#endif
+
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_inline=$ac_kw
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+  test "$ac_cv_c_inline" != no && break
+done
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_inline" >&5
+$as_echo "$ac_cv_c_inline" >&6; }
+
+case $ac_cv_c_inline in
+  inline | yes) ;;
+  *)
+    case $ac_cv_c_inline in
+      no) ac_val=;;
+      *) ac_val=$ac_cv_c_inline;;
+    esac
+    cat >>confdefs.h <<_ACEOF
+#ifndef __cplusplus
+#define inline $ac_val
+#endif
+_ACEOF
+    ;;
+esac
+
+{ $as_echo "$as_me:${as_lineno-$LINENO}: checking for C/C++ restrict keyword" >&5
+$as_echo_n "checking for C/C++ restrict keyword... " >&6; }
+if ${ac_cv_c_restrict+:} false; then :
+  $as_echo_n "(cached) " >&6
+else
+  ac_cv_c_restrict=no
+   # The order here caters to the fact that C++ does not require restrict.
+   for ac_kw in __restrict __restrict__ _Restrict restrict; do
+     cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+typedef int * int_ptr;
+	int foo (int_ptr $ac_kw ip) {
+	return ip[0];
+       }
+int
+main ()
+{
+int s[1];
+	int * $ac_kw t = s;
+	t[0] = 0;
+	return foo(t)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_compile "$LINENO"; then :
+  ac_cv_c_restrict=$ac_kw
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.$ac_ext
+     test "$ac_cv_c_restrict" != no && break
+   done
+
+fi
+{ $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_c_restrict" >&5
+$as_echo "$ac_cv_c_restrict" >&6; }
+
+ case $ac_cv_c_restrict in
+   restrict) ;;
+   no) $as_echo "#define restrict /**/" >>confdefs.h
+ ;;
+   *)  cat >>confdefs.h <<_ACEOF
+#define restrict $ac_cv_c_restrict
+_ACEOF
+ ;;
+ esac
+
 
 { $as_echo "$as_me:${as_lineno-$LINENO}: checking for ANSI C header files" >&5
 $as_echo_n "checking for ANSI C header files... " >&6; }
@@ -5291,7 +5385,6 @@ magic_with_tk_libraries=""
 
 
 usingOGL=1
-use_libglu="-lGLU"
 usingTcl=1
 usingOA=0
 usingCairo=1
@@ -7193,6 +7286,7 @@ fi
     else
 	rl_libs="\${MAGICDIR}/readline/readline/libreadline.a"
 	CPPFLAGS="$CPPFLAGS -I\${MAGICDIR}/readline"
+        use_bundled_readline=1
     fi
     { $as_echo "$as_me:${as_lineno-$LINENO}: checking for tgetent in -ltermcap" >&5
 $as_echo_n "checking for tgetent in -ltermcap... " >&6; }
@@ -7494,11 +7588,9 @@ fi
 { $as_echo "$as_me:${as_lineno-$LINENO}: result: $ac_cv_lib_GLU_gluNewTess" >&5
 $as_echo "$ac_cv_lib_GLU_gluNewTess" >&6; }
 if test "x$ac_cv_lib_GLU_gluNewTess" = xyes; then :
-  cat >>confdefs.h <<_ACEOF
-#define HAVE_LIBGLU 1
-_ACEOF
 
-  LIBS="-lGLU $LIBS"
+        usingGLU=1
+        use_libglu="-lGLU"
 
 else
 
@@ -7514,6 +7606,7 @@ fi
 if test "x$use_libglu" != "x" ; then
     $as_echo "#define VECTOR_FONTS 1" >>confdefs.h
 
+    usingGLU=1
 fi
 
 if test $usingOGL ; then
@@ -8263,6 +8356,19 @@ fi
 
 
 
+
+
+MAKE_TCL=$usingTcl
+
+MAKE_X11=$usingX11
+
+MAKE_GL=$usingOGL
+
+MAKE_GLU=$usingGLU
+
+MAKE_CAIRO=$usingCairo
+
+MAKE_READLINE=$use_bundled_readline
 
 
 ac_config_files="$ac_config_files defs.mak"

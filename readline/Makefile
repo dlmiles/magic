@@ -7,8 +7,8 @@ module: readline readline/libreadline.a readline/libhistory.a
 depend:
 
 readline:
-	@if ( ! test -f readline/readline ) ; then \
-	ln -s `ls | grep readline` readline ; \
+	@if ! test -e readline/readline ; then \
+	ln -s `ls | grep readline | grep -v "^readline$$" | tail -n1` readline ; \
 	fi
 
 readline/libhistory.a: readline/libreadline.a

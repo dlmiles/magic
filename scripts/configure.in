@@ -129,6 +129,8 @@ AC_C_BIGENDIAN
 dnl Check for required header files
 AC_HEADER_STDC
 
+AC_FUNC_ALLOCA
+
 dnl Need either setenv or putenv
 AC_CHECK_FUNCS(setenv putenv)
 

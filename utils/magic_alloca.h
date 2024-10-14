@@ -1,0 +1,49 @@
+/* alloca.h --
+ *
+ *
+ *
+ *
+ *
+ */
+
+#ifndef _MAGIC__ALLOCA_H
+#define _MAGIC__ALLOCA_H
+
+#ifdef HAVE_MAGIC_AUTOCONF_CONFIG_H
+#include "magic/autoconf/config.h"
+#endif
+
+/* taken from autoconf documentation:
+ *    https://www.gnu.org/software/autoconf/manual/autoconf-2.69/html_node/Particular-Functions.html
+ *
+ * the reason this header exists is to help hide this ugliness and prevent copy-and-paste error etc..
+ *
+ * #include "utils/magic_alloca.h"
+ */
+#ifdef STDC_HEADERS
+# include <stdlib.h>
+# include <stddef.h>
+#else
+# ifdef HAVE_STDLIB_H
+#  include <stdlib.h>
+# endif
+#endif
+#ifdef HAVE_ALLOCA_H
+# include <alloca.h>
+#elif !defined alloca
+# ifdef __GNUC__
+#  define alloca __builtin_alloca
+# elif defined _AIX
+#  define alloca __alloca
+# elif defined _MSC_VER
+#  include <malloc.h>
+#  define alloca _alloca
+# elif !defined HAVE_ALLOCA
+#  ifdef  __cplusplus
+extern "C"
+#  endif
+void *alloca (size_t);
+# endif
+#endif
+
+#endif /* _MAGIC__ALLOCA_H */

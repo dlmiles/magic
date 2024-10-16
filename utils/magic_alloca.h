@@ -6,8 +6,8 @@
  *
  */
 
-#ifndef _MAGIC__ALLOCA_H
-#define _MAGIC__ALLOCA_H
+#ifndef _MAGIC__UTILS__MAGIC_ALLOCA_H
+#define _MAGIC__UTILS__MAGIC_ALLOCA_H
 
 #ifdef HAVE_MAGIC_AUTOCONF_CONFIG_H
 #include "magic/autoconf/config.h"
@@ -46,4 +46,4 @@ void *alloca (size_t);
 # endif
 #endif
 
-#endif /* _MAGIC__ALLOCA_H */
+#endif /* _MAGIC__UTILS__MAGIC_ALLOCA_H */

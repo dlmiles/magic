@@ -3,8 +3,8 @@
  *	Definitions for ext2spice.c and ext2hier.c
  */
 
-#ifndef _EXTTOSPICE_H
-#define _EXTTOSPICE_H
+#ifndef _MAGIC__EXT2SPICE__EXT2SPICE_H
+#define _MAGIC__EXT2SPICE__EXT2SPICE_H
 
 /* cache list used to find parallel devs */
 typedef struct _devMerge {
@@ -188,4 +188,4 @@ typedef struct {
 #define 	atoCap(s)	((EFCapValue)atof(s))
 #endif
 
-#endif  /* _EXTTOSPICE_H */
+#endif  /* _MAGIC__EXT2SPICE__EXT2SPICE_H */

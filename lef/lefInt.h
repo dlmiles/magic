@@ -7,8 +7,8 @@
  * rcsid $Header: /usr/cvsroot/magic-8.0/lef/lefInt.h,v 1.1.1.1 2008/02/03 20:43:50 tim Exp $
  */
 
-#ifndef _LEFINT_H
-#define _LEFINT_H
+#ifndef _MAGIC__LEF__LEFINT_H
+#define _MAGIC__LEF__LEFINT_H
 
 #include "utils/magic.h"
 
@@ -187,4 +187,4 @@ void lefRemoveGeneratedVias();
 #define DEF_INFO	6
 #define DEF_SUMMARY	7
 
-#endif /* _LEFINT_H */
+#endif /* _MAGIC__LEF__LEFINT_H */

@@ -10,7 +10,7 @@ xcodebuild -showsdks
 # x86_64-apple-darwin21.6.0   lacks needed -I/usr/X11/include
 # aarch64-apple-darwin23.6.0  has needed -I/usr/X11/include
 
-for d in /usr/X11/include /opt/X11/include /opt/local/include
+for d in /usr/X11/include /opt/X11/include /opt/local/include /usr/local/include
 do
     if [ -d "$d" ]
     then
@@ -19,6 +19,19 @@ do
         then
             echo "Found Xlib.h: ${d}/X11/Xlib.h"
             x11_include_dir="${d}"
+        fi
+    fi
+done
+
+for d in /usr/X11/lib /opt/X11/lib /opt/local/lib /usr/local/lib
+do
+    if [ -d "$d" ]
+    then
+        echo "Directory Exists: $d"
+        if [ -z "$x11_library_dir" ] && [ -e "${d}/libX11.dylib" ]
+        then
+            echo "Found libX11.dylib: ${d}/libX11.dylib"
+            x11_library_dir="${d}"
         fi
     fi
 done
@@ -34,7 +47,17 @@ then
     #  provide -I value, so the incomplete headers end up having priority.
     #CFLAGS="-I/opt/local/include"
     #CFLAGS="-I/opt/X11/include"
-    CONFARGS="--x-includes=$x11_include_dir"
+    CONFARGS="$CONFARGS --x-includes=$x11_include_dir"
+fi
+
+if [ -n "$x11_library_dir" ]
+then
+    # Example system view from xquartz 2.8.5  and  tcl-tk 8.6.15
+    # /opt/X11/lib/libX11.6.dylib (3496912 bytes 2023-01-26)
+    # /opt/homebrew/Cellar/libx11/1.8.10/lib/libX11.6.dylib (1025536 bytes 2024-10-07)
+    # Note the size difference, the question is ... if the tcl-tk expects to run against
+    #  their copy of libX11, is the ABI equivalent and substitutable without crashing ?
+    CONFARGS="$CONFARGS --x-libraries=$x11_library_dir"
 fi
 
 ./configure\

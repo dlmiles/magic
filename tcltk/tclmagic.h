@@ -6,8 +6,8 @@
  *	the definition for "ClientData" is in conflict.
  */
 
-#ifndef _TCLMAGIC_H
-#define _TCLMAGIC_H
+#ifndef _MAGIC__TCLTK__TCLMAGIC_H
+#define _MAGIC__TCLTK__TCLMAGIC_H
 
 #ifdef MAGIC_WRAPPER
 
@@ -35,4 +35,4 @@ extern void MakeWindowCommand();
 #endif
 
 #endif	/* MAGIC_WRAPPER */
-#endif /* _TCLMAGIC_H */
+#endif /* _MAGIC__TCLTK__TCLMAGIC_H */

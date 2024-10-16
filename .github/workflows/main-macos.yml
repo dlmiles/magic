@@ -50,7 +50,9 @@ jobs:
       - name: Search
         run: |
           set +e
-          find /opt /usr $HOME -iname "libX*.dylib" 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" -exec ls -l {} \; 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" -exec shasum -a 1 {} \; 2>/dev/null
           #find /opt /usr $HOME -iname "x*.h" 2>/dev/null
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
@@ -75,6 +77,30 @@ jobs:
 
           make database/database.h
           make -j$(sysctl -n hw.ncpu)
+
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
 
   simple_build_macos:
     runs-on: macos-latest
@@ -116,7 +142,9 @@ jobs:
       - name: Search
         run: |
           set +e
-          find /opt /usr $HOME -iname "libX*.dylib" 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" -exec ls -l {} \; 2>/dev/null
+          find /opt /usr $HOME -iname "libX11.*dylib" -exec shasum -a 1 {} \; 2>/dev/null
           #find /opt /usr $HOME -iname "x*.h" 2>/dev/null
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
           #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
@@ -141,3 +169,29 @@ jobs:
 
           make database/database.h
           make -j$(sysctl -n hw.ncpu)
+
+      - name: Install
+        run: |
+          sudo make install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin
+          echo "=== otool -L magic/tclmagic.dylib"
+          otool -L magic/tclmagic.dylib
+          echo "=== otool -L tcltk/magicexec"
+          otool -L tcltk/magicexec
+          echo "=== otool -L tcltk/magicdnull"
+          otool -L tcltk/magicdnull
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos

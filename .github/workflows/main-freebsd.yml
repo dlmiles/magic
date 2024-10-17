@@ -14,7 +14,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-      - name: OpenBSD shell actions
+      - name: FreeBSD shell actions
         id: freebsd
         uses: vmactions/freebsd-vm@v1
         with:
@@ -23,7 +23,7 @@ jobs:
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
             # zlib is in base
-            pkg install -y -v gmake tcl-8.6.13 tk-8.6.13 cairo freeglut git
+            pkg install -y -v gmake tcl87 tk87 cairo freeglut git
           run: |
             pwd
             ls -lah

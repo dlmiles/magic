@@ -23,7 +23,7 @@ jobs:
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
             # zlib is in base
-            pkg_add gmake tcl-8.6.13 tk-8.6.13 cairo freeglut git
+            pkg_add -vv gmake tcl-8.6.13 tk-8.6.13 cairo freeglut git
           run: |
             pwd
             ls -lah
@@ -55,6 +55,8 @@ jobs:
             gmake 2>&1 | tee MAKE.LOG
 
             gmake install 2>&1 | tee INSTALL.LOG
+            
+            find . -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*.so" \) -exec ldd {} \;
 
             hash -r || true
             magic --version

@@ -1,0 +1,89 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-solaris
+
+# Controls when the workflow will run
+on:
+  push:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_solaris:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Solaris shell actions
+        id: solaris
+        uses: vmactions/solaris-vm@v1
+        with:
+          envs: MYENV
+          usesh: true
+          prepare: |
+            pkgutil -y -i bash gmake ggrep gsed libz_dev tcl_dev tk_dev libcairo_dev freeglut git python33 perl libreadline_dev libncurses_dev findutils binutils gcc5core gcc5g++ pkgconfig
+          run: |
+            set +e
+            cat /etc/release
+            uname -a
+            psrinfo -vp
+            psrinfo -v
+            cc -v
+            ld --version
+            gcc -v
+            gld -v
+            make --version
+            gmake --version
+            pwd
+            ls -lah
+            whoami
+            env | grep -v "TOKEN" | grep -v "SECRET" | sort
+            echo "::memstat" | mdb -k
+            nproc=$(psrinfo -v)
+            export nproc
+            echo "nproc=$nproc"
+
+            git config --global --add safe.directory "$(pwd)"
+
+            gfind . /usr/local /opt -type f \( -name "tkConfig.sh" -or -name "tclConfig*" \) -print
+            gfind . /ust/local /opt -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+            gfind . /usr/local /opt -type f \( -name "tcl.h" -or -name "Xlib*.h" -or -name "cairo.h" \) -print
+            gfind . /usr/local /opt -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" \) -print
+            ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
+            nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
+            #
+            for pkg in x11 cairo freeglut tcl tk pthread; \
+            do \
+              echo "### pkg-config --libs --cflags ${pkg} :"; \
+              pkg-config --libs --cflags "$pkg"; \
+            done
+
+            set -o pipefail
+            set -e
+
+            # CFLAGS by default it looks like the compiler targets 32bit then errors on linking to
+            #  amd64 libraries.  We add the -g back in due to this being the default in ./configure
+            CFLAGS="-m64 -g"
+            export CFLAGS
+            ./configure --x-libraries=/usr/local/lib --x-includes=/usr/local/include --with-tcl=/opt/csw/lib/amd64 --with-tk=/opt/csw/lib/amd64 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            unset CFLAGS
+
+            echo "===== defs.mak ====="
+            cat defs.mak
+            echo "===== defs.mak ====="
+
+            gmake database/database.h
+            gmake 2>&1 | tee MAKE.LOG
+
+            gmake install 2>&1 | tee INSTALL.LOG
+            
+            gfind . -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
+
+            hash -r || true
+            PATH="$PATH:/usr/local/bin"
+            export PATH
+            which magic
+            magic --version || true
+
+            echo "version; quit" | magic -T scmos -noconsole -nowindow
+            true

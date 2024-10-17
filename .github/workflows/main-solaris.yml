@@ -21,9 +21,7 @@ jobs:
           envs: MYENV
           usesh: true
           prepare: |
-            echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
-            # zlib is in base
-            pkgutil -y -i gmake tcl tk cairo freeglut git
+            pkgutil -y -i gmake libz_dev tcl_dev tk_dev libcairo_dev freeglut git
           run: |
             pwd
             ls -lah
@@ -45,6 +43,9 @@ jobs:
 
             git config --global --add safe.directory "$(pwd)"
 
+            find . -type f \( -name "lib*tcl*" -or -name "lib*tk*" -or -name "tclConfig*" \) -print
+            find . -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+
             ./configure --with-tcl=/usr/local/lib --with-tk=/usr/local/lib --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
 
             echo "===== defs.mak ====="
@@ -58,7 +59,7 @@ jobs:
             
             find . -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*.so" \) -exec ldd {} \;
             
-            find . -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \)
+            find . -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
 
             hash -r || true
             which magic

@@ -21,7 +21,7 @@ jobs:
           envs: MYENV
           usesh: true
           prepare: |
-            pkgutil -y -i gmake libz_dev tcl_dev tk_dev libcairo_dev freeglut git
+            pkgutil -y -i gmake libz_dev tcl_dev tk_dev libcairo_dev freeglut git python33
           run: |
             pwd
             ls -lah

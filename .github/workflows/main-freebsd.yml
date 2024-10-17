@@ -23,7 +23,7 @@ jobs:
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
             # zlib is in base
-            pkg install -y gmake tcl87 tk87 cairo freeglut git
+            pkg install -y gmake tcl87 tk87 cairo freeglut git python3
           run: |
             pwd
             ls -lah

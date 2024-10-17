@@ -55,11 +55,14 @@ jobs:
             gmake 2>&1 | tee MAKE.LOG
 
             gmake install 2>&1 | tee INSTALL.LOG
-            
-            find . -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*.so" \) -exec ldd {} \;
-            
-            find . -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \)
+
+            find . /opt /usr/local -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*.so" \) -exec ldd {} \;
+
+            find . /opt /usr/local -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
 
             hash -r || true
             which magic
-            magic --version
+            magic --version || true
+
+            echo "version; quit" | magic -T scmos -noconsole -nowindow
+            true

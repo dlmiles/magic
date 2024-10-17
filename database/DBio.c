@@ -159,6 +159,24 @@ file_is_not_writeable(name)
     return(0);
 }
 
+static int
+path_is_dir(const char *dirname, const char *filename)
+{
+    struct stat statbuf;
+    char path[PATH_MAX];
+    const char *sep = filename ? "/" : "";
+    if (!filename)
+        filename = "";
+    size_t n = snprintf(path, sizeof(path), "%s%s%s", dirname, sep, filename);
+    ASSERT(n < sizeof(path), "path");
+    if (n >= sizeof(path))
+        return -1;
+    int err = stat(path, &statbuf);
+    if (err != 0)
+        return 0;
+    return S_ISDIR(statbuf.st_mode) ? 1 : 0;
+}
+
 /* Linked string record used to hold directory contents */
 
 typedef struct _linkedDirent {
@@ -244,7 +262,12 @@ DBSearchForTech(techname, techroot, pathroot, level)
 	for (ld = dlist; ld; ld = ld->ld_next)
 	{
 	    tdent = ld->ld_dirent;
-	    if (tdent->d_type != DT_DIR)
+#ifdef HAVE_STRUCT_DIRENT_D_TYPE
+            int is_dir = tdent->d_type == DT_DIR;
+#else
+            int is_dir = path_is_dir(pathroot, tdent->d_name) > 0; /* treat error as false */
+#endif
+	    if (!is_dir)
 	    {
 		if (!strcmp(tdent->d_name, techname))
 		{
@@ -316,7 +339,12 @@ DBAddStandardCellPaths(pathptr, level)
 
 	while ((tdent = readdir(tdir)) != NULL)
 	{
-	    if ((tdent->d_type == DT_DIR) &&
+#ifdef HAVE_STRUCT_DIRENT_D_TYPE
+            int is_dir = tdent->d_type == DT_DIR;
+#else
+            int is_dir = path_is_dir(pathptr, tdent->d_name) > 0; /* treat error as false */
+#endif
+	    if (is_dir &&
 		    (strcmp(tdent->d_name, ".") && strcmp(tdent->d_name, "..")))
 	    {
 		/* Scan the directory contents of tdir for more subdirectories */
@@ -325,7 +353,7 @@ DBAddStandardCellPaths(pathptr, level)
 		paths += DBAddStandardCellPaths(newpath, level + 1);
 		freeMagic(newpath);
 	    }
-	    else if (tdent->d_type != DT_DIR)
+	    else if (!is_dir)
 	    {
 		/* Scan the directory contents of tdir for .mag files */
 		if (!strcmp(tdent->d_name + strlen(tdent->d_name) - 4, ".mag"))

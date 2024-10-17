@@ -1,0 +1,60 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-openbsd
+
+# Controls when the workflow will run
+on:
+  push:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_openbsd:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: OpenBSD shell actions
+        id: openbsd
+        uses: vmactions/openbsd-vm@v1
+        with:
+          envs: MYENV
+          usesh: true
+          prepare: |
+            echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
+            # zlib is in base
+            pkg_add gmake tcl-8.6.13 tk-8.6.13 cairo freeglut git
+          run: |
+            pwd
+            ls -lah
+            whoami
+            env
+            sysctl hw.model
+            sysctl hw.ncpu
+            sysctl hw.physmem
+            sysctl hw.usermem
+            set +e
+            uname -a
+            cc -v
+            ld -v
+            nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
+            export nproc
+            echo "nproc=$nproc"
+            make --version
+            gmake --version
+
+            git config --global --add safe.directory "$(pwd)"
+
+            ./configure 2>&1 | tee CONFIGURE.LOG
+
+            echo "===== defs.mak ====="
+            cat defs.mak
+            echo "===== defs.mak ====="
+
+            gmake database/database.h
+            gmake 2>&1 | tee MAKE.LOG
+
+            gmake install 2>&1 | tee INSTALL.LOG
+
+            hash -r || true
+            magic --version

@@ -831,6 +831,7 @@ static int		ImgLayerConfigureMaster (
 	/* ARGSUSED */
 static int
 ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
+#ifdef USE_OLD_IMAGE
     Tcl_Interp *interp;		/* Interpreter for application containing
 				 * image. */
     const char *name;		/* Name to use for image. */
@@ -841,11 +842,24 @@ ImgLayerCreate(interp, name, argc, argv, typePtr, master, clientDataPtr)
 #endif
     Tcl_Obj *const argv[];	/* Argument objects for options (doesn't
 				 * include image name or type). */
-    const Tk_ImageType *typePtr;/* Pointer to our type record (not used). */
+    Tk_ImageType *typePtr;	/* Pointer to our type record (not used). */
     Tk_ImageMaster master;	/* Token for image, to be used by us in
 				 * later callbacks. */
     ClientData *clientDataPtr;	/* Store manager's token for image here;
 				 * it will be returned in later callbacks. */
+#else
+    Tcl_Interp *interp;		/* Interpreter for application containing
+				 * image. */
+    CONST84 char *name;		/* Name to use for image. */
+    int argc;			/* Number of arguments. */
+    Tcl_Obj *CONST argv[];	/* Argument objects for options (doesn't
+				 * include image name or type). */
+    CONST84 Tk_ImageType *typePtr;/* Pointer to our type record (not used). */
+    Tk_ImageMaster master;	/* Token for image, to be used by us in
+				 * later callbacks. */
+    ClientData *clientDataPtr;	/* Store manager's token for image here;
+				 * it will be returned in later callbacks. */
+#endif
 {
     LayerMaster *masterPtr;
 

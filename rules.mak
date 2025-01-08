@@ -6,10 +6,10 @@ depend: ${DEPEND_FILE}
 
 # MacOS sed quirk, need argument after -i such as -i '', but this is not
 # compatible with GNU sed.  So check OS and exact path to enable.
-UNAME_S := $(shell uname -s)
-undefine SED_MAC
-ifeq ($(UNAME_S),Darwin)
-ifeq ($(SED),/usr/bin/sed)
+UNAME_S ?= $(shell uname -s)
+# undefine SED_MAC
+ifeq (${UNAME_S},Darwin)
+ifeq (${SED},/usr/bin/sed)
 SED_MAC = ''
 endif
 endif

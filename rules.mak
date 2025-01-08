@@ -4,6 +4,16 @@ module: lib${MODULE}.o
 
 depend: ${DEPEND_FILE}
 
+# MacOS sed quirk, need argument after -i such as -i '', but this is not
+# compatible with GNU sed.  So check OS and exact path to enable.
+UNAME_S := $(shell uname -s)
+undefine SED_MAC
+ifeq ($(UNAME_S),Darwin)
+ifeq ($(SED),/usr/bin/sed)
+SED_MAC = ''
+endif
+endif
+
 # New Depend file generating line (Tim Edwards, 1/25/06).  This gets around
 # problems with gcc.  The purpose of "make depend" is to generate a list of
 # all local dependencies, but gcc insists that anything that is in, for
@@ -17,7 +27,7 @@ depend: ${DEPEND_FILE}
 # it indicates a missing dependency somewhere in a upstream/parent Makefile.
 ${DEPEND_FILE}: ${DEPSRCS}
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} > ${DEPEND_FILE}$$PPID.tmp
-	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i ${DEPEND_FILE}$$PPID.tmp
+	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i ${SED_MAC} ${DEPEND_FILE}$$PPID.tmp
 	${MV} -f ${DEPEND_FILE}$$PPID.tmp ${DEPEND_FILE}
 
 # Original Depend file generating line:

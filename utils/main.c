@@ -549,6 +549,109 @@ mainInitBeforeArgs(argc, argv)
  * ----------------------------------------------------------------------------
  */
 
+#include "utils/magic_alloca.h"
+
+size_t
+test_func(char* cp, size_t len, char ch)
+{
+	char const* kp = cp;
+	size_t count = 0;
+	size_t l = len;
+	while(l-- > 0) {
+		if(ch == *kp)
+			count++;
+		kp++;
+	}
+	return count;
+}
+
+char const*
+passfail(int a, int b)
+{
+	return (a == b) ? "PASS" : "FAIL";
+}
+
+void
+my_alloca_tests1(int id)
+{
+	xalloca_var(char *, cp);
+	xalloca_init(&cp);
+	long ll = random();
+	ll &= 4095;
+
+	xalloca_malloc(&cp, (size_t)ll);
+
+	memset(cp, ' ', ll);
+	size_t l = test_func(cp, ll, ' ');
+	printf("%s: test%d()=%zu cp=%p ll=%lu\n", passfail(ll, l), id, l, cp, ll);
+
+	xalloca_end(&cp);
+}
+
+void
+my_alloca_tests2(int id)
+{
+	xalloca_var(char *, cp);
+	xalloca_init(&cp);
+	long ll = random();
+	ll &= 4095;
+
+	xalloca_calloc(&cp, 1, (size_t)ll);
+
+	size_t l = test_func(cp, ll, 0);
+	printf("%s: test%d()=%zu cp=%p ll=%lu\n", passfail(ll, l), id, l, cp, ll);
+
+	xalloca_end(&cp);
+}
+
+const char *DATA = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+
+static int
+inline max(int a, int b)
+{
+	return (b > a) ? b : a;
+}
+
+void
+my_alloca_tests3(int id)
+{
+	xalloca_var(char *, cp);
+	xalloca_init(&cp);
+
+	char tmp[1024];
+	long ll = random();
+	ll &= 1023;
+
+	const size_t datalen = strlen(DATA);
+
+	size_t off = 0;
+	size_t left = (ll > 0) ? ll - 1 : 0;
+	while(left > 0) {
+		size_t copylen = max(left, datalen);
+		strncpy(&tmp[off], DATA, copylen);
+		left -= copylen;
+	}
+	tmp[ll] = '\0';
+	tmp[sizeof(tmp)-1] = '\0';
+	xalloca_strdup(&cp, tmp);
+
+	size_t l = test_func(cp, ll, 0);
+	printf("%s: test%d()=%zu cp=%p ll=%lu\n", passfail(ll, l), id, l, cp, ll);
+
+	xalloca_end(&cp);
+}
+
+void
+my_alloca_tests(void)
+{
+	int id = 1;
+	my_alloca_tests1(id);
+	id++;
+	my_alloca_tests2(id);
+	id++;
+	my_alloca_tests3(id);
+}
+
 int
 mainInitAfterArgs()
 {
@@ -790,6 +893,8 @@ mainInitAfterArgs()
 #endif
 
     TxSetPoint(GR_CURSOR_X, GR_CURSOR_Y, WIND_UNKNOWN_WINDOW);
+
+my_alloca_tests();
 
     return 0;
 }

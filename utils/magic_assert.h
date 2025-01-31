@@ -30,4 +30,15 @@
 #define	ASSERT(p, where) assert(p)	/* "where" is ignored */
 
 
+#ifndef _Static_assert
+ /* Pre C11, this moves the test to runtime, not trying to support 1-arg form */
+ #define _Static_assert(expression, message)  ASSERT(expression, message)
+#endif
+
+#ifndef static_assert
+ /* Pre C23, this moves the test to runtime, not trying to support 1-arg form */
+ #define static_assert(expression, message)  ASSERT(expression, message)
+#endif
+
+
 #endif /* _MAGIC__UTILS__MAGIC_ASSERT_H */

@@ -38,9 +38,8 @@ static const char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic
 #include <ctype.h>
 #include <sys/types.h>
 #include <arpa/inet.h>	/* for htons() */
-#if defined(SYSV) || defined(EMSCRIPTEN)
-#include <time.h>
-#else
+#include <time.h>       /* since C89 */
+#ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>
 #endif
 

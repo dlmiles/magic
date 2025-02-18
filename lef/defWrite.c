@@ -11,7 +11,7 @@
  */
 
 #ifndef lint
-static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defWrite.c,v 1.2 2008/02/10 19:30:21 tim Exp $";
+static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/lef/defWrite.c,v 1.2 2008/02/10 19:30:21 tim Exp $";
 #endif  /* not lint */
 
 #include <stdio.h>
@@ -62,7 +62,7 @@ typedef struct {
 typedef struct {
    CellDef	*def;
    int		nlayers;
-   char		**baseNames;
+   const char	**baseNames;
    TileTypeBitMask *blockMasks;
    LinkedRect **blockData;
 } DefObsData;
@@ -79,7 +79,7 @@ typedef struct {
 
 /*----------------------------------------------------------------------*/
 
-char *defGetType();		/* Forward declaration */
+const char *defGetType(TileType ttype, lefLayer **lefptr, bool do_vias);		/* Forward declaration */
 
 /*----------------------------------------------------------------------*/
 
@@ -101,13 +101,12 @@ char *defGetType();		/* Forward declaration */
  */
 
 void
-defWriteHeader(def, f, oscale, units)
-    CellDef *def;	/* Def for which to generate DEF output */
-    FILE *f;		/* Output to this file */
-    float oscale;
-    int units;		/* Units for UNITS; could be derived from oscale */
+defWriteHeader(
+    CellDef *def,	/* Def for which to generate DEF output */
+    FILE *f,		/* Output to this file */
+    float oscale,
+    int units)		/* Units for UNITS; could be derived from oscale */
 {
-    TileType type;
     char *propvalue;
     bool propfound;
 
@@ -191,10 +190,11 @@ defWriteHeader(def, f, oscale, units)
  *------------------------------------------------------------
  */
 
-char *
-defTransPos(Transform *t)
+const char *
+defTransPos(
+    Transform *t)
 {
-    static char *def_orient[] = {
+    static const char * const def_orient[] = {
 	"N", "S", "E", "W", "FN", "FS", "FE", "FW"
     };
 
@@ -242,12 +242,12 @@ defTransPos(Transform *t)
  */
 
 NetCount
-defCountNets(rootDef, allSpecial)
-    CellDef *rootDef;
-    bool allSpecial;
+defCountNets(
+    CellDef *rootDef,
+    bool allSpecial)
 {
     NetCount total;
-    int defnodeCount();
+    int defnodeCount(EFNode *node, int res, EFCapValue cap, NetCount *total);
 
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
@@ -286,14 +286,13 @@ defCountNets(rootDef, allSpecial)
 /* Callback function used by defCountNets */
 
 int
-defnodeCount(node, res, cap, total)
-    EFNode *node;
-    int res;			/* not used */
-    EFCapValue cap;		/* not used */
-    NetCount *total;
+defnodeCount(
+    EFNode *node,
+    int res,			/* not used */
+    EFCapValue cap,		/* not used */
+    NetCount *total)
 {
     HierName *hierName;
-    char ndn[256];
     char *cp, clast;
 
     /* Ignore the substrate node if it is not connected to any routing */
@@ -392,16 +391,15 @@ defnodeCount(node, res, cap, total)
  */
 
 void
-defHNsprintf(str, hierName, divchar)
-    char *str;
-    HierName *hierName;
-    char divchar;
+defHNsprintf(
+    char *str,
+    const HierName *hierName,
+    char divchar)
 {
-    bool trimGlob, trimLocal;
-    char *s, *cp, c;
-    char *defHNsprintfPrefix();
+    const char *cp;
+    char c;
+    char *defHNsprintfPrefix(const HierName *hierName, char *str, char divchar);  /* Forward declaration */
 
-    s = str;
     if (hierName->hn_parent) str = defHNsprintfPrefix(hierName->hn_parent, str,
 		divchar);
 
@@ -433,12 +431,12 @@ defHNsprintf(str, hierName, divchar)
     *str++ = '\0';
 }
 
-char *defHNsprintfPrefix(hierName, str, divchar)
-    HierName *hierName;
-    char *str;
-    char divchar;
+char *defHNsprintfPrefix(
+    const HierName *hierName,
+    char *str,
+    char divchar)
 {
-    char *cp, c;
+    const char *cp;
 
     if (hierName->hn_parent)
 	str = defHNsprintfPrefix(hierName->hn_parent, str, divchar);
@@ -463,8 +461,8 @@ char *defHNsprintfPrefix(hierName, str, divchar)
  */
 
 char *
-nodeDefName(hname)
-    HierName *hname;
+nodeDefName(
+    HierName *hname)
 {
     EFNodeName *nn;
     HashEntry *he;
@@ -503,9 +501,9 @@ nodeDefName(hname)
 #define MAX_DEF_COLUMNS 70
 
 void
-defCheckForBreak(addlen, defdata)
-    int addlen;
-    DefData *defdata;
+defCheckForBreak(
+    int addlen,
+    DefData *defdata)
 {
     defdata->outcolumn += addlen;
     if (defdata->outcolumn > MAX_DEF_COLUMNS)
@@ -526,11 +524,10 @@ defCheckForBreak(addlen, defdata)
  */
 
 void
-defWriteRouteWidth(defdata, width)
-    DefData *defdata;
-    int width;
+defWriteRouteWidth(
+    DefData *defdata,
+    int width)
 {
-    float oscale = defdata->scale;
     char numstr[32];
     sprintf(numstr, "%.10g", ((float)width * defdata->scale));
     defCheckForBreak(strlen(numstr) + 1, defdata);
@@ -558,10 +555,11 @@ defWriteRouteWidth(defdata, width)
  */
 
 void
-defWriteCoord(defdata, x, y, orient)
-    DefData *defdata;
-    float x, y;
-    unsigned char orient;
+defWriteCoord(
+    DefData *defdata,
+    float x,
+    float y,
+    unsigned char orient)
 {
     FILE *f = defdata->f;
     char numstr[32];
@@ -629,16 +627,16 @@ defWriteCoord(defdata, x, y, orient)
  */
 
 void
-defWriteNets(f, rootDef, oscale, MagicToLefTable, defViaTable, specialmode)
-    FILE *f;				/* File to write to */
-    CellDef *rootDef;			/* Cell definition to use */
-    float oscale;			/* Output scale factor */
-    LefMapping *MagicToLefTable;	/* Magic to LEF layer mapping */
-    HashTable *defViaTable;		/* Hash table of contact positions */
-    unsigned char specialmode;		/* What to write as a SPECIALNET */
+defWriteNets(
+    FILE *f,				/* File to write to */
+    CellDef *rootDef,			/* Cell definition to use */
+    float oscale,			/* Output scale factor */
+    LefMapping *MagicToLefTable,	/* Magic to LEF layer mapping */
+    HashTable *defViaTable,		/* Hash table of contact positions */
+    unsigned char specialmode)		/* What to write as a SPECIALNET */
 {
     DefData defdata;
-    int defnodeVisit();
+    int defnodeVisit(EFNode *node, int res, EFCapValue cap, DefData *defdata);
 
     defdata.f = f;
     defdata.scale = oscale;
@@ -653,11 +651,11 @@ defWriteNets(f, rootDef, oscale, MagicToLefTable, defViaTable, specialmode)
 }
 
 int
-defnodeVisit(node, res, cap, defdata)
-    EFNode *node;
-    int res;
-    EFCapValue cap;
-    DefData *defdata;
+defnodeVisit(
+    EFNode *node,
+    int res,
+    EFCapValue cap,
+    DefData *defdata)
 {
     HierName *hierName;
     char *ndn;
@@ -665,13 +663,11 @@ defnodeVisit(node, res, cap, defdata)
     char locndn[256];
     FILE *f = defdata->f;
     CellDef *def = defdata->def;
-    float oscale = defdata->scale;
     TileTypeBitMask tmask, *rmask;
-    TileType nodetype, magictype;
-    Rect *nodeloc;
+    TileType magictype;
     LinkedRect *lr;
     EFNodeName *thisnn;
-    int defNetGeometryFunc();		/* Forward declaration */
+    int defNetGeometryFunc(Tile *tile, int plane, DefData *defdata);		/* Forward declaration */
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -784,7 +780,7 @@ defnodeVisit(node, res, cap, defdata)
 
 	    Rect rport;
 	    SearchContext scx;
-	    int defPortTileFunc();	/* Fwd declaration */
+	    int defPortTileFunc(Tile *tile, TreeContext *cx);	/* Fwd declaration */
 
 	    scx.scx_area = node->efnode_loc;
 	    scx.scx_use = def->cd_parents;
@@ -843,9 +839,9 @@ defnodeVisit(node, res, cap, defdata)
 /* sets the lower bound of the clip line for extending a wire upward	*/
 
 int
-defMaxWireFunc(tile, yclip)
-    Tile *tile;
-    int  *yclip;
+defMaxWireFunc(
+    Tile *tile,
+    int  *yclip)
 {
     if (BOTTOM(tile) < (*yclip)) *yclip = BOTTOM(tile);
     return 0;
@@ -855,9 +851,9 @@ defMaxWireFunc(tile, yclip)
 /* sets the upper bound of the clip line for extending a wire downward	*/
 
 int
-defMinWireFunc(tile, yclip)
-    Tile *tile;
-    int  *yclip;
+defMinWireFunc(
+    Tile *tile,
+    int  *yclip)
 {
     if (TOP(tile) > (*yclip)) *yclip = TOP(tile);
     return 0;
@@ -872,9 +868,9 @@ defMinWireFunc(tile, yclip)
 /* function when it is processed.					*/
 
 int
-defExemptWireFunc(tile, rect)
-    Tile *tile;
-    Rect *rect;
+defExemptWireFunc(
+    Tile *tile,
+    Rect *rect)
 {
     Rect r;
 
@@ -897,9 +893,9 @@ defExemptWireFunc(tile, rect)
 /* so we can look for attaching material.				*/
 
 int
-defPortTileFunc(tile, cx)
-    Tile *tile;
-    TreeContext *cx;
+defPortTileFunc(
+    Tile *tile,
+    TreeContext *cx)
 {
     SearchContext *scx = cx->tc_scx;
     Rect *rport = (Rect *)cx->tc_filter->tf_arg;
@@ -922,10 +918,10 @@ defPortTileFunc(tile, cx)
 /* the DEF file.						*/
 
 int
-defNetGeometryFunc(tile, plane, defdata)
-    Tile *tile;			/* Tile being visited */
-    int plane;			/* Plane of the tile being visited */
-    DefData *defdata;		/* Data passed to this function */
+defNetGeometryFunc(
+    Tile *tile,			/* Tile being visited */
+    int plane,			/* Plane of the tile being visited */
+    DefData *defdata)		/* Data passed to this function */
 {
     FILE *f = defdata->f;
     CellDef *def = defdata->def;
@@ -938,7 +934,8 @@ defNetGeometryFunc(tile, plane, defdata)
     int routeWidth, w, h, midlinex2, topClip, botClip;
     float x1, y1, x2, y2, extlen;
     lefLayer *lefType, *lefl;
-    char *lefName, viaName[128], posstr[24];
+    const char *lefName;
+    char viaName[128], posstr[24];
     LefRules *lastruleset = defdata->ruleset;
     HashEntry *he;
     HashTable *defViaTable = defdata->defViaTable;
@@ -1167,7 +1164,6 @@ defNetGeometryFunc(tile, plane, defdata)
 		int ndv = (h > w) ? w : h;
 		char ndname[100];
 		LefRules *ruleset;
-		lefRule *rule;
 
 		/*
 	    	TxPrintf("Net at (%d, %d) has width %d, default width is %d\n",
@@ -1426,8 +1422,18 @@ defNetGeometryFunc(tile, plane, defdata)
 	    else
 	    {
 		TxError("Cannot find via name %s in table!\n", posstr);
+#if 1
+		char num1buf[24];
+		char num2buf[24];
+		snprintf(num1buf, sizeof(num1buf), "%.10g", ((float)w * oscale));
+		snprintf(num2buf, sizeof(num2buf), "%.10g", ((float)h * oscale));
+		num1buf[12] = '\0'; /* enforce truncation "0.1234567890" */
+		num2buf[12] = '\0'; /* enforce truncation "0.1234567890" */
+		snprintf(viaName, (size_t)24, "_%.11s_%.11s", num1buf, num2buf);
+#else
 	    	snprintf(viaName, (size_t)24, "_%.10g_%.10g",
 			((float)w * oscale), ((float)h * oscale));
+#endif
 	    	defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
 	    	fprintf(f, " %s%s ", lefName, viaName);
 	    }
@@ -1461,7 +1467,7 @@ defNetGeometryFunc(tile, plane, defdata)
 
 	    if (orient == GEO_CENTER)
 	    {
-		char *rName;
+		const char *rName;
 
 		/* Type can be zero (space) if the first tile	*/
 		/* encountered is a via.  If so, use the 1st	*/
@@ -1647,17 +1653,17 @@ defNetGeometryFunc(tile, plane, defdata)
  */
 
 int
-defCountVias(rootDef, MagicToLefTable, defViaTable, oscale)
-    CellDef *rootDef;
-    LefMapping *MagicToLefTable;
-    HashTable *defViaTable;
-    float oscale;
+defCountVias(
+    CellDef *rootDef,
+    LefMapping *MagicToLefTable,
+    HashTable *defViaTable,
+    float oscale)
 {
     TileTypeBitMask contactMask, *rmask;
     TileType ttype, stype;
     int pNum;
     CViaData cviadata;
-    int defCountViaFunc();
+    int defCountViaFunc(Tile *tile, CViaData *cviadata);
 
     cviadata.scale = oscale;
     cviadata.total = 0;
@@ -1701,8 +1707,8 @@ defCountVias(rootDef, MagicToLefTable, defViaTable, oscale)
 /* Simple callback function used by defCountViaFunc */
 
 int
-defCheckFunc(tile)
-    Tile *tile;
+defCheckFunc(
+    Tile *tile)
 {
     return 1;
 }
@@ -1710,14 +1716,15 @@ defCheckFunc(tile)
 /* Callback function used by defCountVias */
 
 int
-defCountViaFunc(tile, cviadata)
-    Tile *tile;
-    CViaData *cviadata;
+defCountViaFunc(
+    Tile *tile,
+    CViaData *cviadata)
 {
     TileType ttype = TiGetType(tile), ctype, rtype;
     TileTypeBitMask *rmask, *rmask2;
     Tile *tp;
-    char *lname, vname[100], *vp, posstr[24];
+    const char *lname;
+    char vname[100], posstr[24];
     Rect r, r2, rorig;
     int w, h, offx, offy, sdist, lorient, horient;
     int ldist, hdist, sldist, shdist, pNum;
@@ -1938,7 +1945,7 @@ defCountViaFunc(tile, cviadata)
 	lefl->info.via.lr = (LinkedRect *)NULL;
 	lefl->refCnt = 0;	/* These entries will be removed after writing */
 	HashSetValue(he, lefl);
-	lefl->canonName = (char *)he->h_key.h_name;
+	lefl->canonName = (const char *)he->h_key.h_name;
 
 	if ((sldist > 0) || (ldist > 0))
 	{
@@ -2020,11 +2027,11 @@ defCountViaFunc(tile, cviadata)
  *------------------------------------------------------------
  */
 
-char *
-defGetType(ttype, lefptr, do_vias)
-    TileType ttype;
-    lefLayer **lefptr;
-    bool do_vias;
+const char *
+defGetType(
+    TileType ttype,
+    lefLayer **lefptr,
+    bool do_vias)
 {
     HashSearch hs;
     HashEntry *he;
@@ -2079,11 +2086,11 @@ defGetType(ttype, lefptr, do_vias)
  */
 
 void
-defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
-    FILE *f;				/* File to write to */
-    CellDef *rootDef;			/* Cell definition to use */
-    float oscale;			/* Output scale factor */
-    LefMapping *lefMagicToLefLayer;
+defWriteVias(
+    FILE *f,				/* File to write to */
+    CellDef *rootDef,			/* Cell definition to use */
+    float oscale,			/* Output scale factor */
+    LefMapping *lefMagicToLefLayer)
 {
     HashSearch hs;
     HashEntry *he;
@@ -2105,7 +2112,7 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
 	while ((he = HashNext(&LefInfo, &hs)))
 	{
 	    int size, sep, border;
-	    char *us1, *us2;
+	    const char *us1, *us2;
 	    lefl = (lefLayer *)HashGetValue(he);
 	    if (!lefl) continue;
 
@@ -2258,11 +2265,11 @@ defWriteVias(f, rootDef, oscale, lefMagicToLefLayer)
  */
 
 int
-defCountComponents(rootDef)
-    CellDef *rootDef;
+defCountComponents(
+    CellDef *rootDef)
 {
     pointertype total;
-    int defCountCompFunc();
+    int defCountCompFunc(CellUse *cellUse, pointertype *total);
 
     TxPrintf("Diagnostic:  Finding all components of cell %s\n", rootDef->cd_name);
 
@@ -2274,9 +2281,9 @@ defCountComponents(rootDef)
 /* Callback function used by defCountComponents */
 
 int
-defCountCompFunc(cellUse, total)
-    CellUse *cellUse;
-    pointertype *total;
+defCountCompFunc(
+    CellUse *cellUse,
+    pointertype *total)
 {
     /* Ignore any cellUse that does not have an identifier string. */
     if (cellUse->cu_id == NULL) return 0;
@@ -2309,8 +2316,8 @@ defCountCompFunc(cellUse, total)
  */
 
 int
-defCountPins(rootDef)
-    CellDef *rootDef;
+defCountPins(
+    CellDef *rootDef)
 {
     int total;
     Label *lab;
@@ -2344,11 +2351,11 @@ defCountPins(rootDef)
  */
 
 void
-defWritePins(f, rootDef, lefMagicToLefLayer, oscale)
-    FILE *f;				/* File to write to */
-    CellDef *rootDef;			/* Cell definition to use */
-    LefMapping *lefMagicToLefLayer;	/* Magic to LEF layer name mapping */
-    float oscale;			/* Output scale factor */
+defWritePins(
+    FILE *f,				/* File to write to */
+    CellDef *rootDef,			/* Cell definition to use */
+    LefMapping *lefMagicToLefLayer,	/* Magic to LEF layer name mapping */
+    float oscale)			/* Output scale factor */
 {
     Label *lab;
     int lwidth, lheight;
@@ -2447,11 +2454,11 @@ defWritePins(f, rootDef, lefMagicToLefLayer, oscale)
  */
 
 void
-defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
-    FILE *f;				/* File to write to */
-    CellDef *rootDef;			/* Cell definition to use */
-    float oscale;			/* Output scale factor */
-    LefMapping *MagicToLefTable;	/* Magic to LEF layer mapping */
+defWriteBlockages(
+    FILE *f,				/* File to write to */
+    CellDef *rootDef,			/* Cell definition to use */
+    float oscale,			/* Output scale factor */
+    LefMapping *MagicToLefTable)	/* Magic to LEF layer mapping */
 {
     DefObsData defobsdata;
     lefLayer *lefl;
@@ -2461,8 +2468,8 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
     HashEntry *he;
     TileTypeBitMask ExtraObsLayersMask;
 
-    int defSimpleBlockageFunc();	/* Forward declaration */
-    int defblockageVisit();
+    int defSimpleBlockageFunc(Tile *tile, DefObsData *defobsdata);	/* Forward declaration */
+    int defblockageVisit(EFNode *node, int res, EFCapValue cap, DefObsData *defobsdata);
 
     defobsdata.def = rootDef;
     defobsdata.nlayers = 0;
@@ -2489,7 +2496,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 			sizeof(TileTypeBitMask));
 	defobsdata.blockData = (LinkedRect **)mallocMagic(numblocks *
 			sizeof(LinkedRect *));
-	defobsdata.baseNames = (char **)mallocMagic(numblocks *
+	defobsdata.baseNames = (const char **)mallocMagic(numblocks *
 			sizeof(char *));
 
 	if (numblocks > 0)
@@ -2502,7 +2509,7 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 		if ((lefl != NULL) && ((lefl->lefClass == CLASS_ROUTE) ||
 				(lefl->lefClass == CLASS_VIA)))
 		{
-		    char *llayer;
+		    const char *llayer;
 		    if (lefl->lefClass == CLASS_ROUTE)
 			llayer = lefl->canonName;
 		    else
@@ -2583,16 +2590,16 @@ defWriteBlockages(f, rootDef, oscale, MagicToLefTable)
 }
 
 int
-defblockageVisit(node, res, cap, defobsdata)
-    EFNode *node;
-    int res;
-    EFCapValue cap;
-    DefObsData *defobsdata;
+defblockageVisit(
+    EFNode *node,
+    int res,
+    EFCapValue cap,
+    DefObsData *defobsdata)
 {
     CellDef *def = defobsdata->def;
     TileType magictype;
     TileTypeBitMask tmask;
-    int defBlockageGeometryFunc();	/* Forward declaration */
+    int defBlockageGeometryFunc(Tile *tile, int plane, DefObsData *defobsdata);	/* Forward declaration */
 
     /* For regular nets, only count those nodes having port	*/
     /* connections.  For special nets, only count those nodes	*/
@@ -2621,10 +2628,10 @@ defblockageVisit(node, res, cap, defobsdata)
 /* for a net.								*/
 
 int
-defBlockageGeometryFunc(tile, plane, defobsdata)
-    Tile *tile;			/* Tile being visited */
-    int plane;			/* Plane of the tile being visited */
-    DefObsData *defobsdata;	/* Data passed to this function */
+defBlockageGeometryFunc(
+    Tile *tile,			/* Tile being visited */
+    int plane,			/* Plane of the tile being visited */
+    DefObsData *defobsdata)	/* Data passed to this function */
 {
     TileType ttype = TiGetTypeExact(tile);
     TileType loctype;
@@ -2680,9 +2687,9 @@ defBlockageGeometryFunc(tile, plane, defobsdata)
 /* pulled from all non-electrical obstruction types.			*/
 
 int
-defSimpleBlockageFunc(tile, defobsdata)
-    Tile *tile;			/* Tile being visited */
-    DefObsData *defobsdata;	/* Data passed to this function */
+defSimpleBlockageFunc(
+    Tile *tile,			/* Tile being visited */
+    DefObsData *defobsdata)	/* Data passed to this function */
 {
     TileType ttype = TiGetTypeExact(tile);
     TileType loctype;
@@ -2734,13 +2741,13 @@ defSimpleBlockageFunc(tile, defobsdata)
  */
 
 void
-defWriteComponents(f, rootDef, oscale)
-    FILE *f;				/* File to write to */
-    CellDef *rootDef;			/* Cell definition to use */
-    float oscale;			/* Output scale factor */
+defWriteComponents(
+    FILE *f,				/* File to write to */
+    CellDef *rootDef,			/* Cell definition to use */
+    float oscale)			/* Output scale factor */
 {
     DefData defdata;
-    int defComponentFunc();		/* Forward declaration */
+    int defComponentFunc(CellUse *cellUse, DefData *defdata);		/* Forward declaration */
 
     defdata.f = f;
     defdata.scale = oscale;
@@ -2751,17 +2758,17 @@ defWriteComponents(f, rootDef, oscale)
 /* Callback function used by defWriteComponents for array members */
 
 int
-arrayDefFunc(use, transform, x, y, defdata)
-    CellUse *use;		/* CellUse for array element */
-    Transform *transform;	/* Transform from use to parent */
-    int x, y;			/* Indices of element */
-    DefData *defdata;
+arrayDefFunc(
+    CellUse *use,		/* CellUse for array element */
+    Transform *transform,	/* Transform from use to parent */
+    int x,			/* Indices of element */
+    int y,
+    DefData *defdata)
 {
     int sx = use->cu_xhi - use->cu_xlo;
     int sy = use->cu_yhi - use->cu_ylo;
     char idx[32];
-    Rect box, rect, *r, bbrect, defrect;
-    int xoff, yoff;
+    Rect box, rect, *r;
 
     idx[0] = 0;
 
@@ -2770,7 +2777,6 @@ arrayDefFunc(use, transform, x, y, defdata)
 
     r = &use->cu_def->cd_bbox;
 
-    xoff = yoff = 0;
     if (use->cu_def->cd_flags & CDFIXEDBBOX)
     {
 	char *propval;
@@ -2798,9 +2804,9 @@ arrayDefFunc(use, transform, x, y, defdata)
 /* Callback function used by defWriteComponents */
 
 int
-defComponentFunc(cellUse, defdata)
-    CellUse *cellUse;
-    DefData *defdata;
+defComponentFunc(
+    CellUse *cellUse,
+    DefData *defdata)
 {
     FILE *f = defdata->f;
     float oscale = defdata->scale;
@@ -2878,13 +2884,13 @@ defComponentFunc(cellUse, defdata)
  */
 
 LefMapping *
-defMakeInverseLayerMap(do_vias)
-    bool do_vias;
+defMakeInverseLayerMap(
+    bool do_vias)
 {
     LefMapping *lefMagicToLefLayer;
     lefLayer *lefl;
     TileType i;
-    char *lefname;
+    const char *lefname;
 
     lefMagicToLefLayer = (LefMapping *)mallocMagic(DBNumTypes
 		* sizeof(LefMapping));
@@ -2938,12 +2944,12 @@ defMakeInverseLayerMap(do_vias)
  */
 
 void
-DefWriteCell(def, outName, allSpecial, units, analRetentive)
-    CellDef *def;		/* Cell being written */
-    char *outName;		/* Name of output file, or NULL. */
-    bool allSpecial;		/* Treat all nets as SPECIALNETS? */
-    int units;			/* Force units to this value (default 1000) */
-    bool analRetentive;		/* Force compatibility with stupid tools */
+DefWriteCell(
+    CellDef *def,		/* Cell being written */
+    char *outName,		/* Name of output file, or NULL. */
+    bool allSpecial,		/* Treat all nets as SPECIALNETS? */
+    int units,			/* Force units to this value (default 1000) */
+    bool analRetentive)		/* Force compatibility with stupid tools */
 {
     char *filename, *filename1, *filename2;
     char line[2048];
@@ -2954,8 +2960,6 @@ DefWriteCell(def, outName, allSpecial, units, analRetentive)
     HashTable defViaTable;
 
     LefMapping *lefMagicToLefLayer;
-    int i;
-    lefLayer *lefl;
     HashEntry *he;
     HashSearch hs;
 

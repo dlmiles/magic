@@ -1421,8 +1421,18 @@ defNetGeometryFunc(
 	    else
 	    {
 		TxError("Cannot find via name %s in table!\n", posstr);
+#if 1
+		char num1buf[24];
+		char num2buf[24];
+		snprintf(num1buf, sizeof(num1buf), "%.10g", ((float)w * oscale));
+		snprintf(num2buf, sizeof(num2buf), "%.10g", ((float)h * oscale));
+		num1buf[12] = '\0'; /* enforce truncation "0.1234567890" */
+		num2buf[12] = '\0'; /* enforce truncation "0.1234567890" */
+		snprintf(viaName, (size_t)24, "_%.11s_%.11s", num1buf, num2buf);
+#else
 	    	snprintf(viaName, (size_t)24, "_%.10g_%.10g",
 			((float)w * oscale), ((float)h * oscale));
+#endif
 	    	defCheckForBreak(strlen(lefName) + strlen(viaName) + 2, defdata);
 	    	fprintf(f, " %s%s ", lefName, viaName);
 	    }

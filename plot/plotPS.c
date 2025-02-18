@@ -1147,7 +1147,6 @@ PlotPS(fileName, scx, layers, xMask)
 {
     int xsize, ysize;
     float yscale;
-    FILE *infile;
     int i, j;
     int twidth, theight;
     char *fontptr, *fptr2, *fptr3;
@@ -1219,12 +1218,17 @@ PlotPS(fileName, scx, layers, xMask)
 
     /* Insert the prolog here */
 
-    infile = PaOpen("magicps", "r", ".pro", ".", SysLibPath, NULL);
-    if (infile != NULL)
-	while(fgets(line_in, 99, infile) != NULL)
-	    fputs(line_in, file);
-    else
-	fprintf(file, "\npostscript_prolog_is_missing\n\n");
+    {
+	FILE *infile = PaOpen("magicps", "r", ".pro", ".", SysLibPath, NULL);
+	if (infile != NULL)
+	{
+	    while(fgets(line_in, 99, infile) != NULL)
+		fputs(line_in, file);
+	    fclose(infile);
+	}
+	else
+	    fprintf(file, "\npostscript_prolog_is_missing\n\n");
+    }
 
     /* Insert the font definitions here. */
 

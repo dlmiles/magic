@@ -4010,7 +4010,6 @@ CmdDrc(
     MagWindow *w,
     TxCommand *cmd)
 {
-    FILE        * fp;
     static int	drc_nth = 1;
     int		  option, result, radius;
     Rect	  rootArea, area;
@@ -4497,15 +4496,19 @@ CmdDrc(
 	case PRINTRULES:
 	    if (argc > 3) goto badusage;
 	    if (argc < 3)
-		fp = stdout;
-	    else if ((fp = fopen (argv[2],"w")) == (FILE *) NULL)
 	    {
-		TxError("Cannot write file %s\n", argv[2]);
-		return;
+		DRCPrintRulesTable (stdout);
 	    }
-	    DRCPrintRulesTable (fp);
-	    if (fp != stdout)
-		(void) fclose(fp);
+	    {
+	        FILE *fp = fopen (argv[2], "w");
+	        if (fp == NULL)
+		{
+		    TxError("Cannot write file %s\n", argv[2]);
+		    return;
+		}
+		DRCPrintRulesTable (fp);
+		fclose(fp);
+	    }
 	    break;
 
 	case RULESTATS:

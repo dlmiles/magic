@@ -171,6 +171,10 @@ jobs:
           ls -la
           echo "=== /"
           ls -la /
+          echo "=== /cores"
+          ls -la /cores
+          lldb --version
+          gdb --version
 
       - name: Summary
         if: always()
@@ -408,6 +412,10 @@ jobs:
           ls -la
           echo "=== /"
           ls -la /
+          echo "=== /cores"
+          ls -la /cores
+          lldb --version
+          gdb --version
 
       - name: Summary
         if: always()

@@ -156,6 +156,9 @@ jobs:
 
           set +o pipefail # macosx this is on by default (turn it off)
 
+          ulimit -c unlimited
+          ulimit -a
+          sudo sysctl kern.coredump
           echo "=== magic --version"
           magic --version
           echo "=== magic -d help -noconsole"
@@ -164,6 +167,10 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
+          echo "=== ls -la"
+          ls -la
+          echo "=== /"
+          ls -la /
 
       - name: Summary
         if: always()
@@ -387,6 +394,9 @@ jobs:
 
           set +o pipefail # macosx this is on by default (turn it off)
 
+          ulimit -c unlimited
+          ulimit -a
+          sudo sysctl kern.coredump
           echo "=== magic --version"
           magic --version
           echo "=== magic -d help -noconsole"
@@ -395,6 +405,9 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
+          ls -la
+          echo "=== /"
+          ls -la /
 
       - name: Summary
         if: always()

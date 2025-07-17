@@ -44,6 +44,11 @@ typedef struct {
 
 /* all of the state associated with a tty terminal */
 #if !defined(SYSV) && !defined(CYGWIN) && !defined(__OpenBSD__) && !defined(EMSCRIPTEN)
+#ifdef HAVE_SYS_IOCTL_COMPAT_H
+#include <sys/ioctl_compat.h> /* replaced sgtty.h */
+#else
+#include <sgtty.h>/* legacy - struct sgttyb{} defn */
+#endif
 typedef struct {
     struct sgttyb tx_i_sgtty;
     struct tchars tx_i_tchars;

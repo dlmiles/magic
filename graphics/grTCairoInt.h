@@ -66,7 +66,7 @@ extern void grtcairoPutText();
 extern void grtcairoFontText();
 #endif
 extern void GrTCairoSetCursor();
-extern void GrTCairoTextSize();
+extern int GrTCairoTextSize();
 extern void GrTCairoDrawGlyph();
 extern void GrTCairoBitBlt();
 extern void NullBitBlt();

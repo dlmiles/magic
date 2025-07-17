@@ -49,7 +49,7 @@
  *   HAVE_SYS_IOCTL_COMPAT_H ?  HAVE_TERMIOS_H ?  !defined(linux) at top (MaxOSX is BSD type)
  */
 #include <sys/ioctl_compat.h> /* replaced sgtty.h */
-#else
+#elif defined(HAVE_SGTTY_H)
 #include <sgtty.h> /* legacy - struct sgttyb{} defn */
 #endif
 

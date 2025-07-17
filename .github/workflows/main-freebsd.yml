@@ -22,22 +22,28 @@ jobs:
           usesh: true
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
+            # Query the package visibility
+            for pkg in bash gmake gnugrep gsed tcl86 tk86 libSM cairo freeglut git python3 perl5 readline findutils pkgconf; \
+            do \
+               echo "### pkg search -g ${pkg}*"; \
+               pkg search -g "${pkg}*"; \
+            done
             # zlib is in base
-            pkg install -y gmake gnugrep gsed tcl87 tk87 cairo freeglut git python3 readline findutils pkgconf
+            pkg install -y bash gmake gnugrep gsed tcl86 tk86 libSM cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
-            pwd
-            ls -lah
-            whoami
-            env
+            set +e
             freebsd-version
+            uname -a
             sysctl hw.model
             sysctl hw.ncpu
             sysctl hw.physmem
             sysctl hw.usermem
-            set +e
-            uname -a
             cc -v
             ld -v
+            pwd
+            ls -lah
+            whoami
+            env
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
@@ -54,12 +60,14 @@ jobs:
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
             pkg-config --libs --cflags x11
             pkg-config --libs --cflags cairo
-            pkg-config --libs --cflags freeglut
-            pkg-config --libs --cflags tcl87
-            pkg-config --libs --cflags tk
-            pkg-config --libs --cflags pthread
+            pkg-config --libs --cflags freeglut # not found
+            pkg-config --libs --cflags tcl86
+            pkg-config --libs --cflags tk86
+            pkg-config --libs --cflags pthread # not found
             # FIXME The build does not propertly use this information above, it was just used a
             # diagnostics to get the build to complete.
+
+            set -o pipefail
 
             # /usr/local/lib/tcl8.7/tclConfig.sh
             # /usr/local/lib/tk8.7/tkConfig.sh
@@ -68,7 +76,13 @@ jobs:
             # CPPFLAGS want this extra option for depends and compile
             CPPFLAGS="-I/usr/local/include"
             export CPPFLAGS
-            ./configure --x-libraries=/usr/local/lib --x-includes=/usr/local/include --with-tcl=/usr/local/lib/tcl8.7 --with-tk=/usr/local/lib/tk8.7 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            with_x11_libsdir=$(  pkg-config --libs-only-L   x11    | sed -e 's/-L//g')
+            with_x11_incsdir=$(  pkg-config --cflags-only-I x11    | sed -e 's/-I//g')
+            with_tcl_libsdir=$(  pkg-config --libs-only-L   tcl86  | sed -e 's/-L//g')
+            with_tk_libsdir=$(   pkg-config --libs-only-L   tk86   | sed -e 's/-L//g')
+            with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
+            # The only really important ones as --with-tcl and --with-tk the others
+            ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CPPFLAGS
 
             echo "===== defs.mak ====="

@@ -27,8 +27,9 @@ endif
 # it indicates a missing dependency somewhere in a upstream/parent Makefile.
 ${DEPEND_FILE}: ${DEPSRCS}
 	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${DEPSRCS} > ${DEPEND_FILE}$$PPID.tmp
-	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" -i ${SED_MAC} ${DEPEND_FILE}$$PPID.tmp
-	${MV} -f ${DEPEND_FILE}$$PPID.tmp ${DEPEND_FILE}
+	${SED} -e "/#/D" -e "/ \//s/ \/.*\.h//" -e "/  \\\/D" < ${DEPEND_FILE}$$PPID.tmp > ${DEPEND_FILE}$${PPID}2.tmp
+	${MV} -f ${DEPEND_FILE}$${PPID}2.tmp ${DEPEND_FILE}
+	${RM} ${DEPEND_FILE}$$PPID.tmp
 
 # Original Depend file generating line:
 #	${CC} ${CFLAGS} ${CPPFLAGS} ${DFLAGS} ${DEPEND_FLAG} ${SRCS} > ${DEPEND_FILE}

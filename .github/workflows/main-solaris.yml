@@ -21,27 +21,27 @@ jobs:
           envs: MYENV
           usesh: true
           prepare: |
-            pkgutil -y -i gmake ggrep gsed libz_dev tcl_dev tk_dev libcairo_dev freeglut git python33 libreadline_dev libncurses_dev findutils binutils gcc5core gcc5g++ pkgconfig
+            pkgutil -y -i gmake ggrep gsed libz_dev tcl_dev tk_dev libcairo_dev freeglut git python33 perl libreadline_dev libncurses_dev findutils binutils gcc5core gcc5g++ pkgconfig
           run: |
-            pwd
-            ls -lah
-            whoami
-            env
-            psrinfo -vp
-            cat /etc/release
-            psrinfo -v
-            echo "::memstat" | mdb -k
             set +e
+            cat /etc/release
             uname -a
+            psrinfo -vp
+            psrinfo -v
             cc -v
             ld --version
             gcc -v
             gld -v
+            make --version
+            gmake --version
+            pwd
+            ls -lah
+            whoami
+            env | grep -v "TOKEN" | grep -v "SECRET"
+            echo "::memstat" | mdb -k
             nproc=$(psrinfo -v)
             export nproc
             echo "nproc=$nproc"
-            make --version
-            gmake --version
 
             git config --global --add safe.directory "$(pwd)"
 
@@ -57,6 +57,9 @@ jobs:
             pkg-config --libs --cflags tcl
             pkg-config --libs --cflags tk
             pkg-config --libs --cflags pthread
+
+            set -o pipefail
+            set -e
 
             # CFLAGS by default it looks like the compiler targets 32bit then errors on linking to
             #  amd64 libraries.  We add the -g back in due to this being the default in ./configure

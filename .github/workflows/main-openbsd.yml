@@ -22,26 +22,33 @@ jobs:
           usesh: true
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
+            # Query the package visibility
+            for pkg in bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM cairo freeglut git python3 perl5 readline findutils pkgconf; \
+            do \
+               echo "### pkg search -g ${pkg}*"; \
+               pkg search -g "${pkg}*"; \
+            done
             # zlib is in base
-            pkg_add -vv gmake ggrep gsed tcl-8.6.13 tk-8.6.13 cairo freeglut git python3 readline findutils
+            pkg_add -vv bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
-            pwd
-            ls -lah
-            whoami
-            env
+            set +e
+            openbsd-version
+            uname -a
             sysctl hw.model
             sysctl hw.ncpu
             sysctl hw.physmem
             sysctl hw.usermem
-            set +e
-            uname -a
             cc -v
             ld -v
+            make --version
+            gmake --version
+            pwd
+            ls -lah
+            whoami
+            env | grep -v "TOKEN" | grep -v "SECRET" | sort
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
-            make --version
-            gmake --version
 
             git config --global --add safe.directory "$(pwd)"
 
@@ -51,16 +58,12 @@ jobs:
             gfind . /usr/local /opt /usr/X11R6 -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
             ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
-            pkg-config --libs --cflags x11
-            pkg-config --libs --cflags cairo
-            pkg-config --libs --cflags freeglut
-            pkg-config --libs --cflags tcl
-            pkg-config --libs --cflags tk
-            pkg-config --libs --cflags tcl86
-            pkg-config --libs --cflags tk86
-            pkg-config --libs --cflags tcl8.6
-            pkg-config --libs --cflags tk8.6
-            pkg-config --libs --cflags pthread
+            #
+            for pkg in x11 cairo freeglut tcl tk tcl86 tk86 tcl8.6 pthread; \
+            do \
+              echo "### pkg-config --libs --cflags ${pkg} :"; \
+              pkg-config --libs --cflags "$pkg"; \
+            done
             # FIXME The build does not propertly use this information above, it was just used a
             # diagnostics to get the build to complete.
 

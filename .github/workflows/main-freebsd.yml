@@ -40,6 +40,8 @@ jobs:
             sysctl hw.usermem
             cc -v
             ld -v
+            make --version
+            gmake --version
             pwd
             ls -lah
             whoami
@@ -47,8 +49,6 @@ jobs:
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
-            make --version
-            gmake --version
 
             git config --global --add safe.directory "$(pwd)"
 
@@ -68,6 +68,7 @@ jobs:
             # diagnostics to get the build to complete.
 
             set -o pipefail
+            set -e
 
             # /usr/local/lib/tcl8.7/tclConfig.sh
             # /usr/local/lib/tk8.7/tkConfig.sh
@@ -82,7 +83,10 @@ jobs:
             with_tk_libsdir=$(   pkg-config --libs-only-L   tk86   | sed -e 's/-L//g')
             with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
             # The only really important ones as --with-tcl and --with-tk the others
-            CFLAGS="-std=c17 -g" ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            CFLAGS="-std=c17 -g"
+            export CFLAGS
+            ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            unset CFLAGS
             unset CPPFLAGS
 
             echo "===== defs.mak ====="

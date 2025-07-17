@@ -45,7 +45,7 @@ jobs:
             pwd
             ls -lah
             whoami
-            env
+            env | grep -v "TOKEN" | grep -v "SECRET" | sort
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
@@ -58,12 +58,13 @@ jobs:
             gfind . /usr/local /opt /usr/X11R6 -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
             ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
-            pkg-config --libs --cflags x11
-            pkg-config --libs --cflags cairo
-            pkg-config --libs --cflags freeglut # not found
-            pkg-config --libs --cflags tcl86
-            pkg-config --libs --cflags tk86
-            pkg-config --libs --cflags pthread # not found
+            # freeglut # not found
+            # pthread # not found
+            for pkg in x11 cairo freeglut tcl86 tk86 pthread; \
+            do \
+              echo "### pkg-config --libs --cflags ${pkg} :"; \
+              pkg-config --libs --cflags "$pkg"; \
+            done
             # FIXME The build does not propertly use this information above, it was just used a
             # diagnostics to get the build to complete.
 

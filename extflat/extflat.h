@@ -25,6 +25,7 @@
 #include "utils/magic.h"
 
 #include "extflat/EFtypes.h" /* EFCapValue, HierName, EFPerimArea, EFNode */
+#include "extflat/EFint.h" /* Def, HierContext, Connection, Distance, CallArg */
 
 
 extern float EFScale;		/* Scale factor to multiply all coords by */
@@ -60,74 +61,75 @@ extern bool EFSaveLocs;
 
 /* -------------------------- Exported procedures --------------------- */
 
-extern char *EFArgs();
+extern char *EFArgs(int argc, char *argv[], bool *err_result, bool (*argsProc)(), ClientData cdata);
 
     /* HierName manipulation */
-extern HashEntry *EFHNLook();
-extern HashEntry *EFHNConcatLook();
-extern HierName *EFHNConcat();
-extern HierName *EFStrToHN();
-extern char *EFHNToStr();
-extern int EFGetPortMax();
+extern HashEntry *EFHNLook(HierName *prefix, char *suffixStr, char *errorStr);
+extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *errorStr);
+extern HierName *EFHNConcat(HierName *prefix, HierName *suffix);
+extern HierName *EFStrToHN(HierName *prefix, char *suffixStr);
+extern char *EFHNToStr(HierName *hierName);
+extern int EFGetPortMax(Def *def);
 
 /* C99 compat */
-extern void EFHNFree();
-extern bool EFHNIsGlob();
-extern int  EFNodeResist();
-extern void efAdjustSubCap();
-extern int  efBuildAddStr();
-extern void efBuildAttr();
-extern int  efBuildDevice();
-extern void efBuildDeviceParams();
-extern void efBuildDist();
-extern void efBuildEquiv();
-extern void efBuildKill();
-extern void efBuildPortNode();
-extern void efBuildUse();
-extern int  efFlatCaps();
-extern int  efFlatDists();
-extern int  efFlatKills();
-extern int  efFlatNodes();
-extern int  efFlatNodesStdCell();
-extern void efFreeConn();
-extern void efFreeDevTable();
-extern void efFreeNodeList();
-extern void efFreeNodeTable();
-extern void efFreeUseTable();
-extern void efHNBuildDistKey();
-extern int  efHNLexOrder();
-extern void efHNPrintSizes();
-extern void efHNRecord();
-extern int  efHierSrArray();
-extern int  efHierSrUses();
-extern int  efHierVisitDevs();
-extern EFNode *efNodeMerge();
+extern void EFHNFree(HierName *hierName, HierName *prefix, int type);
+extern bool EFHNIsGlob(HierName *hierName);
+extern int EFNodeResist(EFNode *node);
+extern void efAdjustSubCap(Def *def, char *nodeName, double nodeCapAdjust);
+extern int efBuildAddStr(char *table[], int *pMax, int size, char *str);
+extern void efBuildAttr(Def *def, char *nodeName, Rect *r, char *layerName, char *text);
+extern int efBuildDevice(Def *def, char class, char *type, Rect *r, int argc, char *argv[]);
+extern void efBuildDeviceParams(char *name, int argc, char *argv[]);
+extern void efBuildDist(Def *def, char *driver, char *receiver, int min, int max);
+extern void efBuildEquiv(Def *def, char *nodeName1, char *nodeName2, bool resist, bool isspice);
+extern void efBuildKill(Def *def, char *name);
+extern void efBuildPortNode(Def *def, char *name, int idx, int x, int y, char *layername, bool toplevel);
+extern void efBuildUse(Def *def, char *subDefName, char *subUseId,
+                       int ta, int tb, int tc, int td, int te, int tf);
+extern int efFlatCaps(HierContext *hc);
+extern int efFlatDists(HierContext *hc);
+extern int efFlatKills(HierContext *hc);
+extern int efFlatNodes(HierContext *hc, ClientData clientData);
+extern int efFlatNodesStdCell(HierContext *hc);
+extern void efFreeConn(Connection *conn);
+extern void efFreeDevTable(HashTable *table);
+extern void efFreeNodeList(EFNode *head, int (*func)());
+extern void efFreeNodeTable(HashTable *table);
+extern void efFreeUseTable(HashTable *table);
+extern void efHNBuildDistKey(HierName *prefix, Distance *dist, Distance *distKey);
+extern int efHNLexOrder(HierName *hierName1, HierName *hierName2);
+extern void efHNPrintSizes(char *when);
+extern void efHNRecord(int size, int type);
+extern int efHierSrArray(HierContext *hc, Connection *conn, int (*proc)(), ClientData cdata);
+extern int efHierSrUses(HierContext *hc, int (*func)(), ClientData cdata);
+extern int efHierVisitDevs(HierContext *hc, CallArg *ca);
+extern EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 extern void efReadError(const char *fmt, ...) ATTR_FORMAT_PRINTF_1;
-extern int  efReadLine();
-extern bool efSymAdd();
-extern bool efSymAddFile();
-extern void efSymInit();
-extern void EFDone();
-extern void EFFlatBuild();
-extern void EFFlatDone();
-extern bool EFHNIsGND();
-extern void EFInit();
-extern bool EFReadFile();
-extern int  EFVisitDevs();
-extern int  efVisitDevs();
-extern bool efSymLook();
-extern int  efVisitResists();
-extern int  EFVisitResists();
-extern int  EFVisitNodes();
-extern int  EFVisitCaps();
-extern void EFGetLengthAndWidth();
-extern void EFHNOut();
-extern int  EFHierSrDefs();
-extern int  EFVisitSubcircuits();
-extern int  EFHierVisitSubcircuits();
-extern int  EFHierVisitDevs();
-extern int  EFHierVisitResists();
-extern int  EFHierVisitCaps();
-extern int  EFHierVisitNodes();
+extern int efReadLine(char **lineptr, int *sizeptr, FILE *file, char *argv[]);
+extern bool efSymAdd(char *str);
+extern bool efSymAddFile(char *name);
+extern void efSymInit(void);
+extern void EFDone(int (*func)());
+extern void EFFlatBuild(char *name, int flags);
+extern void EFFlatDone(int (*func)());
+extern bool EFHNIsGND(HierName *hierName);
+extern void EFInit(void);
+extern bool EFReadFile(char *name, bool dosubckt, bool resist, bool noscale, bool isspice);
+extern int EFVisitDevs(int (*devProc)(), ClientData cdata);
+extern int efVisitDevs(HierContext *hc, CallArg *ca);
+extern bool efSymLook(char *name, int *pValue);
+extern int efVisitResists(HierContext *hc, CallArg *ca);
+extern int EFVisitResists(int (*resProc)(), ClientData cdata);
+extern int EFVisitNodes(int (*nodeProc)(), ClientData cdata);
+extern int EFVisitCaps(int (*capProc)(), ClientData cdata);
+extern void EFGetLengthAndWidth(Dev *dev, int *lptr, int *wptr);
+extern void EFHNOut(HierName *hierName, FILE *outf);
+extern int EFHierSrDefs(HierContext *hc, int (*func)(), ClientData cdata);
+extern int EFVisitSubcircuits(int (*subProc)(), ClientData cdata);
+extern int EFHierVisitSubcircuits(HierContext *hc, int (*subProc)(), ClientData cdata);
+extern int EFHierVisitDevs(HierContext *hc, int (*devProc)(), ClientData cdata);
+extern int EFHierVisitResists(HierContext *hc, int (*resProc)(), ClientData cdata);
+extern int EFHierVisitCaps(HierContext *hc, int (*capProc)(), ClientData cdata);
+extern int EFHierVisitNodes(HierContext *hc, int (*nodeProc)(), ClientData cdata);
 
 #endif /* _EXTFLAT_H */

@@ -273,30 +273,30 @@ extern Def *efFlatRootDef;
 /* --------------------- Internally used procedures ------------------- */
 
     /* Def table management */
-extern Def *efDefLook();
-extern Def *efDefNew();
+extern Def *efDefLook(char *name);
+extern Def *efDefNew(char *name);
 
     /* HierName manipulation */
-extern HierName *efHNFromUse();
-extern char *efHNToStrFunc();
-extern bool EFHNBest();
+extern HierName *efHNFromUse(HierContext *hc, HierName *prefix);
+extern char *efHNToStrFunc(HierName *hierName, char *dstp);
+extern bool EFHNBest(HierName *hierName1, HierName *hierName2);
 
     /* Functions for hashing of HierNames */
-extern int efHNCompare();
+extern int efHNCompare(HierName *hierName1, HierName *hierName2);
 extern int efHNHash(HierName *);
 
     /* Functions for hashing of Distances */
-extern bool efHNDistCompare();
-extern char *efHNDistCopy();
-extern int efHNDistHash();
-extern void efHNDistKill();
+extern bool efHNDistCompare(Distance *dist1, Distance *dist2);
+extern char *efHNDistCopy(Distance *dist);
+extern int efHNDistHash(Distance *dist);
+extern void efHNDistKill(Distance *dist);
 
     /* Functions for hashing of use id HierNames */
-extern bool efHNUseCompare();
-extern int efHNUseHash();
+extern bool efHNUseCompare(HierName *hierName1, HierName *hierName2);
+extern int efHNUseHash(HierName *hierName);
 
-extern EFCapValue CapHashGetValue();
-extern void CapHashSetValue();
+extern EFCapValue CapHashGetValue(HashEntry *he);
+extern void CapHashSetValue(HashEntry *he, double c);
 
    /* efBuild procedures */
 /* Warning: The capacitance argument to these should be always double
@@ -304,11 +304,12 @@ extern void CapHashSetValue();
 	    This should be done to avoid trouble with argument promotion
 	    that some ANSI C compilers introduce */
 
-extern DevParam *efGetDeviceParams();
-extern void efBuildNode();
-extern void efBuildConnect();
-extern void efBuildResistor();
-extern void efBuildCap();
-extern HierContext *EFFlatBuildOneLevel();
+extern DevParam *efGetDeviceParams(char *name);
+extern void efBuildNode(Def *def, bool isSubsnode, bool isDevSubsnode, bool isExtNode, char *nodeName,
+                        double nodeCap, int x, int y, char *layerName, char **av, int ac);
+extern void efBuildConnect(Def *def, char *nodeName1, char *nodeName2, double deltaC, char **av, int ac);
+extern void efBuildResistor(Def *def, char *nodeName1, char *nodeName2, float resistance);
+extern void efBuildCap(Def *def, char *nodeName1, char *nodeName2, double cap);
+extern HierContext *EFFlatBuildOneLevel(Def *def, int flags);
 
 #endif /* _EFINT_H */

@@ -49,11 +49,11 @@ void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
 bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
 int simParseArgs(int *pargc, char ***pargv);
-int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
-int simresistVisit(HierName *hierName1, HierName *hierName2, float res);
-int simcapVisit(HierName *hierName1, HierName *hierName2, double cap);
-int simnodeVisit(EFNode *node, int res, double cap);
-int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans);
+int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+int simresistVisit(HierName *hierName1, HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_efvisitresists_t (UNUSED) */
+int simcapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
+int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
+int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
 
 /* C99 compat */
 int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
@@ -1016,7 +1016,8 @@ simdevVisit(
     Dev *dev,		/* Device being output */
     HierContext *hc,	/* Hierarchical context down to this device */
     float scale,	/* Scale transform for output */
-    Transform *trans)	/* Coordinate transform */
+    Transform *trans,	/* Coordinate transform */
+    ClientData cdata)	/* unused */
 {
     DevTerm *gate, *source, *drain, *term;
     EFNode  *subnode, *snode, *dnode;
@@ -1526,7 +1527,8 @@ int
 simcapVisit(
     HierName *hierName1,
     HierName *hierName2,
-    double cap)
+    double cap,
+    ClientData cdata)	/* unused */
 {
     cap = cap / 1000;
     if (cap <= EFCapThreshold)
@@ -1570,7 +1572,8 @@ int
 simresistVisit(
     HierName *hierName1,
     HierName *hierName2,
-    float res)
+    float res,
+    ClientData)	/* unused */
 {
     fprintf(esSimF, "r ");
     EFHNOut(hierName1, esSimF);
@@ -1598,11 +1601,13 @@ simresistVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
 int
 simnodeVisit(
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata) /* unused */
 {
     EFNodeName *nn;
     HierName *hierName;
@@ -1770,7 +1775,8 @@ simmergeVisit(
     Dev *dev,		/* Dev to examine */
     HierContext *hc,	/* Hierarchical context down to this dev */
     float scale,	/* Scale transform */
-    Transform *trans)	/* Coordinate transform (not used) */
+    Transform *trans,	/* Coordinate transform (not used) */
+    ClientData cdata)	/* unused */
 {
 	DevTerm *gate, *source, *drain;
 	Dev     *cf;

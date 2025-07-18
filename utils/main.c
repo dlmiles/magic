@@ -163,7 +163,7 @@ global char *MainCopyright = "\n--- MAGIC: Copyright (C) 1985, 1990 "
 		"Regents of the University of California.  ---\n";
 
 /* Forward declarations */
-char *mainArg();
+char *mainArg(int *pargc, char ***pargv, char *mesg);
 
 
 /*
@@ -181,8 +181,8 @@ char *mainArg();
  */
 
 void
-MainExit(errNum)
-    int errNum;
+MainExit(
+    int errNum)
 {
 #ifdef	MOCHA
     MochaExit(errNum);
@@ -244,9 +244,9 @@ MainExit(errNum)
  */
 
 int
-mainDoArgs(argc, argv)
-    int argc;
-    char **argv;
+mainDoArgs(
+    int argc,
+    char **argv)
 {
     bool haveDashI = FALSE;
     char *cp;
@@ -465,10 +465,10 @@ mainDoArgs(argc, argv)
  */
 
 char *
-mainArg(pargc, pargv, mesg)
-    int *pargc;
-    char ***pargv;
-    char *mesg;
+mainArg(
+    int *pargc,
+    char ***pargv,
+    char *mesg)
 {
     char option, *cp;
 
@@ -502,9 +502,9 @@ mainArg(pargc, pargv, mesg)
  */
 
 int
-mainInitBeforeArgs(argc, argv)
-    int argc;
-    char *argv[];
+mainInitBeforeArgs(
+    int argc,
+    char *argv[])
 {
     TechOverridesDefault = FALSE;
     if (Path == NULL)
@@ -548,7 +548,7 @@ mainInitBeforeArgs(argc, argv)
  */
 
 int
-mainInitAfterArgs()
+mainInitAfterArgs(void)
 {
     int (*nullProc)() = 0;
     SectionID sec_tech, sec_planes, sec_types, sec_aliases;
@@ -826,7 +826,7 @@ static void atexit_exit_hook(void)
  */
 
 int
-mainInitFinal()
+mainInitFinal(void)
 {
     char *home, cwd[512];
     char startupFileName[256];
@@ -1249,7 +1249,7 @@ mainInitFinal()
  */
 
 void
-mainFinished()
+mainFinished(void)
 {
     /* Close up things */
     MainExit(0);
@@ -1276,9 +1276,7 @@ mainFinished()
  */
 
 void
-magicMain(argc, argv)
-    int argc;
-    char *argv[];
+magicMain(int argc, char *argv[])
 {
     int rstatus;
 

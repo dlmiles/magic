@@ -92,13 +92,13 @@ extern Transform RootToEditTransform;
 
 /* global procedures */
 
-extern void MainExit(int) ATTR_NORETURN;	/* a way of exiting that cleans up after itself */
-extern void magicMain();
+extern void MainExit(int errNum) ATTR_NORETURN;	/* a way of exiting that cleans up after itself */
+extern void magicMain(int argc, char *argv[]);
 
 /* C99 compat */
-extern int  mainInitBeforeArgs();
-extern int  mainDoArgs();
-extern int  mainInitAfterArgs();
-extern int  mainInitFinal();
+extern int  mainInitBeforeArgs(int argc, char *argv[]);
+extern int  mainDoArgs(int argc, char **argv);
+extern int  mainInitAfterArgs(void);
+extern int  mainInitFinal(void);
 
 #endif /* _MAIN_H */

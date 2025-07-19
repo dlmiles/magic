@@ -46,10 +46,10 @@ extern Def *efFlatRootDef;
 extern Use efFlatRootUse;
 extern HierContext efFlatContext;
 
-extern void efDevFixLW();
-extern void efHNOutPrefix();
+extern void efDevFixLW(char *attrs, int *pL, int *pW);
+extern void efHNOutPrefix(HierName *hierName, FILE *outf);
 
-bool efDevKilled();
+bool efDevKilled(Dev *dev, HierName *prefix);
 
 /*
  * ----------------------------------------------------------------------------

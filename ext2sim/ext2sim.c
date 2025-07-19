@@ -49,11 +49,11 @@ void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
 bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
 int simParseArgs(int *pargc, char ***pargv);
-int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
-int simresistVisit(HierName *hierName1, HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_efvisitresists_t (UNUSED) */
-int simcapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
-int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
-int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
+int simresistVisit(HierName *hierName1, HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
+int simcapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
+int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
+int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 
 /* C99 compat */
 int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
@@ -1011,6 +1011,8 @@ SimGetNode(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 simdevVisit(
     Dev *dev,		/* Device being output */
@@ -1523,6 +1525,8 @@ simdevOutNode(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 simcapVisit(
     HierName *hierName1,
@@ -1568,6 +1572,8 @@ simcapVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 simresistVisit(
     HierName *hierName1,
@@ -1601,7 +1607,8 @@ simresistVisit(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 simnodeVisit(
     EFNode *node,
@@ -1770,6 +1777,9 @@ simmkDevMerge(
  *
  * ----------------------------------------------------------------------------
  */
+
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 simmergeVisit(
     Dev *dev,		/* Dev to examine */

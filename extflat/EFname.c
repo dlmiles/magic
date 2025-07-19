@@ -470,12 +470,12 @@ EFHNFree(
 	if (hn == prefix)
 	    break;
 
-	freeMagic((char *) hn);
 	if (efHNStats)
 	{
 	    int len = strlen(hn->hn_name);
 	    efHNRecord(-HIERNAMESIZE(len), type);
 	}
+	freeMagic((char *) hn);
     }
 }
 

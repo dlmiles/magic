@@ -261,7 +261,7 @@ EFFlatBuildOneLevel(
 
 void
 EFFlatDone(
-    int (*func)())
+    const cb_extflat_free_t func)
 {
 #ifdef	MALLOCTRACE
     /* Hash table statistics */

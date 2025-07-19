@@ -96,7 +96,7 @@ EFInit(void)
 
 void
 EFDone(
-    int (*func)())
+    const cb_extflat_free_t func)
 {
     Connection *conn;
     HashSearch hs;

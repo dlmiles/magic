@@ -2216,10 +2216,11 @@ efFreeNodeTable(
  * Don't free 'head' itself, since it's statically allocated.
  *
  * If the client (e.g., ext2spice, ext2sim, ...) allocates memory for a
- * node, then that client needs to provide a function "func" of the form:
+ * node, then that client needs to provide a function "func" of the form
+ *   see also typedef cb_extflat_free_t:
  *
- *              int func(client) 
- *		    ClientData client;
+ *              int func(
+ *		    ClientData client)
  *		{
  *		}
  *
@@ -2238,7 +2239,7 @@ efFreeNodeTable(
 void
 efFreeNodeList(
     EFNode *head,
-    int (*func)())
+    const cb_extflat_free_t func)
 {
     EFNode *node;
     EFAttr *ap;
@@ -2253,7 +2254,7 @@ efFreeNodeList(
 	if (node->efnode_client != (ClientData)NULL)
 	{
 	    if (func != NULL)
-		(*func)(node->efnode_client);
+		(*func)(node->efnode_client); /* @invoke cb_extflat_free_t */
 	    freeMagic((char *)node->efnode_client);
 	}
 	for (lr = node->efnode_disjoint; lr; lr = lr->r_next)

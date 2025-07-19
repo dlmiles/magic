@@ -196,6 +196,6 @@ typedef struct {
 #define 	atoCap(s)	((EFCapValue)atof(s))
 #endif
 
-extern int esFreeNodeClient(nodeClient *client);
+extern int esFreeNodeClient(ClientData cdata); /* @typedef cb_extflat_free_t (nodeClient *client) */
 
 #endif  /* _EXTTOSPICE_H */

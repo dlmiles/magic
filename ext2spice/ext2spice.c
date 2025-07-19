@@ -135,10 +135,12 @@ extern void ESGenerateHierarchy(char *inName, int flags);  /* forward reference 
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_free_t (nodeClient *client) */
 int
 esFreeNodeClient(
-    nodeClient *client)
+    ClientData cdata)
 {
+    nodeClient *client = (nodeClient *) CD2PTR(cdata);
     if (client != (nodeClient *)NULL)
 	if (client->spiceNodeName != NULL)
 	    freeMagic((char *)client->spiceNodeName);

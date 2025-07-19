@@ -2479,7 +2479,8 @@ swapDrainSource(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 spcdevVisit(
     Dev *dev,		/* Dev being output */
@@ -4326,7 +4327,8 @@ mergeAttr(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devMergeVisit(
     Dev *dev,			/* Dev to examine */
@@ -4546,7 +4548,8 @@ update_w(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devDistJunctVisit(
     Dev *dev,			/* Dev to examine */

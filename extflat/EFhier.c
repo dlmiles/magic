@@ -129,7 +129,8 @@ efHierSrUses(
  * names conn_name1 and conn_name2 for each such subscript, calling
  * the supplied procedure for each.
  *
- * This procedure should be of the following form:
+ * This procedure should be of the following form
+ *   (see also typedef cb_extflat_hiersrarray_t) :
  *
  *	(*proc)(hc, name1, name2, conn, cdata)
  *	    HierContext *hc;
@@ -155,7 +156,7 @@ int
 efHierSrArray(
     HierContext *hc,
     Connection *conn,
-    int (*proc)(),
+    const cb_extflat_hiersrarray_t proc,
     ClientData cdata)
 {
     char name1[1024], name2[1024];
@@ -517,14 +518,16 @@ efHierVisitDevs(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 int
 efHierVisitSingleResist(
     HierContext *hc,		/* Contains hierarchical pathname to cell */
-    char *name1,
-    char *name2,		/* Names of nodes connecting to resistor */
+    const char *name1,
+    const char *name2,		/* Names of nodes connecting to resistor */
     Connection *res,		/* Contains resistance to add */
-    CallArg *ca)
+    ClientData cdata)
 {
+    CallArg *ca = (CallArg *)CD2PTR(cdata);
     EFNode *n1, *n2;
     HashEntry *he;
     Def *def = hc->hc_use->use_def;

@@ -101,7 +101,8 @@ extern void efHNBuildDistKey(HierName *prefix, Distance *dist, Distance *distKey
 extern int efHNLexOrder(HierName *hierName1, HierName *hierName2);
 extern void efHNPrintSizes(char *when);
 extern void efHNRecord(int size, int type);
-extern int efHierSrArray(HierContext *hc, Connection *conn, int (*proc)(), ClientData cdata);
+typedef int (*cb_extflat_hiersrarray_t)(HierContext *hc, const char *name1, const char *name2, Connection *conn, ClientData cdata);
+extern int efHierSrArray(HierContext *hc, Connection *conn, const cb_extflat_hiersrarray_t proc, ClientData cdata);
 extern int efHierSrUses(HierContext *hc, int (*func)(), ClientData cdata);
 extern int efHierVisitDevs(HierContext *hc, CallArg *ca);
 extern EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);

@@ -90,9 +90,9 @@ bool efDevKilled();
  */
 
 int
-EFVisitSubcircuits(subProc, cdata)
-    int (*subProc)();
-    ClientData cdata;
+EFVisitSubcircuits(
+    int (*subProc)(),
+    ClientData cdata)
 {
     CallArg ca;
     HierContext *hc;
@@ -129,9 +129,9 @@ EFVisitSubcircuits(subProc, cdata)
  */
 
 int
-efVisitSubcircuits(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitSubcircuits(
+    HierContext *hc,
+    CallArg *ca)
 {
     /* Look for children of this def which are defined	*/
     /* as subcircuits via the DEF_SUBCIRCUIT flag.	*/
@@ -172,10 +172,10 @@ efVisitSubcircuits(hc, ca)
  */
 
 void
-EFGetLengthAndWidth(dev, lptr, wptr)
-    Dev *dev;
-    int *lptr;
-    int *wptr;
+EFGetLengthAndWidth(
+    Dev *dev,
+    int *lptr,
+    int *wptr)
 {
     DevTerm *gate, *source, *drain;
     int area, perim, l, w;
@@ -274,9 +274,9 @@ EFGetLengthAndWidth(dev, lptr, wptr)
  */
 
 int
-EFVisitDevs(devProc, cdata)
-    int (*devProc)();
-    ClientData cdata;
+EFVisitDevs(
+    int (*devProc)(),
+    ClientData cdata)
 {
     CallArg ca;
 
@@ -297,9 +297,9 @@ EFVisitDevs(devProc, cdata)
  */
 
 int
-efVisitDevs(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitDevs(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Dev *dev;
@@ -351,9 +351,9 @@ efVisitDevs(hc, ca)
  */
 
 bool
-efDevKilled(dev, prefix)
-    Dev *dev;
-    HierName *prefix;
+efDevKilled(
+    Dev *dev,
+    HierName *prefix)
 {
     HierName *suffix;
     HashEntry *he;
@@ -395,9 +395,10 @@ efDevKilled(dev, prefix)
  */
 
 void
-efDevFixLW(attrs, pL, pW)
-    char *attrs;
-    int *pL, *pW;
+efDevFixLW(
+    char *attrs,
+    int *pL,
+    int *pW)
 {
     char *cp, *ep;
     char attrName, savec;
@@ -480,9 +481,9 @@ skip:
  */
 
 int
-EFVisitResists(resProc, cdata)
-    int (*resProc)();
-    ClientData cdata;
+EFVisitResists(
+    int (*resProc)(),
+    ClientData cdata)
 {
     CallArg ca;
 
@@ -505,9 +506,9 @@ EFVisitResists(resProc, cdata)
 extern int efVisitSingleResist();
 
 int
-efVisitResists(hc, ca)
-    HierContext *hc;
-    CallArg *ca;
+efVisitResists(
+    HierContext *hc,
+    CallArg *ca)
 {
     Def *def = hc->hc_use->use_def;
     Connection *res;
@@ -556,11 +557,12 @@ efVisitResists(hc, ca)
  */
 
 int
-efVisitSingleResist(hc, name1, name2, res, ca)
-    HierContext *hc;		/* Contains hierarchical pathname to cell */
-    char *name1, *name2;	/* Names of nodes connecting to resistor */
-    Connection *res;		/* Contains resistance to add */
-    CallArg *ca;
+efVisitSingleResist(
+    HierContext *hc,		/* Contains hierarchical pathname to cell */
+    char *name1,
+    char *name2,		/* Names of nodes connecting to resistor */
+    Connection *res,		/* Contains resistance to add */
+    CallArg *ca)
 {
     EFNode *n1, *n2;
     HashEntry *he;
@@ -615,9 +617,9 @@ efVisitSingleResist(hc, name1, name2, res, ca)
  */
 
 int
-EFVisitCaps(capProc, cdata)
-    int (*capProc)();
-    ClientData cdata;
+EFVisitCaps(
+    int (*capProc)(),
+    ClientData cdata)
 {
     HashSearch hs;
     HashEntry *he;
@@ -671,9 +673,9 @@ EFVisitCaps(capProc, cdata)
  */
 
 int
-EFVisitNodes(nodeProc, cdata)
-    int (*nodeProc)();
-    ClientData cdata;
+EFVisitNodes(
+    int (*nodeProc)(),
+    ClientData cdata)
 {
     EFNode *node;
     EFNodeName *nn;
@@ -769,8 +771,8 @@ EFVisitNodes(nodeProc, cdata)
  */
 
 int
-EFNodeResist(node)
-    EFNode *node;
+EFNodeResist(
+    EFNode *node)
 {
     int n, perim, area;
     float s, fperim;
@@ -818,9 +820,11 @@ EFNodeResist(node)
  */
 
 bool
-EFLookDist(hn1, hn2, pMinDist, pMaxDist)
-    HierName *hn1, *hn2;
-    int *pMinDist, *pMaxDist;
+EFLookDist(
+    HierName *hn1,
+    HierName *hn2,
+    int *pMinDist,
+    int *pMaxDist)
 {
     Distance distKey, *dist;
     HashEntry *he;
@@ -864,9 +868,9 @@ EFLookDist(hn1, hn2, pMinDist, pMaxDist)
  */
 
 void
-EFHNOut(hierName, outf)
-    HierName *hierName;
-    FILE *outf;
+EFHNOut(
+    HierName *hierName,
+    FILE *outf)
 {
     bool trimGlob, trimLocal, convComma, convBrackets;
     char *cp, c;
@@ -912,9 +916,9 @@ EFHNOut(hierName, outf)
 }
 
 void
-efHNOutPrefix(hierName, outf)
-    HierName *hierName;
-    FILE *outf;
+efHNOutPrefix(
+    HierName *hierName,
+    FILE *outf)
 {
     char *cp, c;
 

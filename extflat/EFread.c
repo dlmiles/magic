@@ -139,9 +139,12 @@ static bool efReadDef();
  */
 
 bool
-EFReadFile(name, dosubckt, resist, noscale, isspice)
-    char *name; /* Name of def to be read in */
-    bool dosubckt, resist, noscale, isspice;
+EFReadFile(
+    char *name, /* Name of def to be read in */
+    bool dosubckt,
+    bool resist,
+    bool noscale,
+    bool isspice)
 {
     Def *def;
     bool  rc;
@@ -179,9 +182,13 @@ EFReadFile(name, dosubckt, resist, noscale, isspice)
  */
 
 bool
-efReadDef(def, dosubckt, resist, noscale, toplevel, isspice)
-   Def *def;
-   bool dosubckt, resist, noscale, toplevel, isspice;
+efReadDef(
+   Def *def,
+   bool dosubckt,
+   bool resist,
+   bool noscale,
+   bool toplevel,
+   bool isspice)
 {
     int argc, ac, n;
     CellDef *dbdef;
@@ -706,11 +713,11 @@ resistChanged:
  */
 
 int
-efReadLine(lineptr, sizeptr, file, argv)
-    char **lineptr;	/* Pointer to character array into which line is read */
-    int *sizeptr;	/* Pointer to size of character array */
-    FILE *file;		/* Open .ext file */
-    char *argv[];	/* Vector of tokens built by efReadLine() */
+efReadLine(
+    char **lineptr,	/* Pointer to character array into which line is read */
+    int *sizeptr,	/* Pointer to size of character array */
+    FILE *file,		/* Open .ext file */
+    char *argv[])	/* Vector of tokens built by efReadLine() */
 {
     char *get, *put;
     bool inquote;

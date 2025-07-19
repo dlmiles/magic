@@ -123,9 +123,9 @@ typedef struct _ams {
 #define ANTENNACHECK_HELP    2
 
 void
-CmdAntennaCheck(w, cmd)
-    MagWindow *w;
-    TxCommand *cmd;
+CmdAntennaCheck(
+    MagWindow *w,
+    TxCommand *cmd)
 {
     int i, flatFlags;
     char *inName;
@@ -291,9 +291,9 @@ runantennacheck:
  */
 
 int
-antennacheckArgs(pargc, pargv)
-    int *pargc;
-    char ***pargv;
+antennacheckArgs(
+    int *pargc,
+    char ***pargv)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -327,9 +327,9 @@ usage:
  * ----------------------------------------------------------------------------
  */
 EFNode *
-AntennaGetNode(prefix, suffix)
-HierName *prefix;
-HierName *suffix;
+AntennaGetNode(
+    HierName *prefix,
+    HierName *suffix)
 {
         HashEntry *he;
 
@@ -356,12 +356,12 @@ HierName *suffix;
  */
 
 int
-antennacheckVisit(dev, hc, scale, trans, editUse)
-    Dev *dev;		/* Device being output */
-    HierContext *hc;	/* Hierarchical context down to this device */
-    float scale;	/* Scale transform for output */
-    Transform *trans;	/* Coordinate transform */
-    CellUse *editUse;	/* ClientData is edit cell use */
+antennacheckVisit(
+    Dev *dev,		/* Device being output */
+    HierContext *hc,	/* Hierarchical context down to this device */
+    float scale,	/* Scale transform for output */
+    Transform *trans,	/* Coordinate transform */
+    CellUse *editUse)	/* ClientData is edit cell use */
 {
     DevTerm *gate;
     TileType t, conType;
@@ -752,9 +752,9 @@ antennacheckVisit(dev, hc, scale, trans, editUse)
  */
 
 int
-areaMarkFunc(tile, ams)
-    Tile *tile;
-    AntennaMarkStruct *ams;
+areaMarkFunc(
+    Tile *tile,
+    AntennaMarkStruct *ams)
 {
     Rect rect;
     char msg[200];
@@ -776,9 +776,9 @@ areaMarkFunc(tile, ams)
  */
 
 int
-areaAccumFunc(tile, gdas)
-    Tile *tile;
-    GateDiffAccumStruct *gdas;
+areaAccumFunc(
+    Tile *tile,
+    GateDiffAccumStruct *gdas)
 {
     Rect *rect = &(gdas->r);
     int type;
@@ -814,9 +814,9 @@ areaAccumFunc(tile, gdas)
  */
 
 int
-antennaAccumFunc(tile, aaptr)
-    Tile *tile;
-    AntennaAccumStruct *aaptr;
+antennaAccumFunc(
+    Tile *tile,
+    AntennaAccumStruct *aaptr)
 {
     Rect *rect = &(aaptr->r);
     Rect *cont = &(aaptr->via);

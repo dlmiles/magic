@@ -92,8 +92,8 @@ extern void efHNRecord();
  */
 
 bool
-EFHNIsGlob(hierName)
-    HierName *hierName;
+EFHNIsGlob(
+    HierName *hierName)
 {
 #ifdef MAGIC_WRAPPER
     char *retstr;
@@ -130,8 +130,8 @@ EFHNIsGlob(hierName)
  */
 
 bool
-EFHNIsGND(hierName)
-    HierName *hierName;
+EFHNIsGND(
+    HierName *hierName)
 {
 #ifdef MAGIC_WRAPPER
     char *retstr;
@@ -167,9 +167,9 @@ EFHNIsGND(hierName)
  */
 
 HierName *
-EFHNConcat(prefix, suffix)
-    HierName *prefix;		/* Components of name on root side */
-    HierName *suffix;	/* Components of name on leaf side */
+EFHNConcat(
+    HierName *prefix,		/* Components of name on root side */
+    HierName *suffix)	/* Components of name on leaf side */
 {
     HierName *new, *prev;
     HierName *firstNew;
@@ -216,9 +216,9 @@ EFHNConcat(prefix, suffix)
  */
 
 HierName *
-EFStrToHN(prefix, suffixStr)
-    HierName *prefix;	/* Components of name on side of root */
-    char *suffixStr;	/* Leaf part of name (may have /'s) */
+EFStrToHN(
+    HierName *prefix,	/* Components of name on side of root */
+    char *suffixStr)	/* Leaf part of name (may have /'s) */
 {
     char *cp;
     HashEntry *he;
@@ -277,8 +277,8 @@ EFStrToHN(prefix, suffixStr)
  */
 
 char *
-EFHNToStr(hierName)
-    HierName *hierName;		/* Name to be converted */
+EFHNToStr(
+    HierName *hierName)		/* Name to be converted */
 {
     static char namebuf[2048];
 
@@ -304,9 +304,9 @@ EFHNToStr(hierName)
  */
 
 char *
-efHNToStrFunc(hierName, dstp)
-    HierName *hierName;		/* Name to be converted */
-    char *dstp;	/* Store name here */
+efHNToStrFunc(
+    HierName *hierName,		/* Name to be converted */
+    char *dstp)	/* Store name here */
 {
     char *srcp;
 
@@ -355,10 +355,10 @@ efHNToStrFunc(hierName, dstp)
  */
 
 HashEntry *
-EFHNLook(prefix, suffixStr, errorStr)
-    HierName *prefix;	/* Components of name on root side */
-    char *suffixStr;	/* Part of name on leaf side */
-    char *errorStr;	/* Explanatory string for errors */
+EFHNLook(
+    HierName *prefix,	/* Components of name on root side */
+    char *suffixStr,	/* Part of name on leaf side */
+    char *errorStr)	/* Explanatory string for errors */
 {
     HierName *hierName, *hn;
     bool dontFree = FALSE;
@@ -409,10 +409,10 @@ EFHNLook(prefix, suffixStr, errorStr)
  */
 
 HashEntry *
-EFHNConcatLook(prefix, suffix, errorStr)
-    HierName *prefix;	/* Components of name on root side */
-    HierName *suffix;	/* Part of name on leaf side */
-    char *errorStr;	/* Explanatory string for errors */
+EFHNConcatLook(
+    HierName *prefix,	/* Components of name on root side */
+    HierName *suffix,	/* Part of name on leaf side */
+    char *errorStr)	/* Explanatory string for errors */
 {
     HashEntry *he;
     HierName *hn;
@@ -459,9 +459,10 @@ EFHNConcatLook(prefix, suffix, errorStr)
  */
 
 void
-EFHNFree(hierName, prefix, type)
-    HierName *hierName, *prefix;
-    int type;	/* HN_ALLOC, HN_CONCAT, etc */
+EFHNFree(
+    HierName *hierName,
+    HierName *prefix,
+    int type)	/* HN_ALLOC, HN_CONCAT, etc */
 {
     HierName *hn;
 
@@ -501,8 +502,9 @@ EFHNFree(hierName, prefix, type)
  */
 
 bool
-EFHNBest(hierName1, hierName2)
-    HierName *hierName1, *hierName2;
+EFHNBest(
+    HierName *hierName1,
+    HierName *hierName2)
 {
     int ncomponents1, ncomponents2, len1, len2;
     HierName *np1, *np2;
@@ -576,8 +578,9 @@ EFHNBest(hierName1, hierName2)
  */
 
 int
-efHNLexOrder(hierName1, hierName2)
-    HierName *hierName1, *hierName2;
+efHNLexOrder(
+    HierName *hierName1,
+    HierName *hierName2)
 {
     int i;
 
@@ -613,9 +616,9 @@ efHNLexOrder(hierName1, hierName2)
  */
 
 HierName *
-efHNFromUse(hc, prefix)
-    HierContext *hc;	/* Contains use and array information */
-    HierName *prefix;	/* Root part of name */
+efHNFromUse(
+    HierContext *hc,	/* Contains use and array information */
+    HierName *prefix)	/* Root part of name */
 {
     char *srcp, *dstp;
     char name[2048], *namePtr;
@@ -710,8 +713,9 @@ efHNFromUse(hc, prefix)
  */
 
 bool
-efHNUseCompare(hierName1, hierName2)
-    HierName *hierName1, *hierName2;
+efHNUseCompare(
+    HierName *hierName1,
+    HierName *hierName2)
 {
     return ((bool)(hierName1->hn_parent != hierName2->hn_parent
 	           || strcmp(hierName1->hn_name, hierName2->hn_name)
@@ -719,8 +723,8 @@ efHNUseCompare(hierName1, hierName2)
 }
 
 int
-efHNUseHash(hierName)
-    HierName *hierName;
+efHNUseHash(
+    HierName *hierName)
 {
     return hierName->hn_hash + (spointertype) hierName->hn_parent;
 }
@@ -745,10 +749,10 @@ efHNUseHash(hierName)
  */
 
 void
-efHNInit(hierName, cp, endp)
-    HierName *hierName;		/* Fill in fields of this HierName */
-    char *cp;		/* Start of name to be stored in hn_name */
-    char *endp;	/* End of name if non-NULL; else, see above */
+efHNInit(
+    HierName *hierName,		/* Fill in fields of this HierName */
+    char *cp,		/* Start of name to be stored in hn_name */
+    char *endp)	/* End of name if non-NULL) else, see above */
 {
     unsigned hashsum;
     char *dstp;
@@ -802,8 +806,9 @@ efHNInit(hierName, cp, endp)
  */
 
 int
-efHNCompare(hierName1, hierName2)
-    HierName *hierName1, *hierName2;
+efHNCompare(
+    HierName *hierName1,
+    HierName *hierName2)
 {
     while (hierName1)
     {
@@ -822,8 +827,8 @@ efHNCompare(hierName1, hierName2)
 }
 
 int
-efHNHash(hierName)
-    HierName *hierName;
+efHNHash(
+    HierName *hierName)
 {
     int n;
 
@@ -862,8 +867,9 @@ efHNHash(hierName)
  */
 
 bool
-efHNDistCompare(dist1, dist2)
-    Distance *dist1, *dist2;
+efHNDistCompare(
+    Distance *dist1,
+    Distance *dist2)
 {
     return ((bool)(efHNCompare(dist1->dist_1, dist2->dist_1)
 	           || efHNCompare(dist1->dist_2, dist2->dist_2)
@@ -871,8 +877,8 @@ efHNDistCompare(dist1, dist2)
 }
 
 char *
-efHNDistCopy(dist)
-    Distance *dist;
+efHNDistCopy(
+    Distance *dist)
 {
     Distance *distNew;
 
@@ -882,16 +888,16 @@ efHNDistCopy(dist)
 }
 
 int
-efHNDistHash(dist)
-    Distance *dist;
+efHNDistHash(
+    Distance *dist)
 {
     return efHNHash(dist->dist_1) + efHNHash(dist->dist_2);
 }
 
 
 void
-efHNDistKill(dist)
-    Distance *dist;
+efHNDistKill(
+    Distance *dist)
 {
     HierName *hn;
 
@@ -921,10 +927,10 @@ efHNDistKill(dist)
  */
 
 void
-efHNBuildDistKey(prefix, dist, distKey)
-    HierName *prefix;
-    Distance *dist;
-    Distance *distKey;
+efHNBuildDistKey(
+    HierName *prefix,
+    Distance *dist,
+    Distance *distKey)
 {
     HierName *hn1, *hn2;
 
@@ -964,7 +970,7 @@ efHNBuildDistKey(prefix, dist, distKey)
  */
 
 void
-efHNDump()
+efHNDump(void)
 {
     HashSearch hs;
     HashEntry *he;
@@ -987,16 +993,16 @@ efHNDump()
 int efHNSizes[4];
 
 void
-efHNRecord(size, type)
-    int size;
-    int type;
+efHNRecord(
+    int size,
+    int type)
 {
     efHNSizes[type] += size;
 }
 
 void
-efHNPrintSizes(when)
-    char *when;
+efHNPrintSizes(
+    char *when)
 {
     int total, i;
 

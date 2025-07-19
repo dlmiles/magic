@@ -48,7 +48,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
 bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
-int simParseArgs(int *pargc, char ***pargv);
+bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int simresistVisit(HierName *hierName1, HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
 int simcapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
@@ -861,10 +861,12 @@ main(
  * ----------------------------------------------------------------------------
  */
 
-int
+/* @typedef cb_extflat_args_t */
+bool
 simParseArgs(
     int *pargc,
-    char ***pargv)
+    char ***pargv,
+    ClientData cdata)	/* unused */
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -944,7 +946,7 @@ simParseArgs(
 
     *pargv = argv;
     *pargc = argc;
-    return 0;
+    return FALSE;
 
 usage:
     TxError("Usage: ext2sim [-a aliasfile] [-A] [-B] [-l labelfile] [-L]\n"
@@ -953,7 +955,7 @@ usage:
 		"[file]\n"
 		);
 
-    return 1;
+    return TRUE;
 }
 
 

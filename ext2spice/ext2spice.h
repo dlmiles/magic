@@ -20,7 +20,7 @@ typedef struct _devMerge {
 
 /* Forward declarations */
 extern void CmdExtToSpice(MagWindow *w, TxCommand *cmd);
-extern int spcParseArgs(int *pargc, char ***pargv);
+extern bool spcParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
 extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
 extern int spcnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitnodes_t (UNUSED) */

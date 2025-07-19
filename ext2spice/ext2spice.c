@@ -1351,10 +1351,12 @@ main(
  * ----------------------------------------------------------------------------
  */
 
-int
+/* @typedef cb_extflat_args_t */
+bool
 spcParseArgs(
     int *pargc,
-    char ***pargv)
+    char ***pargv,
+    ClientData cdata)	/* unused */
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -1437,11 +1439,11 @@ spcParseArgs(
 
     *pargv = argv;
     *pargc = argc;
-    return 0;
+    return FALSE;
 
 usage:
     TxError(usage_text);
-    return 1;
+    return TRUE;
 }
 
 /*

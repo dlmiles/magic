@@ -247,7 +247,7 @@ defCountNets(
     bool allSpecial)
 {
     NetCount total;
-    int defnodeCount(EFNode *node, int res, EFCapValue cap, NetCount *total);
+    int defnodeCount(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (NetCount*) */
 
     total.regular = (allSpecial) ? -1 : 0;
     total.special = 0;
@@ -269,7 +269,7 @@ defCountNets(
     if (EFReadFile(rootDef->cd_name, TRUE, FALSE, TRUE, FALSE))
     {
 	EFFlatBuild(rootDef->cd_name, EF_FLATNODES | EF_NOFLATSUBCKT);
-        EFVisitNodes(defnodeCount, (ClientData)&total);
+        EFVisitNodes(defnodeCount, PTR2CD(&total));
     }
     else
     {
@@ -284,14 +284,15 @@ defCountNets(
 }
 
 /* Callback function used by defCountNets */
-
+/* @typedef cb_extflat_visitnodes_t (NetCount*) */
 int
 defnodeCount(
     EFNode *node,
     int res,			/* not used */
-    EFCapValue cap,		/* not used */
-    NetCount *total)
+    double cap,			/* not used */
+    ClientData cdata)		/* NetCount *total */
 {
+    NetCount *total = (NetCount *) CD2PTR(cdata);
     HierName *hierName;
     char *cp, clast;
 
@@ -636,7 +637,7 @@ defWriteNets(
     unsigned char specialmode)		/* What to write as a SPECIALNET */
 {
     DefData defdata;
-    int defnodeVisit(EFNode *node, int res, EFCapValue cap, DefData *defdata);
+    int defnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (DefData*) */
 
     defdata.f = f;
     defdata.scale = oscale;
@@ -647,17 +648,18 @@ defWriteNets(
     defdata.specialmode = specialmode;
     defdata.defViaTable = defViaTable;
 
-    EFVisitNodes(defnodeVisit, (ClientData)&defdata);
+    EFVisitNodes(defnodeVisit, PTR2CD(&defdata));
 }
 
+/* @typedef cb_extflat_visitnodes_t (DefData*) */
 int
 defnodeVisit(
     EFNode *node,
     int res,
-    EFCapValue cap,
-    DefData *defdata)
+    double cap,
+    ClientData cdata) /* (DefData*) */
 {
-    HierName *hierName;
+    DefData *defdata = (DefData *) CD2PTR(cdata);
     char *ndn;
     char ndn2[256];
     char locndn[256];
@@ -2459,7 +2461,7 @@ defWriteBlockages(
     TileTypeBitMask ExtraObsLayersMask;
 
     int defSimpleBlockageFunc(Tile *tile, DefObsData *defobsdata);	/* Forward declaration */
-    int defblockageVisit(EFNode *node, int res, EFCapValue cap, DefObsData *defobsdata);
+    int defblockageVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (DefObsData*) */
 
     defobsdata.def = rootDef;
     defobsdata.nlayers = 0;
@@ -2525,7 +2527,7 @@ defWriteBlockages(
 	}
     }
     if (numblocks > 0)
-	EFVisitNodes(defblockageVisit, (ClientData)&defobsdata);
+	EFVisitNodes(defblockageVisit, PTR2CD(&defobsdata));
 
     /* If obstruction types are marked as non-electrical layers (which
      * normally they are), then they will not be extracted as nodes.
@@ -2577,13 +2579,15 @@ defWriteBlockages(
 
 }
 
+/* @typedef cb_extflat_visitnodes_t (DefObsData*) */
 int
 defblockageVisit(
     EFNode *node,
     int res,
-    EFCapValue cap,
-    DefObsData *defobsdata)
+    double cap,
+    ClientData cdata)
 {
+    DefObsData *defobsdata = (DefObsData*) CD2PTR(cdata);
     CellDef *def = defobsdata->def;
     TileType magictype;
     TileTypeBitMask tmask;

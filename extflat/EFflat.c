@@ -63,7 +63,7 @@ char *efFlatGlobCopy(HierName *);
 void efFlatGlobError(EFNodeName *nameGlob, EFNodeName *nameFlat);
 int efAddNodes(HierContext *hc, bool stdcell);
 int efAddConns(HierContext *hc, bool doWarn);
-int efAddOneConn(HierContext *hc, char *name1, char *name2, Connection *conn, bool doWarn);
+int efAddOneConn(HierContext *hc, const char *name1, const char *name2, Connection *conn, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (bool doWarn) */
 
 /* Flags passed to efFlatNode() */
 
@@ -642,14 +642,16 @@ efAddConns(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrarray_t (bool) */
 int
 efAddOneConn(
     HierContext *hc,
-    char *name1,	/* These are strings, not HierNames */
-    char *name2,
+    const char *name1,	/* These are strings, not HierNames */
+    const char *name2,
     Connection *conn,
-    bool doWarn)
+    ClientData cdata)	/* bool doWarn */
 {
+    bool doWarn = (bool)CD2INT(cdata);
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
     int n;

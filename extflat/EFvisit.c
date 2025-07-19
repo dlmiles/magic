@@ -503,7 +503,8 @@ EFVisitResists(
  *	Calls the client procedure (*ca->ca_proc)().
  */
 
-extern int efVisitSingleResist();
+extern int efVisitSingleResist(HierContext *hc, const char *name1, const char *name2,
+                               Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 
 int
 efVisitResists(
@@ -556,14 +557,16 @@ efVisitResists(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 int
 efVisitSingleResist(
     HierContext *hc,		/* Contains hierarchical pathname to cell */
-    char *name1,
-    char *name2,		/* Names of nodes connecting to resistor */
+    const char *name1,
+    const char *name2,		/* Names of nodes connecting to resistor */
     Connection *res,		/* Contains resistance to add */
-    CallArg *ca)
+    ClientData cdata)
 {
+    CallArg *ca = (CallArg *)CD2PTR(cdata);
     EFNode *n1, *n2;
     HashEntry *he;
 

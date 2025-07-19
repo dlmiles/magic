@@ -58,7 +58,6 @@ HashTable efNodeHashTable;
  */
 HashTable efHNUseHashTable;
 
-extern void EFHNFree();
 extern void efHNInit();
 extern void efHNRecord();
 

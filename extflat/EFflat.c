@@ -55,7 +55,7 @@ Use efFlatRootUse;
 HierContext efFlatContext;
 
 /* Forward declarations */
-int efFlatSingleCap(HierContext *hc, char *name1, char *name2, Connection *conn);
+int efFlatSingleCap(HierContext *hc, const char *name1, const char *name2, Connection *conn, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (UNUSED) */
 void efFlatGlob(void);
 int efFlatGlobHash(HierName *);
 bool efFlatGlobCmp(HierName *, HierName *);
@@ -983,7 +983,7 @@ efFlatCapsDeviceless(
     {
 	/* Special case for speed if no arraying info */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efFlatSingleCap(hc, conn->conn_name1, conn->conn_name2, conn);
+	    efFlatSingleCap(hc, conn->conn_name1, conn->conn_name2, conn, (ClientData) NULL);
 	else
 	    efHierSrArray(hc, conn, efFlatSingleCap, (ClientData) NULL);
     }
@@ -1038,7 +1038,7 @@ efFlatCaps(
     {
 	/* Special case for speed if no arraying info */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efFlatSingleCap(hc, conn->conn_name1, conn->conn_name2, conn);
+	    efFlatSingleCap(hc, conn->conn_name1, conn->conn_name2, conn, (ClientData) NULL);
 	else
 	    efHierSrArray(hc, conn, efFlatSingleCap, (ClientData) NULL);
     }
@@ -1068,12 +1068,14 @@ efFlatCaps(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrarray_t (UNUSED) */
 int
 efFlatSingleCap(
     HierContext *hc,		/* Contains hierarchical pathname to cell */
-    char *name1,		/* Names of nodes connecting to capacitor */
-    char *name2,
-    Connection *conn)		/* Contains capacitance to add */
+    const char *name1,		/* Names of nodes connecting to capacitor */
+    const char *name2,
+    Connection *conn,		/* Contains capacitance to add */
+    ClientData cdata)		/* UNUSED */
 {
     EFNode *n1, *n2;
     HashEntry *he;

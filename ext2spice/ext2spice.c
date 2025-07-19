@@ -1128,7 +1128,7 @@ runexttospice:
 	EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
 
 	/* Visit nodes to find the substrate node */
-	EFVisitNodes(spcsubVisit, (ClientData)&substr);
+	EFVisitNodes(spcsubVisit, PTR2CD(&substr));
 	if (substr == NULL)
 	    substr = StrDup((char **)NULL, esSpiceDefaultGnd);
 
@@ -3721,6 +3721,8 @@ spcresistVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_visitnodes_t (char **resstr) */
 int
 spcsubVisit(
     EFNode *node,
@@ -3728,7 +3730,7 @@ spcsubVisit(
     double cap,		// Unused
     ClientData cdata)
 {
-    char **resstr = (char **)CD2PTR(cdata);
+    char **resstr = (char **) CD2PTR(cdata);
     HierName *hierName;
     char *nsn;
 
@@ -3759,7 +3761,8 @@ spcsubVisit(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 spcnodeVisit(
     EFNode *node,
@@ -3825,7 +3828,7 @@ spcnodeVisit(
 }
 
 /* a debugging procedure */
-/* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 nodeVisitDebug(
     EFNode *node,

@@ -650,13 +650,14 @@ EFVisitCaps(
  *
  * Procedure to visit all flat nodes in the circuit.
  * For each node, calls the procedure (*nodeProc)(),
- * which should be of the following form:
+ * which should be of the following form
+ *   see also typedef cb_extflat_visitnodes_t:
  *
- *	(*nodeProc)(node, r, c, cdata)
- *	    EFNode *node;
- *          int r;
- *          EFCapValue c;
- *	    ClientData cdata;
+ *	int (*nodeProc)(
+ *	    EFNode *node,
+ *          int r,
+ *          double c,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -677,7 +678,7 @@ EFVisitCaps(
 
 int
 EFVisitNodes(
-    int (*nodeProc)(),
+    const cb_extflat_visitnodes_t nodeProc,
     ClientData cdata)
 {
     EFNode *node;
@@ -718,7 +719,10 @@ EFVisitNodes(
 	if (node->efnode_flags & EF_KILLED)
 	    continue;
 
-	if ((*nodeProc)(node, res, (double) cap, cdata))
+	/* EFCapValue (aka 'float') is cast to (double) for callback just here
+	 *  does not look like a precision loss, just mirroring of source data type node->efnode_cap
+	 */
+	if ((*nodeProc)(node, res, (double) cap, cdata)) /* @invoke cb_extflat_visitnodes_t */
 	    return 1;
     }
 

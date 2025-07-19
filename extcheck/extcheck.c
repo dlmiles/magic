@@ -51,10 +51,10 @@ int ecNumNodeCaps;
 int ecNumNodeResists;
 
 /* Forward declarations */
-int nodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
 int devVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
 int capVisit(HierName *hn1, HierName *hn2, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
 int resistVisit(HierName *hn1, HierName *hn2, float res, ClientData cdata); /* @typedef cb_extflat_efvisitresists_t (UNUSED) */
+int nodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 
 /*
  * ----------------------------------------------------------------------------
@@ -130,7 +130,8 @@ main(int argc, char *argv[])
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitnodes_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int
 nodeVisit(
     EFNode *node,
@@ -150,7 +151,7 @@ nodeVisit(
 }
 
 /*ARGSUSED*/
-/* @typedef cb_extflat_efvisitdevs_t (UNUSED) */
+/* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int
 devVisit(
     Dev *dev,
@@ -164,7 +165,7 @@ devVisit(
 }
 
 /*ARGSUSED*/
-/* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 capVisit(
     HierName *hn1,
@@ -178,7 +179,7 @@ capVisit(
 }
 
 /*ARGSUSED*/
-/* @typedef cb_extflat_efvisitresists_t (UNUSED) */
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 resistVisit(
     HierName *hn1,

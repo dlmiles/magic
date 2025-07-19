@@ -43,7 +43,7 @@
 #include "extract/extract.h"
 
 /* Forward declarations */
-int antennacheckArgs(int *pargc, char ***pargv);
+bool antennacheckArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int antennacheckVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, CellUse *editUse);
 
 typedef struct {
@@ -290,10 +290,12 @@ runantennacheck:
  * ----------------------------------------------------------------------------
  */
 
-int
+/* @typedef cb_extflat_args_t (UNUSED) */
+bool
 antennacheckArgs(
     int *pargc,
-    char ***pargv)
+    char ***pargv,
+    ClientData cdata)
 {
     char **argv = *pargv, *cp;
     int argc = *pargc;
@@ -307,11 +309,11 @@ antennacheckArgs(
 
     *pargv = argv;
     *pargc = argc;
-    return 0;
+    return FALSE;
 
 usage:
     TxError("Usage: antennacheck\n");
-    return 1;
+    return TRUE;
 }
 
 /*

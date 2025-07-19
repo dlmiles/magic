@@ -73,7 +73,7 @@ main(int argc, char *argv[])
 
     /* Process command line arguments */
     EFInit();
-    inName = EFArgs(argc, argv, NULL, (int (*)()) NULL, (ClientData) NULL);
+    inName = EFArgs(argc, argv, NULL, NULL, (ClientData) NULL);
     if (inName == NULL)
 	exit (1);
 

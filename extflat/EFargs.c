@@ -86,12 +86,12 @@ extern void efLoadSearchPath();
  * Process command-line arguments that are relevant to the extractor
  * flattener.  Arguments that are specific to the calling function
  * are processed by the procedure (*argsProc)(), which should
- * have the following form:
+ * have the following form (see also typedef cb_extflat_args_t) :
  *
- *	(*argsProc)(pargc, pargv, cdata)
- *	    int *pargc;
- *	    char ***pargv;
- *	    ClientData cdata;
+ *	bool (*argsProc)(
+ *	    int *pargc,
+ *	    char ***pargv,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -148,7 +148,7 @@ EFArgs(
     int argc,		/* Number of command-line args */
     char *argv[],	/* Vector of command-line args */
     bool *err_result,	/* Set to TRUE if error occurs */
-    bool (*argsProc)(),	/* Called for args we don't recognize */
+    const cb_extflat_args_t argsProc,	/* Called for args we don't recognize */
     ClientData cdata)	/* Passed to (*argsProc)() */
 {
     static char libpath[FNSIZE];
@@ -277,7 +277,7 @@ EFArgs(
 		efHNStats = TRUE;
 		break;
 	    case 'h':
-		if (argsProc != NULL) (*argsProc)(&argc, &argv, cdata);
+		if (argsProc != NULL) (*argsProc)(&argc, &argv, cdata); /* @invoke cb_extflat_args_t */
 		TxPrintf(usage_text);
 		if (err_result != NULL) *err_result = TRUE;
 		return NULL;
@@ -286,7 +286,7 @@ EFArgs(
 	    default:
 		if (argsProc == NULL)
 		    goto usage;
-		if ((*argsProc)(&argc, &argv, cdata))
+		if ((*argsProc)(&argc, &argv, cdata)) /* @invoke cb_extflat_args_t */
 		{
 		    TxError("\n");
 		    goto usage;

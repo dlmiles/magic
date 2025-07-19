@@ -61,7 +61,8 @@ extern bool EFSaveLocs;
 
 /* -------------------------- Exported procedures --------------------- */
 
-extern char *EFArgs(int argc, char *argv[], bool *err_result, bool (*argsProc)(), ClientData cdata);
+typedef bool (*cb_extflat_args_t)(int *pargc, char ***pargv, ClientData cdata);
+extern char *EFArgs(int argc, char *argv[], bool *err_result, const cb_extflat_args_t argsProc, ClientData cdata);
 
     /* HierName manipulation */
 extern HashEntry *EFHNLook(HierName *prefix, char *suffixStr, char *errorStr);

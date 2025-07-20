@@ -1324,12 +1324,16 @@ spccapHierVisit(
  *
  * ----------------------------------------------------------------------------
  */
+
+/*ARGUSED*/
+/* @typedef cb_extflat_hiervisitresists_t (UNUSED) */
 int
 spcresistHierVisit(
     HierContext *hc,
-    HierName *hierName1,
-    HierName *hierName2,
-    float res)
+    const HierName *hierName1,
+    const HierName *hierName2,
+    float res,
+    ClientData cdata)	// UNUSED
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -2217,7 +2221,7 @@ esHierVisit(
 	EFHierVisitDevs(hcf, spcdevHierVisit, PTR2CD(NULL));
 
 	/* Output lumped parasitic resistors */
-	EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);
+	EFHierVisitResists(hcf, spcresistHierVisit, PTR2CD(NULL));
 
 	/* Output coupling capacitances */
 	EFHierVisitCaps(hcf, spccapHierVisit, PTR2CD(NULL));

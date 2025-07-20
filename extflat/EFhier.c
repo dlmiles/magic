@@ -646,13 +646,15 @@ efHierVisitResists(
  *
  * Visit all the local capacitance records
  * Calls the user-provided procedure (*capProc)()
- * which should be of the following format:
+ * which should be of the following format
+ *   see also typedef cb_extflat_hiervisitcaps_t:
  *
- *	(*capProc)(hc, hierName1, hierName2, cap, cdata)
- *	    HierContext *hc;
- *	    HierName *hierName1, *hierName2;
- *	    EFCapValue cap;
- *	    ClientData cdata;
+ *	int (*capProc)(
+ *	    HierContext *hc,
+ *	    const HierName *hierName1,
+ *	    const HierName *hierName2,
+ *	    double cap,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -671,7 +673,7 @@ efHierVisitResists(
 int
 EFHierVisitCaps(
     HierContext *hc,
-    int (*capProc)(),
+    const cb_extflat_hiervisitcaps_t capProc,
     ClientData cdata)
 {
     HashSearch hs;
@@ -688,9 +690,10 @@ EFHierVisitCaps(
     {
 	ccap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;
+	/* EFCapValue (aka float) is cast to 'double' for the call */
 	if ((*capProc)(hc, ck->ck_1->efnode_name->efnn_hier,
 			ck->ck_2->efnode_name->efnn_hier,
-			(double) ccap, cdata))
+			(double) ccap, cdata)) /* @invoke cb_extflat_hiervisitcaps_t */
 	    return 1;
     }
     return 0;

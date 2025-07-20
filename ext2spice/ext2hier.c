@@ -1282,8 +1282,8 @@ spcdevHierMergeVisit(
 int
 spccapHierVisit(
     HierContext *hc,
-    HierName *hierName1,
-    HierName *hierName2,
+    const HierName *hierName1,
+    const HierName *hierName2,
     double cap,
     ClientData cdata)	/* unused */
 {
@@ -2214,7 +2214,7 @@ esHierVisit(
 	EFHierVisitResists(hcf, spcresistHierVisit, (ClientData)NULL);
 
 	/* Output coupling capacitances */
-	EFHierVisitCaps(hcf, spccapHierVisit, (ClientData)NULL);
+	EFHierVisitCaps(hcf, spccapHierVisit, PTR2CD(NULL));
 
 	if (EFCompat == FALSE)
 	{

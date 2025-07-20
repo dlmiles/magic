@@ -388,7 +388,8 @@ NMNewNetlist(name)
     Netlist *new;
     FILE *file;
 #define MAXLINESIZE 256
-    char line[MAXLINESIZE], *fullName, *currentTerm, *p;
+    char line[MAXLINESIZE], *currentTerm, *p;
+    const char *fullName;
 
     /* Save undo information, and re-adjust things for the rest
      * of this module.
@@ -771,8 +772,7 @@ NMWriteNetlist(fileName)
     {
 	realName = alloc = mallocMagic((unsigned) (5 + strlen(fileName)));
 	(void) sprintf(realName, "%s.net", fileName);
-	file = PaOpen(realName, "r", (char *) NULL, ".",
-	    (char *) NULL, (char **) NULL);
+	file = PaOpen(realName, "r", NULL, ".", NULL, NULL);
 	if (file != NULL)
 	{
 	    (void) fclose(file);
@@ -791,8 +791,7 @@ NMWriteNetlist(fileName)
 	}
     }
 
-    file = PaOpen(realName, "w", (char *) NULL, ".",
-	(char *) NULL, (char **) NULL);
+    file = PaOpen(realName, "w", NULL, ".", NULL, NULL);
     if (file == NULL)
     {
 	TxError("Couldn't write file %s.\n", realName);

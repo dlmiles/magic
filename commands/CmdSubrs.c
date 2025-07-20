@@ -721,7 +721,7 @@ cmdCheckNewName(
     bool noninteractive)
 {
     static const char * const yesno[] = { "no", "yes", 0 };
-    char *filename;
+    const char *filename;
     char *prompt;
     char *returnname;
     int code;
@@ -758,7 +758,7 @@ again:
 
     if (strcmp(returnname, def->cd_name) != 0)
     {
-	if ((f = PaOpen(returnname, "r", DBSuffix, ".", (char *) NULL, &filename)))
+	if ((f = PaOpen(returnname, "r", DBSuffix, ".", NULL, &filename)))
 	{
 	    (void) fclose(f);
 	    if (noninteractive) {

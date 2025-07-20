@@ -131,7 +131,8 @@ CmdCalma(
 {
     int option, ext, value;
     const char * const *msg;
-    char *namep, *dotptr;
+    const char *namep;
+    char *dotptr;
     char writeMode[3];
     CellDef *rootDef;
     FILETYPE f;
@@ -990,7 +991,7 @@ CmdCalma(
 
 	    for (ext = 0; gdsExts[ext] != NULL; ext++)
 		if ((f = PaZOpen(cmd->tx_argv[2], "r", gdsExts[ext], Path,
-		    	(char *) NULL, &namep)) != (FILETYPE)NULL)
+				 NULL, &namep)) != (FILETYPE)NULL)
 		    break;
 
 	    if (f == (FILETYPE) NULL)
@@ -1023,7 +1024,7 @@ outputCalma:
     if (CalmaCompression > 0)
     {
 	sprintf(writeMode, "w%d", CalmaCompression);
-	fz = PaZOpen(namep, writeMode, (dotptr == NULL) ? ".gds.gz" : "", ".", (char *) NULL, (char **)NULL);
+	fz = PaZOpen(namep, writeMode, (dotptr == NULL) ? ".gds.gz" : "", ".", NULL, NULL);
 	if (fz == (gzFile)NULL)
 	{
 	    TxError("Cannot open %s%s to write compressed GDS-II stream output\n", namep,
@@ -1041,7 +1042,7 @@ outputCalma:
     {
 
 #endif
-	fp = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", (char *) NULL, (char **)NULL);
+	fp = PaOpen(namep, "w", (dotptr == NULL) ? ".gds" : "", ".", NULL, NULL);
 	if (fp == (FILE *)NULL)
 	{
 	    TxError("Cannot open %s%s to write GDS-II stream output\n", namep,
@@ -2064,8 +2065,7 @@ CmdCif(
 
 	case READ:
 	    if (argc != 3) goto wrongNumArgs;
-	    f = PaOpen(argv[2], "r", ".cif", Path,
-		    (char *) NULL, (char **) NULL);
+	    f = PaOpen(argv[2], "r", ".cif", Path, NULL, NULL);
 	    if (f == (FILE *) NULL)
 	    {
 		TxError("Cannot open %s.cif to read CIF.\n", argv[2]);
@@ -2210,7 +2210,7 @@ CmdCif(
      */
 
     outputCIF:
-    f = PaOpen(namep, "w", ".cif", ".", (char *) NULL, (char **) NULL);
+    f = PaOpen(namep, "w", ".cif", ".", NULL, NULL);
     if (f == (FILE *) NULL)
     {
 	TxError("Cannot open %s.cif to write CIF\n", namep);

@@ -433,12 +433,12 @@ char *libPath;
 
     (void) sprintf(fullName, "%.100s.%.100s.dstyle", techType, grDStyleType);
 
-    inp = PaOpen(fullName, "r", (char *) NULL, path, libPath, (char **) NULL);
+    inp = PaOpen(fullName, "r", NULL, path, libPath, NULL);
     if (inp == NULL)
     {
 	/* Try old format ".dstyle5"? */
         (void) sprintf(fullName, "%.100s.%.100s.dstyle5", techType, grDStyleType);
-	inp = PaOpen(fullName, "r", (char *) NULL, path, libPath, (char **) NULL);
+	inp = PaOpen(fullName, "r", NULL, path, libPath, NULL);
 	if (inp == NULL)
 	{
 	    TxError("Couldn't open display styles file \"%s\"\n", fullName);

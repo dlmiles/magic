@@ -2962,7 +2962,7 @@ LefRead(
     int lefTimestamp)
 {
     FILE *f;
-    char *filename;
+    const char *filename;
     const char *token;
     char tsave[128];
     int keyword;

@@ -972,7 +972,7 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     char *mouseFileName;
 {
     int fildes[2],fildes2[2];
-    char *fullname;
+    const char *fullname;
     FILE* f;
     bool execFailed = FALSE;
 
@@ -993,11 +993,9 @@ x11SetDisplay (dispType, outFileName, mouseFileName)
     readPipe = fildes2[0];
 #else
 #ifdef CYGWIN
-    f = PaOpen(X11HELP_PROG, "r", ".exe",
-		HELPER_PATH, (char *) NULL, &fullname);
+    f = PaOpen(X11HELP_PROG, "r", ".exe", HELPER_PATH, NULL, &fullname);
 #else
-    f = PaOpen(X11HELP_PROG, "r", (char *) NULL,
-		HELPER_PATH, (char *) NULL, &fullname);
+    f = PaOpen(X11HELP_PROG, "r", NULL, HELPER_PATH, NULL, &fullname);
 #endif
     if (f == NULL) {
 	int error;

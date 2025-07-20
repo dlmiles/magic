@@ -762,8 +762,7 @@ PlotPNM(fileName, scx, layers, xMask, width)
 	    sprintf(tempFile, "%s.pnm", fileName);
 	    fileName = tempFile;
 	}
-	rtl_args.outfile = PaOpen(fileName, "w", (char *)NULL, ".",
-		(char *)NULL, (char **)NULL);
+	rtl_args.outfile = PaOpen(fileName, "w", NULL, ".", NULL, NULL);
 	if (rtl_args.outfile == NULL)
 	{
 	    TxError("Couldn't open file \"%s\" to write plot.\n", fileName);
@@ -1371,7 +1370,7 @@ PlotLoadStyles(filename)
     {
 	buf = filename;
     }
-    inp = PaOpen(buf, "r", (char *)NULL, ".", SysLibPath, (char **) NULL);
+    inp = PaOpen(buf, "r", NULL, ".", SysLibPath, NULL);
     if (inp == NULL)
     {
 	TxError ("PNM plot: Could not open display style file\n");
@@ -1468,7 +1467,7 @@ PlotLoadColormap(filename)
     else
 	buf = filename;
 
-    inp = PaOpen(buf, "r", (char *) NULL, ".", SysLibPath, (char **) NULL);
+    inp = PaOpen(buf, "r", NULL, ".", SysLibPath, NULL);
     if (inp == NULL)
     {
 	TxError("Couldn't open colormap file \"%s\"\n", buf);

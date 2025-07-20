@@ -1011,7 +1011,7 @@ ResCheckSimNodes(celldef, resisdata)
 		sprintf(namebuf, "%s/%s", ExtLocalPath, celldef->cd_name);
 		outfile = namebuf;
 	    }
-	ResExtFile = PaOpen(outfile, "w", ".res.ext", ".", (char *)NULL, (char **)NULL);
+	ResExtFile = PaOpen(outfile, "w", ".res.ext", ".", NULL, NULL);
 	if (alloc) freeMagic(alloc);
 	outfile = celldef->cd_name;
     }
@@ -1021,7 +1021,7 @@ ResCheckSimNodes(celldef, resisdata)
     }
     if (ResOptionsFlags & ResOpt_DoLumpFile)
     {
-        ResLumpFile = PaOpen(outfile, "w", ".res.lump", ".", (char *)NULL, (char **)NULL);
+        ResLumpFile = PaOpen(outfile, "w", ".res.lump", ".", NULL, NULL);
     }
     else
     {
@@ -1029,8 +1029,8 @@ ResCheckSimNodes(celldef, resisdata)
     }
     if (ResOptionsFlags & ResOpt_FastHenry)
     {
-	char *geofilename;
-        ResFHFile = PaOpen(outfile, "w", ".fh", ".", (char *)NULL, &geofilename);
+	const char *geofilename;
+        ResFHFile = PaOpen(outfile, "w", ".fh", ".", NULL, &geofilename);
 	TxPrintf("Writing FastHenry-format geometry file \"%s\"\n", geofilename);
 	ResPortIndex = 0;
     }

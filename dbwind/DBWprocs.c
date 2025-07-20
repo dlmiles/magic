@@ -390,7 +390,7 @@ DBWloadWindow(window, name, flags)
 	    /* looking at the same file.  If not, and two files in two	*/
 	    /* different paths have the same root cellname, then fail.	*/
 
-	    char *fullpath;
+	    const char *fullpath;
 	    bool badFile = FALSE;
 	    struct stat statbuf;
 	    ino_t inode;

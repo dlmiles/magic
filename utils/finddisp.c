@@ -93,7 +93,7 @@ FindDisplay(tty, file, path, pDisplayPort, pTabletPort, pDisType, pMonType)
 
     if (tty == NULL) tty = ttyname(fileno(stdin));
     if (tty == NULL) return;
-    f = PaOpen(file, "r", (char *) NULL, path, (char *) NULL, (char **) NULL);
+    f = PaOpen(file, "r", NULL, path, NULL, NULL);
     if (f == NULL) return;
     while (1)
     {

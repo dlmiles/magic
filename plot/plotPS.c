@@ -1183,8 +1183,7 @@ PlotPS(fileName, scx, layers, xMask)
 
     /* Open the PS file and output header information. */
 
-    file = PaOpen(fileName, "w", (char *) NULL, ".", (char *) NULL,
-	    (char **) NULL);
+    file = PaOpen(fileName, "w", NULL, ".", NULL, NULL);
     if (file == NULL)
     {
 	TxError("Couldn't write PS file \"%s\".\n", fileName);

@@ -2389,7 +2389,7 @@ DefRead(
 {
     CellDef *rootDef;
     FILE *f;
-    char *filename;
+    const char *filename;
     const char *token;
     char *bboxstr;
     int keyword, dscale, total;

@@ -425,7 +425,7 @@ PaLockZOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
     const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    const char **pRealName;	/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
@@ -641,7 +641,7 @@ PaLockOpen(file, mode, ext, path, library, pRealName, is_locked, fdp)
     const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    const char **pRealName;	/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
@@ -826,7 +826,7 @@ PaZOpen(file, mode, ext, path, library, pRealName)
     const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    const char **pRealName;	/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.
@@ -961,7 +961,7 @@ PaOpen(file, mode, ext, path, library, pRealName)
     const char *library;	/* A 2nd path containing library names.  Can be
 				 * NULL to indicate no library.
 				 */
-    char **pRealName;		/* Pointer to a location that will be filled
+    const char **pRealName;	/* Pointer to a location that will be filled
 				 * in with the address of the real name of
 				 * the file that was successfully opened.
 				 * If NULL, then nothing is stored.

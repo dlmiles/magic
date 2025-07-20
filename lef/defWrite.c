@@ -2943,7 +2943,8 @@ DefWriteCell(
     int units,			/* Force units to this value (default 1000) */
     bool analRetentive)		/* Force compatibility with stupid tools */
 {
-    char *filename, *filename1, *filename2;
+    const char *filename;
+    char *filename1, *filename2;
     char line[2048];
     FILE *f, *f2;		/* Break output file into parts */
     NetCount nets;

@@ -143,7 +143,7 @@ extern linkedNetName *lefIgnoreNets;
 
 extern int lefDefInitFunc(CellDef *def);
 extern int lefDefPushFunc(CellUse *use, bool *recurse);
-extern FILE *lefFileOpen(CellDef *def, const char *file, const char *suffix, const char *mode, char **prealfile);
+extern FILE *lefFileOpen(CellDef *def, const char *file, const char *suffix, const char *mode, const char **prealfile);
 
 extern int LefParseEndStatement(FILE *f, const char *match);
 extern void LefSkipSection(FILE *f, const char *section);

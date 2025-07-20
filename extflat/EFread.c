@@ -100,7 +100,7 @@ keyTable[] =
 };
 
 /* Data shared with EFerror.c */
-char *efReadFileName;	/* Name of file currently being read */
+const char *efReadFileName;	/* Name of file currently being read */
 int efReadLineNum;	/* Current line number in above file */
 float locScale;		/* Multiply values in the file by this on read-in */
 bool EFSaveLocs;	/* If TRUE, save location of merged top-level nodes */
@@ -638,8 +638,7 @@ resistChanged:
     {
 	DoResist = FALSE;	/* do this only once */
 	if (EFSearchPath != NULL)
-	    inf = PaOpen(name, "r", ".res.ext", EFSearchPath,
-			EFLibPath, &efReadFileName);
+	    inf = PaOpen(name, "r", ".res.ext", EFSearchPath, EFLibPath, &efReadFileName);
 
 	if ((inf == NULL) && (dbdef = DBCellLookDef(name)) != NULL)
 	{
@@ -652,8 +651,7 @@ resistChanged:
 		sptr = strrchr(filepath, '/');
 		if (sptr) {
 		    *sptr = '\0';
-		    inf = PaOpen(name, "r", ".res.ext", filepath,
-				EFLibPath, &efReadFileName);
+		    inf = PaOpen(name, "r", ".res.ext", filepath, EFLibPath, &efReadFileName);
 		}
 		freeMagic(filepath);
 	    }

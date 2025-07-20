@@ -159,7 +159,7 @@ lefFileOpen(
     const char *mode,	/* Either "r" or "w", the mode in which the LEF/DEF
 			 * file is to be opened.
 			 */
-    char **prealfile)	/* If this is non-NULL, it gets set to point to
+    const char **prealfile)/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the LEF/DEF file.
 			 */
 {
@@ -2185,7 +2185,7 @@ LefWriteAll(
     HashTable propHashTbl, siteHashTbl;
     CellDef *def, *rootdef, *err_def;
     FILE *f;
-    char *filename;
+    const char *filename;
     float scale = CIFGetOutputScale(1000);	/* conversion to microns */
 
     rootdef = rootUse->cu_def;
@@ -2325,7 +2325,7 @@ LefWriteCell(
     bool lefTopLayer,		/* Use only topmost layer of pin if TRUE */
     bool lefDoMaster)		/* Write masterslice layers if TRUE */
 {
-    char *filename;
+    const char *filename;
     FILE *f;
     float scale = CIFGetOutputScale(1000);
 

@@ -128,7 +128,7 @@ ResReadSim(simfile, fetproc, capproc, resproc, attrproc, mergeproc, subproc)
     int	result, fettype, extfile;
     FILE *fp, *fopen();
 
-    fp = PaOpen(simfile, "r", ".sim", ".", (char *)NULL, (char **)NULL);
+    fp = PaOpen(simfile, "r", ".sim", ".", NULL, NULL);
     if (fp == NULL)
     {
     	TxError("Cannot open file %s%s\n", simfile, ".sim");
@@ -252,7 +252,7 @@ ResReadNode(nodefile)
     char *cp;
     float lambda;
 
-    fp = PaOpen(nodefile, "r", ".nodes", ".", (char *)NULL, (char **)NULL);
+    fp = PaOpen(nodefile, "r", ".nodes", ".", NULL, NULL);
     if (fp == NULL)
     {
     	TxError("Cannot open file %s%s\n", nodefile, ".nodes");
@@ -909,7 +909,7 @@ ResSimProcessDrivePoints(filename)
     ResSimNode	*node;
 
     fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
-			(char *)NULL, (char **)NULL);
+			NULL, NULL);
     if (fp == NULL)
     {
      	TxError("Cannot open file %s%s\n", filename, ".ext");
@@ -957,7 +957,7 @@ ResSimProcessFixPoints(filename)
     ResFixPoint	*thisfix;
 
     fp = PaOpen(filename, "r", ".ext", (ExtLocalPath == NULL) ? "." : ExtLocalPath,
-			(char *)NULL, (char **)NULL);
+			NULL, NULL);
     if (fp == NULL)
     {
      	TxError("Cannot open file %s%s\n", filename, ".ext");

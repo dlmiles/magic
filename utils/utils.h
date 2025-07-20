@@ -49,9 +49,9 @@ extern int LookupStructFull(const char *str, const char * const *table, int size
 extern int PaExpand(const char **, char **, int);
 extern char *nextName(const char **ppath, const char *file, char *dest, int size);
 extern FILE *PaOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
-                    char **pRealName);
+                    const char **pRealName);
 extern FILE *PaLockOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
-                        char **pRealName, bool *is_locked, int *fdp);
+                        const char **pRealName, bool *is_locked, int *fdp);
 extern char *StrDup(char **, const char *);
 extern bool Match(const char *pattern, const char *string);
 extern char *ArgStr(int *pargc, char ***pargv, const char *argType);
@@ -78,9 +78,9 @@ extern bool ParsSplit();
 
 #ifdef HAVE_ZLIB
 extern gzFile PaZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
-                      char **pRealName);
+                      const char **pRealName);
 extern gzFile PaLockZOpen(const char *file, const char *mode, const char *ext, const char *path, const char *library,
-                          char **pRealName, bool *is_locked, int *fdp);
+                          const char **pRealName, bool *is_locked, int *fdp);
 extern char *PaCheckCompressed(const char *filename);
 #endif
 

@@ -419,8 +419,7 @@ CmdFeedback(
 
 	case SAVE:
 	    if (cmd->tx_argc != 3) goto badusage;
-	    f = PaOpen(cmd->tx_argv[2], "w", (char *) NULL, ".",
-	        (char *) NULL, (char **) NULL);
+	    f = PaOpen(cmd->tx_argv[2], "w", NULL, ".", NULL, NULL);
 	    if (f == NULL)
 	    {
 		TxError("Can't open file %s.\n", cmd->tx_argv[2]);

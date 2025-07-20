@@ -95,7 +95,7 @@ ExtCell(def, outName, doLength)
 			 * hierarchy.
 			 */
 {
-    char *filename;
+    const char *filename;
     FILE *f = NULL;
     Plane *savePlane;
 
@@ -168,7 +168,7 @@ extFileOpen(def, file, mode, prealfile)
     char *mode;		/* Either "r" or "w", the mode in which the .ext
 			 * file is to be opened.
 			 */
-    char **prealfile;	/* If this is non-NULL, it gets set to point to
+    const char **prealfile;/* If this is non-NULL, it gets set to point to
 			 * a string holding the name of the .ext file.
 			 */
 {

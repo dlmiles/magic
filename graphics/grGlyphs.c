@@ -107,7 +107,8 @@ GrReadGlyphs(filename, path, libPath, gl)
     GrGlyphs *ourgl = NULL;
     int x, y, glyphnum;
     int xmax, ymax, glyphnummax;
-    char line[STRLEN], *fullname;
+    char line[STRLEN];
+    const char *fullname;
     bool sizeline = FALSE;
 
     file = PaOpen(filename, "r", ".glyphs", path, libPath, &fullname);

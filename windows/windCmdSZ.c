@@ -372,8 +372,7 @@ windSourceCmd(w, cmd)
 	return;
     }
 
-    f = PaOpen(cmd->tx_argv[1], "r", (char *) NULL, ".",
-	    SysLibPath, (char **) NULL);
+    f = PaOpen(cmd->tx_argv[1], "r", NULL, ".", SysLibPath, NULL);
     if (f == NULL)
 	TxError("Couldn't read from %s.\n", cmd->tx_argv[1]);
     else {

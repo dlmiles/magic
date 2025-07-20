@@ -427,7 +427,8 @@ TechLoad(filename, initmask)
     FILE *tf;
     techSection *tsp;
     techClient *tcp;
-    char suffix[20], line[MAXLINESIZE], *realname;
+    char suffix[20], line[MAXLINESIZE];
+    const char *realname;
     char *argv[MAXARGS];
     SectionID mask, badMask;
     int argc, s;
@@ -456,7 +457,7 @@ TechLoad(filename, initmask)
     {
 	if (TechFileName != NULL)
 	{
-	    tf = PaOpen(TechFileName, "r", (char *)NULL, ".", SysLibPath, &realname);
+	    tf = PaOpen(TechFileName, "r", NULL, ".", SysLibPath, &realname);
 	    if (tf == (FILE *) NULL)
 	    {
 		TxError("Could not find file '%s' in any of these "
@@ -503,7 +504,7 @@ TechLoad(filename, initmask)
 	/* If a non-standard extension was used, then honor it */
 	if ((dptr != NULL) && (*dptr != '\0'))
 	{
-	    tf = PaOpen(filename, "r", (char *)NULL, ".", SysLibPath, &realname);
+	    tf = PaOpen(filename, "r", NULL, ".", SysLibPath, &realname);
 
 	    /* If that didn't work, fall back to trying the filename	*/
 	    /* with the suffix.  This is needed for some ill-considered	*/

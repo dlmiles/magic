@@ -785,8 +785,7 @@ PlotGremlin(fileName, scx, layers, xMask)
 
     /* Open the Gremlin file and output header information. */
 
-    file = PaOpen(fileName, "w", (char *) NULL, ".", (char *) NULL,
-	    (char **) NULL);
+    file = PaOpen(fileName, "w", NULL, ".", NULL, NULL);
     if (file == NULL)
     {
 	TxError("Couldn't write Gremlin file \"%s\".\n", fileName);

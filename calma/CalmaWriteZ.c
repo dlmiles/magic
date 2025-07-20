@@ -387,7 +387,7 @@ calmaDumpStructureZ(
     CellDef *def,
     gzFile outf,
     HashTable *calmaDefHash,
-    char *filename)
+    const char *filename)
 {
     int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
@@ -657,7 +657,7 @@ calmaFullDumpZ(
     CellDef *def,
     gzFile fi,
     gzFile outf,
-    char *filename)
+    const char *filename)
 {
     int version, rval;
     char *libname = NULL, *testlib, uniqlibname[4];
@@ -922,7 +922,8 @@ calmaProcessDefZ(
 
     if (isReadOnly && hasContent)
     {
-	char *buffer, *offptr, *retfilename;
+	char *buffer, *offptr;
+	const char *retfilename;
 	size_t defsize, numbytes;
 	z_off_t cellstart, cellend, structstart;
  	dlong cval;

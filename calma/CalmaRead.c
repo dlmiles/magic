@@ -169,7 +169,7 @@ const int calmaElementIgnore[] = { CALMA_ELFLAGS, CALMA_PLEX, -1 };
 void
 CalmaReadFile(
     FILETYPE file,		/* File from which to read Calma */
-    char *filename)		/* The real name of the file read */
+    const char *filename)	/* The real name of the file read */
 {
     int k, version;
     char *libname = NULL, *libnameptr = NULL;
@@ -194,8 +194,7 @@ CalmaReadFile(
 	if (CIFErrorFilename == NULL)
 	    calmaErrorFile = NULL;
 	else
-	    calmaErrorFile = PaOpen(CIFErrorFilename, "w", (char *)NULL, ".",
-			(char *)NULL, (char **)NULL);
+	    calmaErrorFile = PaOpen(CIFErrorFilename, "w", NULL, ".", NULL, NULL);
     }
 
     if (cifCurReadStyle == NULL)

@@ -406,7 +406,7 @@ calmaDumpStructure(
     CellDef *def,
     FILE *outf,
     HashTable *calmaDefHash,
-    char *filename)
+    const char *filename)
 {
     int nbytes = -1, rtype = 0;
     char *strname = NULL, *newnameptr;
@@ -676,7 +676,7 @@ calmaFullDump(
     CellDef *def,
     FILETYPE fi,
     FILE *outf,
-    char *filename)
+    const char *filename)
 {
     int version, rval;
     char *libname = NULL, *testlib, uniqlibname[4];
@@ -966,7 +966,8 @@ calmaProcessDef(
 
     if (isReadOnly && hasContent)
     {
-	char *buffer, *offptr, *retfilename;
+	char *buffer, *offptr;
+	const char *retfilename;
 	size_t defsize, numbytes;
 	off_t cellstart, cellend, structstart;
  	dlong cval;

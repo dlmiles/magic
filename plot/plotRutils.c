@@ -568,7 +568,7 @@ PlotLoadFont(name)
 	    return new;
     }
 
-    f = PaOpen(name, "r", (char *) NULL, ".", SysLibPath, (char **) NULL);
+    f = PaOpen(name, "r", NULL, ".", SysLibPath, NULL);
     if (f == NULL)
     {
 	TxError("Couldn't read font file \"%s\".\n", name);

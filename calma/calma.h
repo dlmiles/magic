@@ -62,7 +62,7 @@ extern bool CalmaAllowAbstract;
 
 /* Externally-visible procedures: */
 extern bool CalmaWrite(CellDef *rootDef, FILE *f);
-extern void CalmaReadFile(FILETYPE file, char *filename);
+extern void CalmaReadFile(FILETYPE file, const char *filename);
 extern void CalmaTechInit(void);
 extern bool CalmaGenerateArray(FILE *f, TileType type, int llx, int lly, int pitch, int cols, int rows);
 extern void CalmaReadError(const char *format, ...) ATTR_FORMAT_PRINTF_1;
@@ -74,7 +74,7 @@ extern void calmaElementBox(void);
 extern void calmaElementPath(void);
 extern void calmaElementText(void);
 extern bool calmaIsUseNameDefault(char *defName, char *useName);
-extern bool calmaParseStructure(char *filename);
+extern bool calmaParseStructure(const char *filename);
 extern int calmaProcessDef(CellDef *def, FILE *outf, bool do_library);
 #ifdef HAVE_ZLIB
 extern int calmaProcessDefZ(CellDef *def, gzFile outf, bool do_library);

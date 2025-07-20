@@ -134,11 +134,11 @@ char *libPath;			/* a library search path */
     (void) sprintf(fullName, "%.80s.%.80s.%.80s", techStyle,
 	    dispType, monType);
 
-    FILE *f = PaOpen(fullName, "r", ".cmap", path, libPath, (char **) NULL);
+    FILE *f = PaOpen(fullName, "r", ".cmap", path, libPath, NULL);
     if (f == NULL)
     {
 	/* Check for original ".cmap1" file (prior to magic v. 7.2.27) */
-	f = PaOpen(fullName, "r", ".cmap1", path, libPath, (char **) NULL);
+	f = PaOpen(fullName, "r", ".cmap1", path, libPath, NULL);
 	if (f == NULL)
 	{
 	    TxError("Couldn't open color map file \"%s.cmap\"\n", fullName);
@@ -270,7 +270,7 @@ char *libPath;			/* a library search path */
     if (dispType == NULL) dispType = grCMapType;
     (void) sprintf(fullName, "%.80s.%.80s.%.80s", techStyle,
 	    dispType, monType);
-    f = PaOpen(fullName, "w", ".cmap", path, libPath, (char **) NULL);
+    f = PaOpen(fullName, "w", ".cmap", path, libPath, NULL);
     if (f == NULL)
     {
 	TxError("Couldn't write color map file \"%s.cmap\"\n", fullName);

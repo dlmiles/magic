@@ -1571,7 +1571,7 @@ DBLoadFont(fontfile, scale)
     FontPath *newPath, *pathStart = NULL, *curPath, *lastPath;
     Rect extents = GeoNullRect;
 
-    ff = PaOpen(fontfile, "r", (char *)NULL, ".", SysLibPath, (char **)NULL);
+    ff = PaOpen(fontfile, "r", NULL, ".", SysLibPath, NULL);
     if (ff == NULL) return -1;
 
     chardef = 0;

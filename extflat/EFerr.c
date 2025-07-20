@@ -37,7 +37,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/geometry.h"
 #include "textio/textio.h"
 
-extern char *efReadFileName;
+extern const char *efReadFileName;
 extern int efReadLineNum;
 
 #ifdef MAGIC_WRAPPER

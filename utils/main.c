@@ -831,7 +831,7 @@ mainInitFinal(void)
     char *home, cwd[512];
     char startupFileName[256];
     FILE *f;
-    char *rname;
+    const char *rname;
     int result;
 
 #ifdef MAGIC_WRAPPER
@@ -843,8 +843,7 @@ mainInitFinal(void)
     /* Use PaOpen first to perform variable substitutions, and	*/
     /* return the actual filename in rname.			*/
 
-    f = PaOpen(MAGIC_PRE_DOT, "r", (char *) NULL, ".",
-	    (char *) NULL, (char **) &rname);
+    f = PaOpen(MAGIC_PRE_DOT, "r", NULL, ".", NULL, &rname);
     if (f != NULL)
     {
 	fclose(f);
@@ -896,8 +895,7 @@ mainInitFinal(void)
     /* Use PaOpen first to perform variable substitutions, and	*/
     /* return the actual filename in rname.			*/
 
-    f = PaOpen(MAGIC_SYS_DOT, "r", (char *) NULL, ".",
-	    (char *) NULL, (char **) &rname);
+    f = PaOpen(MAGIC_SYS_DOT, "r", NULL, ".", NULL, &rname);
     if (f != NULL)
     {
 	fclose(f);
@@ -912,8 +910,7 @@ mainInitFinal(void)
 
 #else /* !MAGIC_WRAPPER */
 
-    f = PaOpen(MAGIC_SYS_DOT, "r", (char *) NULL, ".",
-	    (char *) NULL, (char **) NULL);
+    f = PaOpen(MAGIC_SYS_DOT, "r", NULL, ".", NULL, NULL);
     if (f != NULL)
     {
 	TxDispatch(f);
@@ -1065,15 +1062,13 @@ mainInitFinal(void)
 	    (void) sprintf(startupFileName, "%s/%s", home, RCFileName);
 
 
-	    f = PaOpen(startupFileName, "r", (char *) NULL, ".",
-		(char *) NULL, (char **) NULL);
+	    f = PaOpen(startupFileName, "r", NULL, ".", NULL, NULL);
 
 	    if ((f == NULL) && (!strcmp(RCFileName, ".magicrc")))
 	    {
 		/* Try the (deprecated) name ".magic" */
 		(void) sprintf(startupFileName, "%s/.magic", home);
-		f = PaOpen(startupFileName, "r", (char *) NULL, ".",
-		    (char *) NULL, (char **) NULL);
+		f = PaOpen(startupFileName, "r", NULL, ".", NULL, NULL);
 		if (f != NULL)
 		    TxPrintf("Note:  Use of the file name \"~/.magic\" is deprecated."
 			"  Please change this to \"~/.magicrc\".\n");
@@ -1089,23 +1084,20 @@ mainInitFinal(void)
 	/* Read in any startup file in the current directory, or one that was	*/
 	/* specified on the commandline by the "-rcfile <name>" option.		*/
 
-	f = PaOpen(RCFileName, "r", (char *) NULL, ".",
-			(char *) NULL, (char **) NULL);
+	f = PaOpen(RCFileName, "r", NULL, ".", NULL, NULL);
 
 	/* Again, check for the deprecated name ".magic" */
 	if (f == NULL)
 	{
 	    if (!strcmp(RCFileName, ".magicrc"))
 	    {
-		f = PaOpen(".magic", "r", (char *) NULL, ".",
-			(char *) NULL, (char **) NULL);
+		f = PaOpen(".magic", "r", NULL, ".", NULL, NULL);
 		if (f != NULL)
 		    TxPrintf("Note:  Use of the file name \"./.magic\" is deprecated."
 				"  Please change this to \"./.magicrc\".\n");
 
 		else
-		    f = PaOpen("magic_setup", "r", (char *) NULL, ".",
-				(char *) NULL, (char **) NULL);
+		    f = PaOpen("magic_setup", "r", NULL, ".", NULL, NULL);
 	    }
 	    else
 		TxError("Startup file \"%s\" not found or unreadable!\n", RCFileName);

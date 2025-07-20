@@ -1218,8 +1218,7 @@ PlotVersatec(scx, layers, xMask, user_scale)
 	TxError("Failed to create temporary filename for %s\n", fileName);
 	return;
     }
-    file = PaOpen(fileName, "w", (char *) NULL, (char *) NULL, (char *) NULL,
-	    (char **) NULL);
+    file = PaOpen(fileName, "w", NULL, NULL, NULL, NULL);
     if (file == NULL)
     {
 	TxError("Couldn't open file \"%s\" to write plot.\n", fileName);

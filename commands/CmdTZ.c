@@ -1790,8 +1790,7 @@ CmdWire(
 		    char line[128];
 		    char *pptr, *xptr, *yptr;
 
-		    if ((pfile = PaOpen(cmd->tx_argv[4], "r", NULL, Path, CellLibPath,
-				NULL)) == NULL)
+		    if ((pfile = PaOpen(cmd->tx_argv[4], "r", NULL, Path, CellLibPath, NULL)) == NULL)
 		    {
 			TxError("No such file or error opening %s\n", cmd->tx_argv[4]);
 			return;

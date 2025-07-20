@@ -1391,7 +1391,8 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 {
     FILETYPE f = NULL;
     int fd;
-    char *filename, *realname, *savename;
+    const char *filename;
+    char *realname, *savename;
     bool is_locked;
 
 #ifdef FILE_LOCKS
@@ -1428,14 +1429,14 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	/* If dereferencing, then use search paths first */
 	if (!dereference)
 	    f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
-			(char *) NULL, &filename, &is_locked, &fd);
+			    NULL, &filename, &is_locked, &fd);
 
 	/* Fall back on the original method of using search paths. */
 
 	if (f == NULL)
 	{
 	    f = PaLockZOpen(cellDef->cd_name, "r", DBSuffix, Path,
-			CellLibPath, &filename, &is_locked, &fd);
+			    CellLibPath, &filename, &is_locked, &fd);
 
 	    if (f != NULL)
 	    {
@@ -1467,7 +1468,7 @@ dbReadOpen(cellDef, setFileName, dereference, errptr)
 	    else if (dereference)
 	    {
 		f = PaLockZOpen(cellDef->cd_file, "r", DBSuffix, ".",
-			(char *) NULL, &filename, &is_locked, &fd);
+			        NULL, &filename, &is_locked, &fd);
 		if (f != NULL)
 		    if (DBVerbose)
 			TxError("Warning:  Dereferenced cell \"%s\" not "
@@ -1619,13 +1620,12 @@ DBOpenOnly(cellDef, name, setFileName, errptr)
 
 bool
 DBTestOpen(name, fullPath)
-    char *name;
-    char **fullPath;
+    const char *name;
+    const char **fullPath;
 {
     FILETYPE f;
 
-    f = PaLockZOpen(name, "r", DBSuffix, Path, CellLibPath,
-		fullPath, (bool *)NULL, (int *)NULL);
+    f = PaLockZOpen(name, "r", DBSuffix, Path, CellLibPath, fullPath, NULL, NULL);
 
     if (f != NULL)
     {
@@ -2108,8 +2108,7 @@ badTransform:
 		    /* Test file at path.  If path is invalid then ignore it	*/ 
 		    /* (automatic dereferencing due to unavailability).		*/
 
-		    ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
-					(char **) NULL);
+		    ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, NULL, NULL);
 		    if (ftest == NULL)
 		    {
 			TxError("New path does not exist and will be ignored.\n");
@@ -2185,8 +2184,7 @@ badTransform:
 			/* Test file at path.  If path is invalid then ignore	*/ 
 			/* it (automatic dereferencing due to unavailability).	*/
 
-			ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, (char *)NULL,
-					(char **) NULL);
+			ftest = PaZOpen(cellname, "r", DBSuffix, pathptr, NULL, NULL);
 			if (ftest == NULL)
 			{
 			    TxError("New path does not exist and will be ignored.\n");
@@ -4507,7 +4505,7 @@ DBGetTech(cellName)
     static char line[512];
     char *p;
 
-    f = PaZOpen(cellName, "r", DBSuffix, Path, CellLibPath, (char **) NULL);
+    f = PaZOpen(cellName, "r", DBSuffix, Path, CellLibPath, NULL);
     if (f == NULL) return NULL;
 
     p = (char *) NULL;

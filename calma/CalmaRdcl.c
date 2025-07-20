@@ -59,8 +59,8 @@ extern HashTable calmaDefInitHash;
 extern int CalmaPolygonCount;
 
 /* forward declarations */
-int calmaElementSref(char *filename);
-bool calmaParseElement(char *filename, int *pnsrefs, int *pnpaths);
+int calmaElementSref(const char *filename);
+bool calmaParseElement(const char *filename, int *pnsrefs, int *pnpaths);
 void calmaUniqueCell(char *sname);
 
 /* Structure used when flattening the GDS hierarchy on read-in */
@@ -348,7 +348,7 @@ calmaFlattenPolygonFunc(
 
 bool
 calmaParseStructure(
-    char *filename)		/* Name of the GDS file read */
+    const char *filename)	/* Name of the GDS file read */
 {
     static const int structs[] = { CALMA_STRCLASS, CALMA_STRTYPE, -1 };
     int nbytes = -1, rtype = 0, nsrefs, osrefs, npaths;
@@ -676,7 +676,7 @@ syntaxerror:
 
 bool
 calmaParseElement(
-    char *filename,
+    const char *filename,
     int *pnsrefs,
     int *pnpaths)
 {
@@ -766,7 +766,7 @@ calmaEnumFunc(
 
 int
 calmaElementSref(
-    char *filename)
+    const char *filename)
 {
     int nbytes, rtype, cols, rows, nref, n, i, savescale;
     int xlo, ylo, xhi, yhi, xsep, ysep;

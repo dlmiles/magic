@@ -110,7 +110,7 @@ EFDone(
     while ((he = HashNext(&efDefHashTable, &hs)))
     {
 	def = (Def *) HashGetValue(he);
-	freeMagic(def->def_name);
+	freeMagic((char *) def->def_name);
 	efFreeNodeTable(&def->def_nodes);
 	efFreeNodeList(&def->def_firstn, func);
 	efFreeUseTable(&def->def_uses);
@@ -128,7 +128,7 @@ EFDone(
 
 	for (kill = def->def_kills; kill; kill = kill->kill_next)
 	{
-	    freeMagic(kill->kill_name);
+	    freeMagic((char *) kill->kill_name);
 	    freeMagic((char *) kill);
 	}
 	freeMagic((char *) def);
@@ -164,7 +164,7 @@ EFDone(
 	DevParam *plist = (DevParam *)HashGetValue(he);
 	while (plist != NULL)
 	{
-	    freeMagic(plist->parm_name);
+	    freeMagic((char *) plist->parm_name);
 	    freeMagic(plist);
 	    plist = plist->parm_next;
 	}
@@ -211,7 +211,7 @@ EFDone(
 
 Def *
 efDefLook(
-    char *name)
+    const char *name)
 {
     HashEntry *he;
 
@@ -240,7 +240,7 @@ efDefLook(
 
 Def *
 efDefNew(
-    char *name)
+    const char *name)
 {
     HashEntry *he;
     Def *newdef;

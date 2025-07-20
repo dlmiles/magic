@@ -23,12 +23,12 @@ extern void CmdExtToSpice(MagWindow *w, TxCommand *cmd);
 extern bool spcParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 extern int spccapVisit(const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
 extern int subcktVisit(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_efvisitsubcircuits_t */
-extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_efvisitresists_t (UNUSED) */
 extern int subcktUndef(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_efvisitsubcircuits_t */
 extern EFNode *spcdevSubstrate(HierName *prefix, HierName *suffix, int type, FILE *outf);
 extern char *nodeSpiceName(HierName *hname, EFNode **rnode);
 extern int spcdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int spcnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
+extern int spcresistVisit(const HierName *hierName1, const HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
 extern int devMergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int devDistJunctVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 extern int spcsubVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (char** resstr) */

@@ -1124,7 +1124,7 @@ runexttospice:
 	if (flatFlags & EF_FLATCAPS)
 	    EFVisitCaps(spccapVisit, (ClientData) NULL);
 
-	EFVisitResists(spcresistVisit, (ClientData) NULL);
+	EFVisitResists(spcresistVisit, PTR2CD(NULL));
 	EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
 
 	/* Visit nodes to find the substrate node */
@@ -1300,7 +1300,7 @@ main(
     if (flatFlags & EF_FLATCAPS)
 	EFVisitCaps(spccapVisit, (ClientData) NULL);
 
-    EFVisitResists(spcresistVisit, (ClientData) NULL);
+    EFVisitResists(spcresistVisit, PTR2CD(NULL));
     EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
     esSpiceCapNode = StrDup((char **)NULL, esSpiceDefaultGnd);
     EFVisitNodes(spcnodeVisit, (ClientData) NULL);
@@ -3658,11 +3658,12 @@ spccapVisit(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitresists_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 spcresistVisit(
-    HierName *hierName1,
-    HierName *hierName2,
+    const HierName *hierName1,
+    const HierName *hierName2,
     float res,
     ClientData cdata)	/* unused */
 {

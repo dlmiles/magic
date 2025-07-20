@@ -797,12 +797,12 @@ CmdExtToSpice(
 	    EFScale = 0.0;
 	    if (EFArgTech)
 	    {
-		freeMagic(EFArgTech);
+		freeMagic((char *) EFArgTech);
 		EFArgTech = NULL;
 	    }
 	    if (EFSearchPath)
 	    {
-		freeMagic(EFSearchPath);
+		freeMagic((char *) EFSearchPath);
 		EFSearchPath = NULL;
 	    }
 	    break;

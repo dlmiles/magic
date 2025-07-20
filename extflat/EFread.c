@@ -550,7 +550,7 @@ resistChanged:
 		else EFTech = StrDup((char **) NULL, argv[1]);
 
 		if (!EFLibPath[0])	/* Put in a path if there wasn't one */
-		    (void) sprintf(EFLibPath, EXT_PATH, EFTech);
+		    (void) sprintf((char*)EFLibPath, EXT_PATH, EFTech); /* cast away 'const', we're inside the module owning global as we know better */
 		break;
 
 	    /* ext_style stylename */
@@ -562,7 +562,7 @@ resistChanged:
 				"in this technology!\n", argv[1]);
 		    if (EFStyle)
 		    {
-			freeMagic(EFStyle);
+			freeMagic((char*) EFStyle);
 			EFStyle = NULL;
 		    }
 		}
@@ -578,7 +578,7 @@ resistChanged:
 		}
 #endif
 		else
-		    StrDup(&EFStyle, argv[1]);
+		    StrDup((char**)&EFStyle, argv[1]);
 		break;
 
 	    /* version version-number */

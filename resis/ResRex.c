@@ -166,7 +166,11 @@ ExtResisForDef(celldef, resisdata)
 		ResSimAttribute, ResSimMerge, ResSimSubckt) == 0);
 
     /* Clean up the EFDevTypes table */
-    for (idx = 0; idx < EFDevNumTypes; idx++) freeMagic(EFDevTypes[idx]);
+    for (idx = 0; idx < EFDevNumTypes; idx++)
+    {
+	freeMagic((char *) EFDevTypes[idx]);
+	EFDevTypes[idx] = NULL;
+    }
     EFDevNumTypes = 0;
 
     if (result)

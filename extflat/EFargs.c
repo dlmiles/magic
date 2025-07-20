@@ -47,15 +47,15 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 EFCapValue EFCapThreshold = 2;  /* -c/-C: (fF) smallest interesting C */
 int EFResistThreshold = 10;	/* -r/-R: (Ohms) smallest interesting R */
 int EFOutputFlags = 0;		/* -t: output of nodename trailing #!'s */
-char *EFSearchPath = NULL;	/* -p: Search path for .ext files */
-char *EFArgTech = NULL;		/* -T: Tech specified on command line */
+const char *EFSearchPath = NULL;	/* -p: Search path for .ext files */
+const char *EFArgTech = NULL;		/* -T: Tech specified on command line */
 
     /* Misc globals */
 float EFScale = 0.0;		/* Uninitialized scale factor */
-char *EFVersion = MAGIC_VERSION;/* Version number of .ext format we read */
-char *EFLibPath = NULL;		/* Library search path for .ext files */
-char *EFTech = NULL;
-char *EFStyle = NULL;		/* Start with no extraction style */
+const char *EFVersion = MAGIC_VERSION;/* Version number of .ext format we read */
+const char *EFLibPath = NULL;		/* Library search path for .ext files */
+const char *EFTech = NULL;
+const char *EFStyle = NULL;		/* Start with no extraction style */
 bool  EFCompat = TRUE;		/* Start with backwards compatibility enabled */
 
 /* -------------------- Visible only inside extflat ------------------- */
@@ -198,7 +198,7 @@ EFArgs(
 		cp = ArgStr(&argc, &argv, "search path");
 		if (cp == NULL)
 		    goto usage;
-		StrDup(&EFSearchPath, cp);
+		StrDup((char**)&EFSearchPath, cp);
 		break;
 	    case 'r':
 		if ((cp = ArgStr(&argc, &argv, "resist threshold")) == NULL)
@@ -300,9 +300,9 @@ EFArgs(
     if (EFSearchPath == NULL) efLoadSearchPath(&EFSearchPath);
 #endif
 
+    libpath[0] = 0; /* start with no path */
+    if (EFArgTech) (void) sprintf(libpath, EXT_PATH, EFArgTech);
     EFLibPath = libpath;
-    *EFLibPath = 0; /* start with no path */
-    if (EFArgTech) (void) sprintf(EFLibPath, EXT_PATH, EFArgTech);
 
     if (inname == NULL)
 #ifdef MAGIC_WRAPPER

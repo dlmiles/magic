@@ -29,12 +29,12 @@
 
 
 extern float EFScale;		/* Scale factor to multiply all coords by */
-extern char *EFTech;		/* Technology of extracted circuit */
-extern char *EFStyle;           /* Extraction style of extracted circuit */
-extern char *EFSearchPath;	/* Path to search for .ext files */
-extern char *EFLibPath;		/* Library search path */
-extern char *EFVersion;		/* Version of extractor we work with */
-extern char *EFArgTech;		/* Tech file given as command line argument */
+extern const char *EFTech;	/* Technology of extracted circuit */
+extern const char *EFStyle;     /* Extraction style of extracted circuit */
+extern const char *EFSearchPath;/* Path to search for .ext files */
+extern const char *EFLibPath;	/* Library search path */
+extern const char *EFVersion;	/* Version of extractor we work with */
+extern const char *EFArgTech;	/* Tech file given as command line argument */
 extern bool  EFCompat;		/* Subtrate backwards-compatibility mode */
 
     /*
@@ -46,11 +46,11 @@ extern int EFResistThreshold;
 extern EFCapValue EFCapThreshold;
 
     /* Table of transistor types */
-extern char *EFDevTypes[];
+extern const char *EFDevTypes[];
 extern int EFDevNumTypes;
 
     /* Table of Magic layers */
-extern char *EFLayerNames[];
+extern const char *EFLayerNames[];
 extern int EFLayerNumNames;
 
     /* Output control flags */
@@ -77,7 +77,6 @@ extern void EFHNFree(HierName *hierName, HierName *prefix, int type);
 extern bool EFHNIsGlob(HierName *hierName);
 extern int EFNodeResist(EFNode *node);
 extern void efAdjustSubCap(Def *def, char *nodeName, double nodeCapAdjust);
-extern int efBuildAddStr(char *table[], int *pMax, int size, char *str);
 extern void efBuildAttr(Def *def, char *nodeName, Rect *r, char *layerName, char *text);
 extern int efBuildDevice(Def *def, char class, char *type, Rect *r, int argc, char *argv[]);
 extern void efBuildDeviceParams(char *name, int argc, char *argv[]);
@@ -86,6 +85,7 @@ extern void efBuildEquiv(Def *def, char *nodeName1, char *nodeName2, bool resist
 extern void efBuildKill(Def *def, char *name);
 extern void efBuildPortNode(Def *def, char *name, int idx, int x, int y, char *layername, bool toplevel);
 extern void efBuildUse(Def *def, char *subDefName, char *subUseId,
+extern int efBuildAddStr(const char *table[], int *pMax, int size, const char *str);
                        int ta, int tb, int tc, int td, int te, int tf);
 extern int efFlatCaps(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
 extern int efFlatDists(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */

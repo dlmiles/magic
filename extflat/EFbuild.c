@@ -54,11 +54,11 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header$";
 #define	MAXTYPES	100
 
 /* Table of transistor types */
-char *EFDevTypes[TT_MAXTYPES];
+const char *EFDevTypes[TT_MAXTYPES];
 int   EFDevNumTypes;
 
 /* Table of Magic layers */
-char *EFLayerNames[MAXTYPES] = { "space" };
+const char *EFLayerNames[MAXTYPES] = { "space" };
 int   EFLayerNumNames;
 
 /* Forward declarations */
@@ -1368,10 +1368,10 @@ efBuildDevNode(
 
 int
 efBuildAddStr(
-    char *table[],	/* Table to search */
+    const char *table[],	/* Table to search */
     int *pMax,		/* Increment this if we add an entry */
     int size,		/* Maximum size of table */
-    char *str)		/* String to add */
+    const char *str)	/* String to add */
 {
     int n, max;
 

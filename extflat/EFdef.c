@@ -135,16 +135,24 @@ EFDone(
     }
 
     /* Misc cleanup */
-    for (n = 0; n < EFDevNumTypes; n++) freeMagic(EFDevTypes[n]);
+    for (n = 0; n < EFDevNumTypes; n++)
+    {
+	freeMagic((char *) EFDevTypes[n]);
+	EFDevTypes[n] = NULL;
+    }
     EFDevNumTypes = 0;
 
     /* Changed from n = 0 to n = 1; First entry "space" is predefined,	*/
     /* not malloc'd.  ---Tim 9/3/02					*/
-    for (n = 1; n < EFLayerNumNames; n++) freeMagic(EFLayerNames[n]);
+    for (n = 1; n < EFLayerNumNames; n++)
+    {
+        freeMagic((char *) EFLayerNames[n]);
+        EFLayerNames[n] = NULL;
+    }
 
     if (EFTech)
     {
-	freeMagic(EFTech);
+	freeMagic((char *) EFTech);
 	EFTech = (char *)NULL;
     }
 
@@ -177,7 +185,7 @@ EFDone(
     /* EFSearchPath does not persist beyond the command that set it */
     if (EFSearchPath)
     {
-	freeMagic(EFSearchPath);
+	freeMagic((char *) EFSearchPath);
 	EFSearchPath = NULL;
     }
 }

@@ -599,12 +599,14 @@ efVisitSingleResist(
  *
  * Visit all the capacitors built up by efFlatCaps.
  * Calls the user-provided procedure (*capProc)()
- * which should be of the following format:
+ * which should be of the following format
+ *   see also typedef cb_extflat_visitcaps_t:
  *
- *	(*capProc)(hierName1, hierName2, cap, cdata)
- *	    HierName *hierName1, *hierName2;
- *	    EFCapValue cap;
- *	    ClientData cdata;
+ *	int (*capProc)(
+ *	    const HierName *hierName1,
+ *	    const HierName *hierName2,
+ *	    double cap,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -622,7 +624,7 @@ efVisitSingleResist(
 
 int
 EFVisitCaps(
-    int (*capProc)(),
+    const cb_extflat_visitcaps_t capProc,
     ClientData cdata)
 {
     HashSearch hs;
@@ -635,9 +637,10 @@ EFVisitCaps(
     {
 	cap = CapHashGetValue(he);
 	ck = (EFCoupleKey *) he->h_key.h_words;
+	/* EFCapValue (aka float) is cast to 'double' for the call */
 	if ((*capProc)(ck->ck_1->efnode_name->efnn_hier,
 		       ck->ck_2->efnode_name->efnn_hier,
-		       (double) cap, cdata))
+		       (double) cap, cdata)) /* @invoke cb_extflat_visitcaps_t */
 	    return 1;
     }
 

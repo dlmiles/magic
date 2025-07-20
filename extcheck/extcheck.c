@@ -168,8 +168,8 @@ devVisit(
 /* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 capVisit(
-    HierName *hn1,
-    HierName *hn2,	/* UNUSED */
+    const HierName *hn1,
+    const HierName *hn2,/* UNUSED */
     double cap,
     ClientData cdata)	/* UNUSED */
 {

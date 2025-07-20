@@ -51,7 +51,7 @@ bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, F
 bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int simresistVisit(HierName *hierName1, HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
-int simcapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
+int simcapVisit(const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typedef cb_extflat_visitnodes_t (UNUSED) */
 int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 

@@ -21,7 +21,7 @@ typedef struct _devMerge {
 /* Forward declarations */
 extern void CmdExtToSpice(MagWindow *w, TxCommand *cmd);
 extern bool spcParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
-extern int spccapVisit(HierName *hierName1, HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
+extern int spccapVisit(const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata); /* @typedef cb_extflat_visitcaps_t (UNUSED) */
 extern int subcktVisit(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_efvisitsubcircuits_t */
 extern int spcresistVisit(HierName *hierName1, HierName *hierName2, float res,  ClientData cdata); /* @typedef cb_extflat_efvisitresists_t (UNUSED) */
 extern int subcktUndef(Use *use, HierName *hierName, bool is_top); /* @typedef cb_extflat_efvisitsubcircuits_t */

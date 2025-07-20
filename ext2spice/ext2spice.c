@@ -3612,11 +3612,12 @@ spcdevOutNode(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitcaps_t (UNUSED) */
+/*ARGSUSED*/
+/* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 spccapVisit(
-    HierName *hierName1,
-    HierName *hierName2,
+    const HierName *hierName1,
+    const HierName *hierName2,
     double cap,
     ClientData cdata)	/* unused */
 {

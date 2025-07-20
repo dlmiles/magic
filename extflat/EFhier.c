@@ -417,12 +417,13 @@ efHierDevKilled(
  * Visit all the devs in the circuit.
  * For each dev in the circuit, call the user-supplied procedure
  * (*devProc)(), which should be of the following form:
+ *   see also typedef cb_extflat_hiervisitdevs_t:
  *
- *	(*devProc)(hc, dev, scale, cdata)
- *	    HierContext *hc;
- *	    Dev *dev;
- *	    float scale;
- *	    ClientData cdata;
+ *	int (*devProc)(
+ *	    HierContext *hc,
+ *	    Dev *dev,
+ *	    float scale,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -445,7 +446,7 @@ efHierDevKilled(
 int
 EFHierVisitDevs(
     HierContext *hc,
-    int (*devProc)(),
+    const cb_extflat_hiervisitdevs_t devProc,
     ClientData cdata)
 {
     CallArg ca;
@@ -493,7 +494,7 @@ efHierVisitDevs(
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(hc, dev, scale, ca->ca_cdata))
+	if ((*ca->ca_proc)(hc, dev, scale, ca->ca_cdata)) /* @invoke cb_extflat_hiervisitdevs_t */
 	    return 1;
     }
     return 0;

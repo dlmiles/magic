@@ -87,11 +87,11 @@ extern void efBuildKill(Def *def, char *name);
 extern void efBuildPortNode(Def *def, char *name, int idx, int x, int y, char *layername, bool toplevel);
 extern void efBuildUse(Def *def, char *subDefName, char *subUseId,
                        int ta, int tb, int tc, int td, int te, int tf);
-extern int efFlatCaps(HierContext *hc);
-extern int efFlatDists(HierContext *hc);
-extern int efFlatKills(HierContext *hc);
-extern int efFlatNodes(HierContext *hc, ClientData clientData);
-extern int efFlatNodesStdCell(HierContext *hc);
+extern int efFlatCaps(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
+extern int efFlatDists(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
+extern int efFlatKills(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
+extern int efFlatNodes(HierContext *hc, ClientData clientData); /* @typedef cb_extflat_hiersruses_t (int flags) */
+extern int efFlatNodesStdCell(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
 extern void efFreeConn(Connection *conn);
 extern void efFreeDevTable(HashTable *table);
 typedef int (*cb_extflat_free_t)(ClientData cdata);
@@ -104,9 +104,9 @@ extern void efHNPrintSizes(char *when);
 extern void efHNRecord(int size, int type);
 typedef int (*cb_extflat_hiersrarray_t)(HierContext *hc, const char *name1, const char *name2, Connection *conn, ClientData cdata);
 extern int efHierSrArray(HierContext *hc, Connection *conn, const cb_extflat_hiersrarray_t proc, ClientData cdata);
-extern int efHierVisitDevs(HierContext *hc, CallArg *ca);
 typedef int (*cb_extflat_hiersruses_t)(HierContext *hc, ClientData cdata);
 extern int efHierSrUses(HierContext *hc, const cb_extflat_hiersruses_t func, ClientData cdata);
+extern int efHierVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 extern EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 extern void efReadError(const char *fmt, ...) ATTR_FORMAT_PRINTF_1;
 extern int efReadLine(char **lineptr, int *sizeptr, FILE *file, char *argv[]);
@@ -121,9 +121,9 @@ extern void EFInit(void);
 extern bool EFReadFile(char *name, bool dosubckt, bool resist, bool noscale, bool isspice);
 typedef int (*cb_extflat_visitdevs_t)(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata);
 extern int EFVisitDevs(const cb_extflat_visitdevs_t devProc, ClientData cdata);
-extern int efVisitDevs(HierContext *hc, CallArg *ca);
+extern int efVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 extern bool efSymLook(char *name, int *pValue);
-extern int efVisitResists(HierContext *hc, CallArg *ca);
+extern int efVisitResists(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 typedef int (*cb_extflat_visitresists_t)(const HierName *hn1, const HierName *hn2, float resistance, ClientData cdata);
 extern int EFVisitResists(const cb_extflat_visitresists_t resProc, ClientData cdata);
 typedef int (*cb_extflat_visitnodes_t)(EFNode *node, int res, double cap, ClientData cdata);

@@ -141,25 +141,25 @@ EFFlatBuild(
 	{
 	    /* The top cell must always have the DEF_SUBCIRCUIT flag cleared */
 	    efFlatRootDef->def_flags &= ~DEF_SUBCIRCUIT;
-	    efFlatNodesStdCell(&efFlatContext);
+	    efFlatNodesStdCell(&efFlatContext, PTR2CD(NULL));
 	}
 	else
 	{
 	    flatnodeflags |= FLATNODE_DOWARN;    /* No FLATNODE_STDCELL flag */
 	    efFlatNodes(&efFlatContext, INT2CD(flatnodeflags));
 	}
-	efFlatKills(&efFlatContext);
+	efFlatKills(&efFlatContext, PTR2CD(NULL));
 	if (!(flags & EF_NONAMEMERGE))
 	    efFlatGlob();
     }
 
     /* Must happen after kill processing */
     if (flags & EF_FLATCAPS)
-	efFlatCaps(&efFlatContext);
+	efFlatCaps(&efFlatContext, PTR2CD(NULL));
 
     /* Distances are independent of kill processing */
     if (flags & EF_FLATDISTS)
-	efFlatDists(&efFlatContext);
+	efFlatDists(&efFlatContext, PTR2CD(NULL));
 
     if (efHNStats) efHNPrintSizes("after building flattened table");
 
@@ -184,8 +184,8 @@ EFFlatBuildOneLevel(
 {
     int usecount, savecount;
     Use *use;
-    int efFlatNodesDeviceless();	/* Forward declaration */
-    int efFlatCapsDeviceless();		/* Forward declaration */
+    int efFlatNodesDeviceless(HierContext *hc, ClientData cdata);	/* Forward declaration cb_extflat_hiersruses_t (usecount) */
+    int efFlatCapsDeviceless(HierContext *hc, ClientData cdata);	/* Forward declaration cb_extflat_hiersruses_t (unused) */
     int flatnodeflags;
 
     efFlatRootDef = def;
@@ -226,18 +226,18 @@ EFFlatBuildOneLevel(
 
     /* Recursively flatten uses that have no active devices */
     if (usecount > 0)
-	efHierSrUses(&efFlatContext, efFlatNodesDeviceless, (ClientData)&usecount);
+	efHierSrUses(&efFlatContext, efFlatNodesDeviceless, PTR2CD(&usecount));
 
     if ((usecount == 0) && (HashGetNumEntries(&efFlatRootUse.use_def->def_devs) == 0))
 	efFlatRootUse.use_def->def_flags |= DEF_NODEVICES;
 
-    efFlatKills(&efFlatContext);
+    efFlatKills(&efFlatContext, PTR2CD(NULL));
     if (!(flags & EF_NONAMEMERGE))
 	efFlatGlob();
     if (flags & EF_FLATCAPS)
-	efFlatCapsDeviceless(&efFlatContext);
+	efFlatCapsDeviceless(&efFlatContext, PTR2CD(NULL));
     if (flags & EF_FLATDISTS)
-	efFlatDists(&efFlatContext);
+	efFlatDists(&efFlatContext, PTR2CD(NULL));
 
     return &efFlatContext;
 }
@@ -314,12 +314,13 @@ EFFlatDone(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersruses_t (int flags) */
 int
 efFlatNodes(
     HierContext *hc,
     ClientData clientData)
 {
-    int flags = (int)CD2INT(clientData);
+    int flags = (int) CD2INT(clientData);
 
     bool stdcell = (flags & FLATNODE_STDCELL) ? TRUE : FALSE;
     bool doWarn = (flags & FLATNODE_DOWARN) ? TRUE : FALSE;
@@ -375,14 +376,17 @@ efFlatNodes(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersruses_t (UNUSED) */
 int
 efFlatNodesStdCell(
-    HierContext *hc)
+    HierContext *hc,
+    ClientData cdata)	/* UNUSED */
 {
     if (!(hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT))
     {
   	/* Recursively flatten each use, except in defined subcircuits */
-	(void) efHierSrUses(hc, efFlatNodesStdCell, (ClientData) NULL);
+	(void) efHierSrUses(hc, efFlatNodesStdCell, PTR2CD(NULL));
     }
 
     /* Add all our own nodes to the table */
@@ -395,12 +399,13 @@ efFlatNodesStdCell(
     return (0);
 }
 
+/* @typedef cb_extflat_hiersruses_t (int *usecount) */
 int
 efFlatNodesDeviceless(
     HierContext *hc,
     ClientData cdata)
 {
-    int *usecount = (int *)cdata;
+    int *usecount = (int *) CD2PTR(cdata);
     int newcount;
     Use *use;
 
@@ -408,7 +413,7 @@ efFlatNodesDeviceless(
 
     /* Recursively flatten uses that have no active devices */
     if (newcount > 0)
-	efHierSrUses(hc, efFlatNodesDeviceless, (ClientData)&newcount);
+	efHierSrUses(hc, efFlatNodesDeviceless, PTR2CD(&newcount));
 
     if ((HashGetNumEntries(&hc->hc_use->use_def->def_devs) == 0) && (newcount == 0))
     {
@@ -917,9 +922,12 @@ efFlatGlobHash(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersruses_t (UNUSED) */
 int
 efFlatKills(
-    HierContext *hc)
+    HierContext *hc,
+    ClientData cdata)	/* UNUSED */
 {
     Def *def = hc->hc_use->use_def;
     HashEntry *he;
@@ -927,7 +935,7 @@ efFlatKills(
     Kill *k;
 
     /* Recursively visit each use */
-    (void) efHierSrUses(hc, efFlatKills, (ClientData) NULL);
+    (void) efHierSrUses(hc, efFlatKills, PTR2CD(NULL));
 
     /* Process all of our kill information */
     for (k = def->def_kills; k; k = k->kill_next)
@@ -961,10 +969,12 @@ efFlatKills(
  * ----------------------------------------------------------------------------
  */
 
-
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersruses_t (UNUSED) */
 int
 efFlatCapsDeviceless(
-    HierContext *hc)
+    HierContext *hc,
+    ClientData cdata)	/* UNUSED */
 {
     Connection *conn;
     int newcount;
@@ -974,7 +984,7 @@ efFlatCapsDeviceless(
 
     /* Recursively flatten uses that have no active devices */
     if (newcount > 0)
-	efHierSrUses(hc, efFlatCapsDeviceless, (ClientData)NULL);
+	efHierSrUses(hc, efFlatCapsDeviceless, PTR2CD(NULL));
 
     if (!(hc->hc_use->use_def->def_flags & DEF_NODEVICES))
 	if (hc->hc_use->use_def->def_flags & DEF_PROCESSED)
@@ -1026,14 +1036,17 @@ efFlatCapsDeviceless(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersruses_t (UNUSED) */
 int
 efFlatCaps(
-    HierContext *hc)
+    HierContext *hc,
+    ClientData cdata)	/* UNUSED */
 {
     Connection *conn;
 
     /* Recursively flatten capacitors */
-    (void) efHierSrUses(hc, efFlatCaps, (ClientData) 0);
+    (void) efHierSrUses(hc, efFlatCaps, PTR2CD(NULL));
 
     /* Output our own capacitors */
     for (conn = hc->hc_use->use_def->def_caps; conn; conn = conn->conn_next)
@@ -1144,16 +1157,19 @@ efFlatSingleCap(
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersruses_t (UNUSED) */
 int
 efFlatDists(
-    HierContext *hc)
+    HierContext *hc,
+    ClientData cdata)	/* UNUSED */
 {
     Distance *dist, *distFlat, distKey;
     HashEntry *he, *heFlat;
     HashSearch hs;
 
     /* Recursively flatten distances */
-    (void) efHierSrUses(hc, efFlatDists, (ClientData) 0);
+    (void) efHierSrUses(hc, efFlatDists, PTR2CD(NULL));
 
     /* Process our own distances */
     HashStartSearch(&hs);

@@ -236,7 +236,7 @@ efHierSrArray(
 int
 EFHierSrDefs(
     HierContext *hc,
-    int (*func)(),
+    const cb_extflat_hiersrdefs_t func,
     ClientData cdata)
 {
     HierContext newhc;
@@ -275,7 +275,7 @@ EFHierSrDefs(
 	/* Clear DEF_PROCESSED for the duration of running the function */
 
 	hc->hc_use->use_def->def_flags &= ~DEF_PROCESSED;
-	retval = (*func)(hc, cdata);
+	retval = (*func)(hc, cdata); /* @invoke cb_extflat_hiersrdefs_t */
 	hc->hc_use->use_def->def_flags |= DEF_PROCESSED;
 	return retval;
     }

@@ -138,6 +138,7 @@ extern int EFHierVisitDevs(HierContext *hc, const cb_extflat_hiervisitdevs_t dev
 extern int EFHierVisitResists(HierContext *hc, int (*resProc)(), ClientData cdata);
 typedef int (*cb_extflat_hiervisitcaps_t)(HierContext *hc, const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata);
 extern int EFHierVisitCaps(HierContext *hc, const cb_extflat_hiervisitcaps_t capProc, ClientData cdata);
-extern int EFHierVisitNodes(HierContext *hc, int (*nodeProc)(), ClientData cdata);
+typedef int (*cb_extflat_hiervisitnodes_t)(HierContext *hc, EFNode *node, int res, double cap, ClientData cdata);
+extern int EFHierVisitNodes(HierContext *hc, const cb_extflat_hiervisitnodes_t nodeProc, ClientData cdata);
 
 #endif /* _EXTFLAT_H */

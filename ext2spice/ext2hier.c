@@ -1387,14 +1387,17 @@ spcresistHierVisit(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
+/* @typedef cb_extflat_hiervisitnodes_t (char **resstrptr) */
 int
 spcsubHierVisit(
     HierContext *hc,
     EFNode *node,
     int res, 		// Unused
     double cap,		// Unused
-    char **resstrptr)
+    ClientData cdata)	// char **resstrptr
 {
+    char **resstrptr = (char **) CD2PTR(cdata);
     HierName *hierName;
     char *nsn;
 
@@ -1425,12 +1428,15 @@ spcsubHierVisit(
  * ----------------------------------------------------------------------------
  */
 
+/*ARGSUSED*/
+/* @typedef cb_extflat_hiervisitnodes_t (UNUSED) */
 int
 spcnodeHierVisit(
     HierContext *hc,
     EFNode *node,
     int res,
-    double cap)
+    double cap,
+    ClientData cdata)	// UNUSED
 {
     EFNodeName *nn;
     HierName *hierName;

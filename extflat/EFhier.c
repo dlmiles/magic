@@ -706,14 +706,16 @@ EFHierVisitCaps(
  *
  * Visit all the flat nodes in the circuit.
  * Calls the user-provided procedure (*nodeProc)()
- * which should be of the following format:
+ * which should be of the following format
+ *  see also typedef cb_extflat_hiervisitnodes_t:
  *
- *	(*nodeProc)(hc, hierName1, hierName2, res, cap, cdata)
- *	    HierContext *hc;
- *	    HierName *hierName1, *hierName2;
- *	    int res;
- *	    EFCapValue cap;
- *	    ClientData cdata;
+ *	int (*nodeProc)(
+ *	    HierContext *hc,
+ *	    const HierName *hierName1,
+ *	    const HierName *hierName2,
+ *	    int res,
+ *	    double cap,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -733,7 +735,7 @@ EFHierVisitCaps(
 int
 EFHierVisitNodes(
     HierContext *hc,
-    int (*nodeProc)(),
+    const cb_extflat_hiervisitnodes_t nodeProc,
     ClientData cdata)
 {
     Def *def = hc->hc_use->use_def;
@@ -754,7 +756,8 @@ EFHierVisitNodes(
 
 	if (snode->efnode_flags & EF_KILLED) continue;
 
-	if ((*nodeProc)(hc, snode, res, (double)cap, cdata))
+	/* EFCapValue (aka float) is cast to 'double' for the call */
+	if ((*nodeProc)(hc, snode, res, (double)cap, cdata)) /* @invoke cb_extflat_hiervisitnodes_t */
 	    return 1;
     }
     return 0;

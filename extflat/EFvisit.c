@@ -490,7 +490,7 @@ EFVisitResists(
 {
     CallArg ca;
 
-    ca.ca_proc = resProc;
+    ca.ca_proc = (int (*)()) resProc;
     ca.ca_cdata = cdata;
     return efVisitResists(&efFlatContext, (ClientData) &ca);
 }

@@ -2225,13 +2225,13 @@ esHierVisit(
 	if (EFCompat == FALSE)
 	{
 	    /* Find the substrate node */
-	    EFHierVisitNodes(hcf, spcsubHierVisit, (ClientData)&resstr);
+	    EFHierVisitNodes(hcf, spcsubHierVisit, PTR2CD(&resstr));
 	    if (resstr == NULL)
 		resstr = StrDup((char **)NULL, esSpiceDefaultGnd);
 
 	    /* Output lumped capacitance and resistance to substrate */
 	    esSpiceCapNode = resstr;
-	    EFHierVisitNodes(hcf, spcnodeHierVisit, (ClientData) NULL);
+	    EFHierVisitNodes(hcf, spcnodeHierVisit, PTR2CD(NULL));
 	    freeMagic(resstr);
 	}
 

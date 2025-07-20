@@ -284,7 +284,7 @@ EFVisitDevs(
 {
     CallArg ca;
 
-    ca.ca_proc = devProc;
+    ca.ca_proc = (int (*)()) devProc;
     ca.ca_cdata = cdata;
     return efVisitDevs(&efFlatContext, PTR2CD(&ca));
 }

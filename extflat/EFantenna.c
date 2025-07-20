@@ -384,7 +384,9 @@ antennacheckVisit(
     extern CellDef *extPathDef;	    /* see extract/ExtLength.c */
     extern CellUse *extPathUse;	    /* see extract/ExtLength.c */
 
-    extern int  areaAccumFunc(), antennaAccumFunc(), areaMarkFunc();
+    extern int areaAccumFunc(Tile *tile, ClientData cdata);	/* fwd decl - cb_database_srpaintarea_t (GateDiffAccumStruct*) */
+    extern int antennaAccumFunc(Tile *tile, ClientData cdata);	/* fwd decl - cb_database_srpaintarea_t (AntennaAccumStruct*) */
+    extern int areaMarkFunc(Tile *tile, ClientData cdata);	/* fwd decl - cb_database_srpaintarea_t (AntennaMarkStruct*) */
 
     antennaarea = (dlong *)mallocMagic(DBNumTypes * sizeof(dlong));
 
@@ -541,7 +543,7 @@ antennacheckVisit(
 		    gdas.pNum = p;
 		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 			    &TiPlaneRect, &ExtCurStyle->exts_antennaTieTypes,
-			    areaAccumFunc, (ClientData)&gdas);
+			    areaAccumFunc, PTR2CD(&gdas));
 		}
 		diffarea = gdas.accum;
 
@@ -549,7 +551,7 @@ antennacheckVisit(
 		gdas.accum = (dlong)0;
 		gdas.pNum = pNum;
 		DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
-			&TiPlaneRect, &gatemask, areaAccumFunc, (ClientData)&gdas);
+			&TiPlaneRect, &gatemask, areaAccumFunc, PTR2CD(&gdas));
 		gatearea = gdas.accum;
 
 		/* Search metal planes and accumulate all antenna areas */
@@ -563,7 +565,7 @@ antennacheckVisit(
 		    if (ExtCurStyle->exts_planeOrder[p] <= pos)
 			DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 				&TiPlaneRect, &DBAllButSpaceAndDRCBits,
-				antennaAccumFunc, (ClientData)&aas);
+				antennaAccumFunc, PTR2CD(&aas));
 		}
 
 		antennaError = FALSE;
@@ -721,7 +723,7 @@ antennacheckVisit(
 		    ams.def = editUse->cu_def;
 		    ams.pNum = pNum2;
 		    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[pNum],
-			    &TiPlaneRect, &gatemask, areaMarkFunc, (ClientData)&ams);
+			    &TiPlaneRect, &gatemask, areaMarkFunc, PTR2CD(&ams));
 
 		    /* Search metal planes and accumulate all antenna areas */
 		    for (p = 0;  p < DBNumPlanes; p++)
@@ -732,7 +734,7 @@ antennacheckVisit(
 			if (ExtCurStyle->exts_planeOrder[p] <= pos)
 			    DBSrPaintArea((Tile *)NULL, extPathUse->cu_def->cd_planes[p],
 				    &TiPlaneRect, &DBAllButSpaceAndDRCBits,
-				    areaMarkFunc, (ClientData)&ams);
+				    areaMarkFunc, PTR2CD(&ams));
 		    }
 		}
 
@@ -755,11 +757,13 @@ antennacheckVisit(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_database_srpaintarea_t (AntennaMarkStruct*) */
 int
 areaMarkFunc(
     Tile *tile,
-    AntennaMarkStruct *ams)
+    ClientData cdata)
 {
+    AntennaMarkStruct *ams = (AntennaMarkStruct *) CD2PTR(cdata);
     Rect rect;
     char msg[200];
 
@@ -779,12 +783,14 @@ areaMarkFunc(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_database_srpaintarea_t (GateDiffAccumStruct *gdas) */
 int
 areaAccumFunc(
     Tile *tile,
-    GateDiffAccumStruct *gdas)
+    ClientData cdata)
 {
-    Rect *rect = &(gdas->r);
+    GateDiffAccumStruct *gdas = (GateDiffAccumStruct *) CD2PTR(cdata);
+    Rect *rect = &gdas->r;
     int type;
     dlong area;
 
@@ -817,13 +823,15 @@ areaAccumFunc(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_database_srpaintarea_t (AntennaAccumStruct*) */
 int
 antennaAccumFunc(
     Tile *tile,
-    AntennaAccumStruct *aaptr)
+    ClientData cdata)
 {
-    Rect *rect = &(aaptr->r);
-    Rect *cont = &(aaptr->via);
+    AntennaAccumStruct *aaptr = (AntennaAccumStruct *) CD2PTR(cdata);
+    Rect *rect = &aaptr->r;
+    Rect *cont = &aaptr->via;
     dlong area;
     int type;
     dlong *typeareas = aaptr->accum;

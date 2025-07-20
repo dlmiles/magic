@@ -97,7 +97,7 @@ EFVisitSubcircuits(
 {
     CallArg ca;
     HierContext *hc;
-    int efVisitSubcircuits();   /* Forward declaration */
+    int efVisitSubcircuits(HierContext *hc, ClientData cdata);   /* Forward declaration cb_extflat_hiersruses_t (CallArg *ca) */
 
     /* If the top-level def is defined as a subcircuit, call topProc */
 
@@ -112,7 +112,7 @@ EFVisitSubcircuits(
     ca.ca_proc = (int (*)()) subProc;
     ca.ca_cdata = cdata;
 
-    if (efHierSrUses(hc, efVisitSubcircuits, (ClientData) &ca))
+    if (efHierSrUses(hc, efVisitSubcircuits, PTR2CD(&ca)))
 	return 1;
 
     return 0;
@@ -129,11 +129,13 @@ EFVisitSubcircuits(
  *	Calls the client procedure (*ca->ca_proc)().
  */
 
+/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 int
 efVisitSubcircuits(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* CallArg *ca */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     /* Look for children of this def which are defined	*/
     /* as subcircuits via the DEF_SUBCIRCUIT flag.	*/
 
@@ -147,7 +149,7 @@ efVisitSubcircuits(
 
     /* Recursively visit subcircuits in our children last. */
 
-    if (efHierSrUses(hc, efVisitSubcircuits, (ClientData) ca))
+    if (efHierSrUses(hc, efVisitSubcircuits, cdata))
 	return 1;
 
     return 0;
@@ -313,7 +315,7 @@ efVisitDevs(
     if (def->def_flags & DEF_SUBCIRCUIT) return 0;
 
     /* Recursively visit devs in our children first */
-    if (efHierSrUses(hc, efVisitDevs, (ClientData) ca))
+    if (efHierSrUses(hc, efVisitDevs, PTR2CD(ca)))
 	return 1;
 
     scale = (efScaleChanged && def->def_scale != 1.0) ? def->def_scale : 1.0;

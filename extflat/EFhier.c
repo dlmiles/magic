@@ -41,12 +41,13 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
  * Visit all the children of hc->hc_use->use_def, keeping the transform
  * to flat coordinates and the hierarchical path from the root up to date.
  * For each child, calls the function 'func', which should be of the
- * following form:
+ * following form
+ *   see also typedef cb_extflat_hiersruses_t:
  *
  *	int
- *	(*func)(hc, cdata)
- *	    HierContext *hc;
- *	    ClientData cdata;
+ *	(*func)(
+ *	    HierContext *hc,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -70,7 +71,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 int
 efHierSrUses(
     HierContext *hc,
-    int (*func)(),
+    const cb_extflat_hiersruses_t func,
     ClientData cdata)
 {
     int xlo, xhi, ylo, yhi, xbase, ybase, xsep, ysep;
@@ -89,7 +90,7 @@ efHierSrUses(
 	{
 	    newhc.hc_hierName = efHNFromUse(&newhc, hc->hc_hierName);
 	    GeoTransTrans(&u->use_trans, &hc->hc_trans, &newhc.hc_trans);
-	    if ((*func)(&newhc, cdata))
+	    if ((*func)(&newhc, cdata)) /* @invoke cb_extflat_hiersruses_t */
 		return (1);
 	    continue;
 	}
@@ -112,7 +113,7 @@ efHierSrUses(
 		ybase = ysep * (newhc.hc_y - u->use_ylo);
 		GeoTransTranslate(xbase, ybase, &t, &newhc.hc_trans);
 		newhc.hc_hierName = efHNFromUse(&newhc, hc->hc_hierName);
-		if ((*func)(&newhc, cdata))
+		if ((*func)(&newhc, cdata)) /* @invoke cb_extflat_hiersruses_t */
 		    return (1);
 	    }
     }

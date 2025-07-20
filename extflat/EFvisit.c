@@ -67,7 +67,7 @@ bool efDevKilled(Dev *dev, HierName *prefix);
  * For each def encountered which has the DEF_SUBCIRCUIT flag set,
  * call the user-supplied procedure (*subProc)(), which should be of
  * the following form
- *   see also typedef cb_extflat_hiervisitsubcircuits_t:
+ *   see also typedef cb_extflat_visitsubcircuits_t:
  *
  * 	int (*subProc)(
  *	    Use *use,
@@ -92,7 +92,7 @@ bool efDevKilled(Dev *dev, HierName *prefix);
 
 int
 EFVisitSubcircuits(
-    const cb_extflat_hiervisitsubcircuits_t subProc,
+    const cb_extflat_visitsubcircuits_t subProc,
     ClientData cdata)	// UNUSED (ca.ca_cdata is set but never read again)
 {
     CallArg ca;
@@ -103,7 +103,7 @@ EFVisitSubcircuits(
 
     hc = &efFlatContext;
     if (hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT)
-	if ((*subProc)(hc->hc_use, hc->hc_hierName, TRUE)) /* @invoke cb_extflat_hiervisitsubcircuits_t */
+	if ((*subProc)(hc->hc_use, hc->hc_hierName, TRUE)) /* @invoke cb_extflat_visitsubcircuits_t */
 	    return 1;
 
     /* For each subcell of the top-level def that is defined as */
@@ -139,7 +139,7 @@ efVisitSubcircuits(
 
     if (hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT)
     {
-	if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, NULL)) /* @invoke cb_extflat_hiervisitsubcircuits_t */
+	if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, NULL)) /* @invoke cb_extflat_visitsubcircuits_t */
 	    return 1;
 	else
 	    return 0;

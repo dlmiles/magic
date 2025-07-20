@@ -1095,9 +1095,9 @@ efFlatSingleCap(
     EFNode *n1, *n2;
     HashEntry *he;
     EFCoupleKey ck;
-    static char msg0[] = "cap(1)";
-    static char msg1[] = "cap(2)";
-    char *msg;
+    static const char msg0[] = "cap(1)";
+    static const char msg1[] = "cap(2)";
+    const char *msg;
 
     /* Connections that are below threshold (ext2spice hierarchy only)	*/
     /* will be missing.  Do not generate errors for these.		*/

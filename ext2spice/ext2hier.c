@@ -75,7 +75,7 @@ ESGenerateHierarchy(
     char *inName,
     int flags)
 {
-    int esHierVisit(HierContext *hc, ClientData cdata); /* (DefFlagsData *) */
+    int esHierVisit(HierContext *hc, ClientData cdata); /* cb_extflat_hiersrdefs_t (DefFlagsData *) */
     int esMakePorts(HierContext *hc, ClientData cdata);	/* Forward declaration (UNUSED) */
     Use u;
     Def *def;
@@ -93,7 +93,7 @@ ESGenerateHierarchy(
 
     dfd.def = u.use_def;
     dfd.flags = flags;
-    EFHierSrDefs(&hc, esHierVisit, (ClientData)(&dfd));
+    EFHierSrDefs(&hc, esHierVisit, PTR2CD(&dfd));
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
     return;
@@ -2097,6 +2097,7 @@ esMakePorts(
  * ----------------------------------------------------------------------------
  */
 
+/* @typedef cb_extflat_hiersrdefs_t (DefFlagsData *) */
 int
 esHierVisit(
     HierContext *hc,
@@ -2112,7 +2113,7 @@ esHierVisit(
     int locDoSubckt = esDoSubckt;
     bool doStub;
 
-    dfd = (DefFlagsData *)cdata;
+    dfd = (DefFlagsData *) CD2PTR(cdata);
     topdef = dfd->def;
     flags = dfd->flags;
 

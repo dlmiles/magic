@@ -76,7 +76,7 @@ ESGenerateHierarchy(
     int flags)
 {
     int esHierVisit(HierContext *hc, ClientData cdata); /* cb_extflat_hiersrdefs_t (DefFlagsData *) */
-    int esMakePorts(HierContext *hc, ClientData cdata);	/* Forward declaration (UNUSED) */
+    int esMakePorts(HierContext *hc, ClientData cdata);	/* Forward declaration cb_extflat_hiersrdefs_t (UNUSED) */
     Use u;
     Def *def;
     HierContext hc;
@@ -88,7 +88,7 @@ ESGenerateHierarchy(
     hc.hc_trans = GeoIdentityTransform;
     hc.hc_x = hc.hc_y = 0;
 
-    EFHierSrDefs(&hc, esMakePorts, NULL);
+    EFHierSrDefs(&hc, esMakePorts, PTR2CD(NULL));
     EFHierSrDefs(&hc, NULL, NULL);	/* Clear processed */
 
     dfd.def = u.use_def;
@@ -1793,6 +1793,8 @@ typedef struct _flagDefRecord {
  * ----------------------------------------------------------------------------
  */
 
+/* ARGSUSED */
+/* @typedef cb_extflat_hiersrdefs_t (UNUSED) */
 int
 esMakePorts(
     HierContext *hc,

@@ -286,7 +286,7 @@ EFVisitDevs(
 
     ca.ca_proc = devProc;
     ca.ca_cdata = cdata;
-    return efVisitDevs(&efFlatContext, (ClientData) &ca);
+    return efVisitDevs(&efFlatContext, PTR2CD(&ca));
 }
 
 /*
@@ -300,11 +300,13 @@ EFVisitDevs(
  *	Calls the client procedure (*ca->ca_proc)().
  */
 
+/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 int
 efVisitDevs(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* CallArg *ca */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Dev *dev;
     float scale;

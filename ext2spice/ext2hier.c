@@ -484,10 +484,11 @@ esOutputHierResistor(
  *
  */
 
+/* @typedef cb_extflat_visitsubcircuits_t */
 int
 subcktHierVisit(
     Use *use,
-    HierName *hierName,
+    const HierName *hierName,
     bool is_top)                /* TRUE if this is the top-level cell */
 {
     Def *def = use->use_def;

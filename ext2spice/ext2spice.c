@@ -1100,7 +1100,7 @@ runexttospice:
 	/* the subcircuit flag from all cells at this time.	*/
 
 	if (!esDoPorts)
-	    EFVisitSubcircuits(subcktUndef, (ClientData) NULL);
+	    EFVisitSubcircuits(subcktUndef, PTR2CD(NULL));
 
 	TTMaskZero(&initMask);
 	if (!esDistrJunct)
@@ -1125,7 +1125,7 @@ runexttospice:
 	    EFVisitCaps(spccapVisit, (ClientData) NULL);
 
 	EFVisitResists(spcresistVisit, PTR2CD(NULL));
-	EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
+	EFVisitSubcircuits(subcktVisit, PTR2CD(NULL));
 
 	/* Visit nodes to find the substrate node */
 	EFVisitNodes(spcsubVisit, PTR2CD(&substr));
@@ -1278,7 +1278,7 @@ main(
     /* subcircuit flag from all cells at this time.		*/
 
     if (!esDoPorts)
-	EFVisitSubcircuits(subcktUndef, (ClientData) NULL);
+	EFVisitSubcircuits(subcktUndef, PTR2CD(NULL));
 
     TTMaskZero(&initMask);
     if (!esDistrJunct)
@@ -1301,7 +1301,7 @@ main(
 	EFVisitCaps(spccapVisit, (ClientData) NULL);
 
     EFVisitResists(spcresistVisit, PTR2CD(NULL));
-    EFVisitSubcircuits(subcktVisit, (ClientData) NULL);
+    EFVisitSubcircuits(subcktVisit, PTR2CD(NULL));
     esSpiceCapNode = StrDup((char **)NULL, esSpiceDefaultGnd);
     EFVisitNodes(spcnodeVisit, (ClientData) NULL);
 
@@ -1536,11 +1536,11 @@ extHierSDAttr(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitsubcircuits_t (UNUSED) */
+/* @typedef cb_extflat_visitsubcircuits_t (UNUSED) */
 int
 subcktVisit(
     Use *use,
-    HierName *hierName,
+    const HierName *hierName,
     bool is_top)		/* TRUE if this is the top-level cell */
 {
     EFNode *snode;
@@ -1725,11 +1725,12 @@ subcktVisit(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_efvisitsubcircuits_t (UNUSED) */
+/* ARGSUSED */
+/* @typedef cb_extflat_visitsubcircuits_t (UNUSED) */
 int
 subcktUndef(
     Use *use,
-    HierName *hierName,
+    const HierName *hierName,
     bool is_top)	/* TRUE if this is the top-level cell */
 {
     Def *def = use->use_def;

@@ -495,7 +495,7 @@ EFVisitResists(
 
     ca.ca_proc = (int (*)()) resProc;
     ca.ca_cdata = cdata;
-    return efVisitResists(&efFlatContext, (ClientData) &ca);
+    return efVisitResists(&efFlatContext, PTR2CD(&ca));
 }
 
 /*
@@ -512,11 +512,14 @@ EFVisitResists(
 extern int efVisitSingleResist(HierContext *hc, const char *name1, const char *name2,
                                Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallArg*) */
 
+
+/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 int
 efVisitResists(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* CallArg *ca */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Connection *res;
 
@@ -524,7 +527,7 @@ efVisitResists(
     if (def->def_flags & DEF_SUBCIRCUIT) return 0;
 
     /* Recursively visit resistors in our children first */
-    if (efHierSrUses(hc, efVisitResists, (ClientData) ca))
+    if (efHierSrUses(hc, efVisitResists, PTR2CD(ca)))
 	return 1;
 
     /* Visit our own resistors */

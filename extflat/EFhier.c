@@ -300,11 +300,13 @@ EFHierSrDefs(
  * subcircuit, matching nodes to the subcircuit's port list.
  *
  * For each def encountered, call the user-supplied procedure
- * (*subProc)(), which should be of the following form:
+ * (*subProc)(), which should be of the following form
+ *   see also typedef cb_extflat_visitsubcircuits_t:
  *
- * 	(*subProc)(hc, use, hierName)
- *	    HierContext *hc;
- *	    bool is_top;
+ * 	int (*subProc)(
+ *	    Use *use,
+ *	    const HierName *hierName,
+ *	    bool is_top)
  *	{
  *	}
  *
@@ -323,7 +325,7 @@ EFHierSrDefs(
 int
 EFHierVisitSubcircuits(
     HierContext *hc,
-    int (*subProc)(),
+    const cb_extflat_visitsubcircuits_t subProc,
     ClientData cdata)	/* unused */
 {
     CallArg ca;
@@ -332,7 +334,7 @@ EFHierVisitSubcircuits(
     /* For each subcell of the top-level def that is defined as */
     /* a subcircuit, call subProc.				*/
 
-    ca.ca_proc = subProc;
+    ca.ca_proc = (int (*)()) subProc;
     ca.ca_cdata = (ClientData)hc->hc_use->use_def;	/* Save top-level def */
 
     if (efHierSrUses(hc, efHierVisitSubcircuits, (ClientData) &ca))
@@ -361,7 +363,7 @@ efHierVisitSubcircuits(
     Def *def = (Def *)ca->ca_cdata;
     bool is_top = (def == hc->hc_use->use_def) ? TRUE : FALSE;
 
-    if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, is_top))
+    if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */
 	return 1;
     else
 	return 0;

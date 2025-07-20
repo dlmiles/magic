@@ -2201,7 +2201,7 @@ esHierVisit(
     if (!doStub)	/* By definition, stubs have no internal components */
     {
 	/* Output subcircuit calls */
-	EFHierVisitSubcircuits(hcf, subcktHierVisit, (ClientData)NULL);
+	EFHierVisitSubcircuits(hcf, subcktHierVisit, PTR2CD(NULL));
 
 	/* Merge devices */
 	if (esMergeDevsA || esMergeDevsC)

@@ -282,18 +282,18 @@ extern char *efHNToStrFunc(HierName *hierName, char *dstp);
 extern bool EFHNBest(HierName *hierName1, HierName *hierName2);
 
     /* Functions for hashing of HierNames */
-extern int efHNCompare(HierName *hierName1, HierName *hierName2);
-extern int efHNHash(HierName *);
+extern int efHNCompare(const HierName *hierName1, const HierName *hierName2);
+extern int efHNHash(const HierName *);
 
     /* Functions for hashing of Distances */
-extern bool efHNDistCompare(Distance *dist1, Distance *dist2);
-extern char *efHNDistCopy(Distance *dist);
-extern int efHNDistHash(Distance *dist);
+extern bool efHNDistCompare(const Distance *dist1, const Distance *dist2);
+extern char *efHNDistCopy(const Distance *dist);
+extern int efHNDistHash(const Distance *dist);
 extern void efHNDistKill(Distance *dist);
 
     /* Functions for hashing of use id HierNames */
-extern bool efHNUseCompare(HierName *hierName1, HierName *hierName2);
-extern int efHNUseHash(HierName *hierName);
+extern bool efHNUseCompare(const HierName *hierName1, const HierName *hierName2);
+extern int efHNUseHash(const HierName *hierName);
 
 extern EFCapValue CapHashGetValue(HashEntry *he);
 extern void CapHashSetValue(HashEntry *he, double c);
@@ -304,9 +304,9 @@ extern void CapHashSetValue(HashEntry *he, double c);
 	    This should be done to avoid trouble with argument promotion
 	    that some ANSI C compilers introduce */
 
-extern DevParam *efGetDeviceParams(char *name);
-extern void efBuildNode(Def *def, bool isSubsnode, bool isDevSubsnode, bool isExtNode, char *nodeName,
-                        double nodeCap, int x, int y, char *layerName, char **av, int ac);
+extern DevParam *efGetDeviceParams(const char *name);
+extern void efBuildNode(Def *def, bool isSubsnode, bool isDevSubsnode, bool isExtNode, const char *nodeName,
+                        double nodeCap, int x, int y, const char *layerName, char **av, int ac);
 extern void efBuildConnect(Def *def, char *nodeName1, char *nodeName2, double deltaC, char **av, int ac);
 extern void efBuildResistor(Def *def, char *nodeName1, char *nodeName2, float resistance);
 extern void efBuildCap(Def *def, char *nodeName1, char *nodeName2, double cap);

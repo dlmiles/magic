@@ -713,8 +713,8 @@ efHNFromUse(
 
 bool
 efHNUseCompare(
-    HierName *hierName1,
-    HierName *hierName2)
+    const HierName *hierName1,
+    const HierName *hierName2)
 {
     return ((bool)(hierName1->hn_parent != hierName2->hn_parent
 	           || strcmp(hierName1->hn_name, hierName2->hn_name)
@@ -723,7 +723,7 @@ efHNUseCompare(
 
 int
 efHNUseHash(
-    HierName *hierName)
+    const HierName *hierName)
 {
     return hierName->hn_hash + (spointertype) hierName->hn_parent;
 }
@@ -806,8 +806,8 @@ efHNInit(
 
 int
 efHNCompare(
-    HierName *hierName1,
-    HierName *hierName2)
+    const HierName *hierName1,
+    const HierName *hierName2)
 {
     while (hierName1)
     {
@@ -827,7 +827,7 @@ efHNCompare(
 
 int
 efHNHash(
-    HierName *hierName)
+    const HierName *hierName)
 {
     int n;
 
@@ -867,8 +867,8 @@ efHNHash(
 
 bool
 efHNDistCompare(
-    Distance *dist1,
-    Distance *dist2)
+    const Distance *dist1,
+    const Distance *dist2)
 {
     return ((bool)(efHNCompare(dist1->dist_1, dist2->dist_1)
 	           || efHNCompare(dist1->dist_2, dist2->dist_2)
@@ -877,7 +877,7 @@ efHNDistCompare(
 
 char *
 efHNDistCopy(
-    Distance *dist)
+    const Distance *dist)
 {
     Distance *distNew;
 
@@ -888,7 +888,7 @@ efHNDistCopy(
 
 int
 efHNDistHash(
-    Distance *dist)
+    const Distance *dist)
 {
     return efHNHash(dist->dist_1) + efHNHash(dist->dist_2);
 }
@@ -898,7 +898,7 @@ void
 efHNDistKill(
     Distance *dist)
 {
-    HierName *hn;
+    const HierName *hn;
 
     for (hn = dist->dist_1; hn; hn = hn->hn_parent)
 	(void) HashFind(&efFreeHashTable, (char *) hn);
@@ -927,11 +927,11 @@ efHNDistKill(
 
 void
 efHNBuildDistKey(
-    HierName *prefix,
-    Distance *dist,
+    const HierName *prefix,
+    const Distance *dist,
     Distance *distKey)
 {
-    HierName *hn1, *hn2;
+    const HierName *hn1, *hn2;
 
     hn1 = EFHNConcat(prefix, dist->dist_1);
     hn2 = EFHNConcat(prefix, dist->dist_2);
@@ -1001,7 +1001,7 @@ efHNRecord(
 
 void
 efHNPrintSizes(
-    char *when)
+    const char *when)
 {
     int total, i;
 

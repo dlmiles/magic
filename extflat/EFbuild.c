@@ -144,11 +144,11 @@ efBuildNode(
     bool isSubsnode,	/* TRUE if the node is the global substrate */
     bool isDevSubsnode,	/* TRUE if the node is a device body connection */
     bool isExtNode,	/* TRUE if this was a "node" or "substrate" in .ext */
-    char *nodeName,	/* One of the names for this node */
+    const char *nodeName,/* One of the names for this node */
     double nodeCap,	/* Capacitance of this node to ground */
     int x,
     int y,		/* Location of a point inside this node */
-    char *layerName,	/* Name of tile type */
+    const char *layerName,/* Name of tile type */
     char **av,		/* Pairs of area, perimeter strings */
     int ac)		/* Number of strings in av */
 {
@@ -711,12 +711,12 @@ efBuildEquiv(
 
 DevParam *
 efGetDeviceParams(
-    char *name)
+    const char *name)
 {
     HashEntry *he;
     DevParam *plist = NULL;
 
-    he = HashLookOnly(&efDevParamTable, (char *)name);
+    he = HashLookOnly(&efDevParamTable, (const char *)name);
     if (he != NULL)
 	plist = (DevParam *)HashGetValue(he);
     return plist;

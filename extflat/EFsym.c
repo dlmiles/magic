@@ -92,7 +92,7 @@ efSymInit(void)
 
 bool
 efSymAddFile(
-    char *name)
+    const char *name)
 {
     char line[1024], *cp;
     int lineNum;
@@ -189,7 +189,7 @@ efSymAdd(
 
 bool
 efSymLook(
-    char *name,
+    const char *name,
     int *pValue)
 {
     HashEntry *he;

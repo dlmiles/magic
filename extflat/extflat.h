@@ -111,7 +111,7 @@ extern EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 extern void efReadError(const char *fmt, ...) ATTR_FORMAT_PRINTF_1;
 extern int efReadLine(char **lineptr, int *sizeptr, FILE *file, char *argv[]);
 extern bool efSymAdd(char *str);
-extern bool efSymAddFile(char *name);
+extern bool efSymAddFile(const char *name);
 extern void efSymInit(void);
 extern void EFDone(const cb_extflat_free_t func);
 extern void EFFlatBuild(char *name, int flags);
@@ -122,7 +122,7 @@ extern bool EFReadFile(char *name, bool dosubckt, bool resist, bool noscale, boo
 typedef int (*cb_extflat_visitdevs_t)(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata);
 extern int EFVisitDevs(const cb_extflat_visitdevs_t devProc, ClientData cdata);
 extern int efVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
-extern bool efSymLook(char *name, int *pValue);
+extern bool efSymLook(const char *name, int *pValue);
 extern int efVisitResists(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 typedef int (*cb_extflat_visitresists_t)(const HierName *hn1, const HierName *hn2, float resistance, ClientData cdata);
 extern int EFVisitResists(const cb_extflat_visitresists_t resProc, ClientData cdata);

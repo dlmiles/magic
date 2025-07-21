@@ -503,11 +503,11 @@ EFHNFree(
 
 bool
 EFHNBest(
-    HierName *hierName1,
-    HierName *hierName2)
+    const HierName *hierName1,
+    const HierName *hierName2)
 {
     int ncomponents1, ncomponents2, len1, len2;
-    HierName *np1, *np2;
+    const HierName *np1, *np2;
     char last1, last2;
 
     ASSERT(hierName1, "hierName1");

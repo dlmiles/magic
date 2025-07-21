@@ -74,8 +74,8 @@ bool efScaleChanged = FALSE;	/* TRUE if .ext scales mismatch */
 
     /* Forward declarations */
 #ifndef MAGIC_WRAPPER
-extern int  efLoadPathFunc();
-extern void efLoadSearchPath();
+extern int  efLoadPathFunc(const char *line, const char **ppath);
+extern void efLoadSearchPath(const char **path);
 #endif
 
 /*
@@ -357,7 +357,7 @@ usage:
 
 void
 efLoadSearchPath(
-    char **path)
+    const char **path)
 {
     PaVisit *pv;
 
@@ -372,11 +372,12 @@ efLoadSearchPath(
 
 int
 efLoadPathFunc(
-    char *line,
-    char **ppath)
+    const char *line,
+    const char **ppath)
 {
-    char *cp, *dp, c;
-    char path[BUFSIZ];
+    const char *cp,
+    char *dp, c;
+    char path[BUFSIZ]; /* TODO MAXPATH ? */
 
     /* Skip leading blanks */
     for (cp = &line[4]; *cp && isspace(*cp); cp++)

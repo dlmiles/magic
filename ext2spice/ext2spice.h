@@ -37,7 +37,7 @@ extern void topVisit(Def *def, bool doStub);
 extern void swapDrainSource(Dev *dev);
 
 extern const char *nodeSpiceHierName(HierContext *hc, const HierName *hname);
-extern devMerge *mkDevMerge(float l, float w, EFNode *g, EFNode *s, EFNode *d, EFNode *b, HierName *hn, Dev *dev);
+extern devMerge *mkDevMerge(float l, float w, EFNode *g, EFNode *s, EFNode *d, EFNode *b, const HierName *hn, Dev *dev);
 extern bool extHierSDAttr(DevTerm *term);
 
 extern bool devIsKilled(int n);

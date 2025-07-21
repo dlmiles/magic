@@ -551,7 +551,7 @@ efAddNodes(
 	    if ((oldname = (EFNodeName *) HashGetValue(he)))
 	    {
 		if (hierName != nn->efnn_hier)
-		    EFHNFree(hierName, hc->hc_hierName, HN_CONCAT);
+		    EFHNFree((HierName *) hierName, hc->hc_hierName, HN_CONCAT);
 		if (oldname->efnn_node != newnode)
 		    efNodeMerge(&oldname->efnn_node, &newnode);
 		newnode = oldname->efnn_node;
@@ -824,7 +824,7 @@ efFlatGlob(void)
 	else
 	{
 	    freeMagic((char *) nameGlob);
-	    EFHNFree(hnGlob, (HierName *) NULL, HN_GLOBAL);
+	    EFHNFree((HierName *) hnGlob, NULL, HN_GLOBAL);
 	}
     }
 
@@ -1190,8 +1190,8 @@ efFlatDists(
 	     */
 	    distFlat->dist_min = dist->dist_min;
 	    distFlat->dist_max = dist->dist_max;
-	    EFHNFree(distKey.dist_1, hc->hc_hierName, HN_CONCAT);
-	    EFHNFree(distKey.dist_2, hc->hc_hierName, HN_CONCAT);
+	    EFHNFree((HierName *) distKey.dist_1, hc->hc_hierName, HN_CONCAT);
+	    EFHNFree((HierName *) distKey.dist_2, hc->hc_hierName, HN_CONCAT);
 	}
 	else
 	{

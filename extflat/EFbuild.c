@@ -192,7 +192,7 @@ efBuildNode(
 			    knn->efnn_node->efnode_name = nodeAlias->efnn_next;
 			else
 			    lastAlias->efnn_next = nodeAlias->efnn_next;
-			EFHNFree(nodeAlias->efnn_hier, (HierName *)NULL, HN_ALLOC);
+			EFHNFree((HierName *) nodeAlias->efnn_hier, NULL, HN_ALLOC);
 			freeMagic(nodeAlias);
 			break;
 		    }
@@ -474,8 +474,8 @@ efBuildDist(
 	 */
 	dist->dist_min = MIN(dist->dist_min, min);
 	dist->dist_max = MAX(dist->dist_max, max);
-	EFHNFree(hn1, (HierName *) NULL, HN_ALLOC);
-	EFHNFree(hn2, (HierName *) NULL, HN_ALLOC);
+	EFHNFree((HierName *) hn1, NULL, HN_ALLOC);
+	EFHNFree((HierName *) hn2, NULL, HN_ALLOC);
     }
     else
     {

@@ -383,7 +383,7 @@ EFHNLook(
      * looking in the table, if we allocated one.
      */
     if (!dontFree)
-	EFHNFree(hierName, prefix, HN_ALLOC);
+	EFHNFree((HierName *)hierName, prefix, HN_ALLOC);
 
     return he;
 }

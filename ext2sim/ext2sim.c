@@ -47,7 +47,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* Forward declarations */
 void CmdExtToSim(MagWindow *w, TxCommand *cmd);
 bool simnAP(EFNode *node, int resClass, float scale, FILE *outf);
-bool simnAPHier(DevTerm *dterm, HierName *hierName, int resClass, float scale, FILE *outf);
+bool simnAPHier(DevTerm *dterm, const HierName *hierName, int resClass, float scale, FILE *outf);
 bool simParseArgs(int *pargc, char ***pargv, ClientData cdata); /* @typedef cb_extflat_args_t (UNUSED) */
 int simdevVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 int simresistVisit(const HierName *hierName1, const HierName *hierName2, float res, ClientData cdata); /* @typedef cb_extflat_visitresists_t (UNUSED) */
@@ -1425,7 +1425,7 @@ simnAP(
 bool
 simnAPHier(
     DevTerm *dterm,
-    HierName *hierName,
+    const HierName *hierName,
     int resClass,
     float scale,
     FILE *outf)

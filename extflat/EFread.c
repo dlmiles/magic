@@ -69,7 +69,7 @@ static const struct
     Key 	 k_key;		/* Internal name for token of this type */
     int		 k_mintokens;	/* Min total # of tokens on line of this type */
 }
-keyTable[] =
+const keyTable[] =
 {
     {"abstract",	ABSTRACT,	0},	/* defines a LEF-like view */
     {"adjust",		ADJUST,		4},

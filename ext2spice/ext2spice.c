@@ -3939,10 +3939,11 @@ retName:
 int
 EFHNSprintf(
     char *str,
-    HierName *hierName)
+    const HierName *hierName)
 {
     bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
-    char *s, *cp, c;
+    char *s, c;
+    const char *cp;
     char *efHNSprintfPrefix(const HierName *, char *); /* fwd decl */
 
     s = str;

@@ -98,7 +98,7 @@ extern void efFreeNodeList(EFNode *head, const cb_extflat_free_t func);
 extern void efFreeNodeTable(HashTable *table);
 extern void efFreeUseTable(HashTable *table);
 extern void efHNBuildDistKey(const HierName *prefix, const Distance *dist, Distance *distKey);
-extern int efHNLexOrder(HierName *hierName1, HierName *hierName2);
+extern int efHNLexOrder(const HierName *hierName1, const HierName *hierName2);
 extern void efHNPrintSizes(const char *when);
 extern void efHNRecord(int size, int type);
 typedef int (*cb_extflat_hiersrarray_t)(HierContext *hc, const char *name1, const char *name2, Connection *conn, ClientData cdata);

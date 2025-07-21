@@ -84,7 +84,6 @@ extern void efBuildDist(Def *def, const char *driver, const char *receiver, int 
 extern void efBuildEquiv(Def *def, const char *nodeName1, const char *nodeName2, bool resist, bool isspice);
 extern void efBuildKill(Def *def, const char *name);
 extern void efBuildPortNode(Def *def, const char *name, int idx, int x, int y, const char *layername, bool toplevel);
-extern void efBuildUse(Def *def, char *subDefName, char *subUseId,
 extern int efBuildAddStr(const char *table[], int *pMax, int size, const char *str);
                        int ta, int tb, int tc, int td, int te, int tf);
 extern int efFlatCaps(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */

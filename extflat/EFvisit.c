@@ -890,11 +890,12 @@ EFLookDist(
 
 void
 EFHNOut(
-    HierName *hierName,
+    const HierName *hierName,
     FILE *outf)
 {
     bool trimGlob, trimLocal, convComma, convBrackets;
-    char *cp, c;
+    const char *cp;
+    char c;
 
     if (hierName->hn_parent) efHNOutPrefix(hierName->hn_parent, outf);
     if (EFOutputFlags)
@@ -928,7 +929,7 @@ EFHNOut(
 		    if (trimLocal)
 			break;
 		default:
-		    (void) putc(c, outf);
+		    (void) putc(c, outf); /* FIXME convert all or fragments in local buffer */
 		    break;
 	    }
 	}

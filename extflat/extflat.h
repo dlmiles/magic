@@ -130,7 +130,7 @@ extern int EFVisitNodes(const cb_extflat_visitnodes_t nodeProc, ClientData cdata
 typedef int (*cb_extflat_visitcaps_t)(const HierName *hierName1, const HierName *hierName2, double cap, ClientData cdata);
 extern int EFVisitCaps(const cb_extflat_visitcaps_t capProc, ClientData cdata);
 extern void EFGetLengthAndWidth(Dev *dev, int *lptr, int *wptr);
-extern void EFHNOut(HierName *hierName, FILE *outf);
+extern void EFHNOut(const HierName *hierName, FILE *outf);
 typedef int (*cb_extflat_hiersrdefs_t)(HierContext *hc, ClientData cdata);
 extern int EFHierSrDefs(HierContext *hc, const cb_extflat_hiersrdefs_t func, ClientData cdata);
 typedef int (*cb_extflat_visitsubcircuits_t)(Use *use, const HierName *hierName, bool is_top);

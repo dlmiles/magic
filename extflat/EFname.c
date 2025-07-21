@@ -58,8 +58,8 @@ HashTable efNodeHashTable;
  */
 HashTable efHNUseHashTable;
 
-extern void efHNInit();
-extern void efHNRecord();
+extern void efHNInit(HierName *hierName, const char *cp, const char *endp);
+extern void efHNRecord(int size, int type);
 
 
 /*
@@ -749,9 +749,9 @@ efHNUseHash(
 
 void
 efHNInit(
-    HierName *hierName,		/* Fill in fields of this HierName */
-    char *cp,		/* Start of name to be stored in hn_name */
-    char *endp)	/* End of name if non-NULL) else, see above */
+    HierName *hierName,	/* Fill in fields of this HierName */
+    const char *cp,	/* Start of name to be stored in hn_name */
+    const char *endp)	/* End of name if non-NULL) else, see above */
 {
     unsigned hashsum;
     char *dstp;

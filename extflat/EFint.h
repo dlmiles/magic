@@ -273,8 +273,8 @@ extern Def *efFlatRootDef;
 /* --------------------- Internally used procedures ------------------- */
 
     /* Def table management */
-extern Def *efDefLook(char *name);
-extern Def *efDefNew(char *name);
+extern Def *efDefLook(const char *name);
+extern Def *efDefNew(const char *name);
 
     /* HierName manipulation */
 extern HierName *efHNFromUse(HierContext *hc, HierName *prefix);

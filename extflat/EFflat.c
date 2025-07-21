@@ -619,7 +619,7 @@ efAddConns(
     {
 	/* Special case for speed when no array info is present */
 	if (conn->conn_1.cn_nsubs == 0)
-	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, doWarn);
+	    efAddOneConn(hc, conn->conn_name1, conn->conn_name2, conn, INT2CD(doWarn));
 	else
 	    efHierSrArray(hc, conn, efAddOneConn, INT2CD(doWarn));
     }
@@ -656,7 +656,7 @@ efAddOneConn(
     Connection *conn,
     ClientData cdata)	/* bool doWarn */
 {
-    bool doWarn = (bool)CD2INT(cdata);
+    bool doWarn = (bool) CD2INT(cdata);
     HashEntry *he1, *he2;
     EFNode *node, *newnode;
     int n;

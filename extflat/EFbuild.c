@@ -2284,7 +2284,7 @@ void
 efFreeConn(
     Connection *conn)
 {
-    if (conn->conn_name1) freeMagic(conn->conn_name1);
-    if (conn->conn_name2) freeMagic(conn->conn_name2);
+    if (conn->conn_name1) freeMagic((char *) conn->conn_name1);
+    if (conn->conn_name2) freeMagic((char *) conn->conn_name2);
     freeMagic((char *) conn);
 }

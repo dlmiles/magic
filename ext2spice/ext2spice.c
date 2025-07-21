@@ -1679,7 +1679,7 @@ subcktVisit(
     {
 	subcktname = mallocMagic(2 + strlen(def->def_name));
 	sprintf(subcktname, "x%s", def->def_name);
-	freeMagic(def->def_name);
+	freeMagic((char *)def->def_name);
 	def->def_name = subcktname;
     }
 
@@ -1809,7 +1809,7 @@ topVisit(
     {
 	subcktname = mallocMagic(2 + strlen(def->def_name));
 	sprintf(subcktname, "x%s", def->def_name);
-	freeMagic(def->def_name);
+	freeMagic((char *)def->def_name);
 	def->def_name = subcktname;
     }
 
@@ -4309,7 +4309,7 @@ mergeAttr(
 	char *t = (char *) mallocMagic(l1 + l2 + 1);
 	strcpy(t, *a1); /* strcpy_advance() */
 	strcat(t, *a2);
-	freeMagic(*a1);
+	freeMagic((char *)*a1);
 	*a1 = t;
     }
 }

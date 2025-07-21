@@ -92,7 +92,7 @@ extern void efHNRecord(int size, int type);
 
 bool
 EFHNIsGlob(
-    HierName *hierName)
+    const HierName *hierName)
 {
 #ifdef MAGIC_WRAPPER
     char *retstr;

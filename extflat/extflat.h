@@ -74,7 +74,7 @@ extern int EFGetPortMax(const Def *def);
 
 /* C99 compat */
 extern void EFHNFree(HierName *hierName, HierName *prefix, int type);
-extern bool EFHNIsGlob(HierName *hierName);
+extern bool EFHNIsGlob(const HierName *hierName);
 extern int EFNodeResist(EFNode *node);
 extern void efAdjustSubCap(Def *def, const char *nodeName, double nodeCapAdjust);
 extern int efBuildAddStr(const char *table[], int *pMax, int size, const char *str);

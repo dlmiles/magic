@@ -461,10 +461,10 @@ EFHNConcatLook(
 void
 EFHNFree(
     HierName *hierName,
-    HierName *prefix,
+    const HierName *prefix,
     int type)	/* HN_ALLOC, HN_CONCAT, etc */
 {
-    HierName *hn;
+    const HierName *hn;
 
     for (hn = hierName; hn; hn = hn->hn_parent)
     {

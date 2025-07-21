@@ -305,10 +305,10 @@ EFHNToStr(
 
 char *
 efHNToStrFunc(
-    HierName *hierName,		/* Name to be converted */
+    const HierName *hierName,		/* Name to be converted */
     char *dstp)	/* Store name here */
 {
-    char *srcp;
+    const char *srcp;
 
     if (hierName == NULL)
     {

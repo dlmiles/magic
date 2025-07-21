@@ -278,7 +278,7 @@ extern Def *efDefNew(const char *name);
 
     /* HierName manipulation */
 extern HierName *efHNFromUse(HierContext *hc, HierName *prefix);
-extern char *efHNToStrFunc(HierName *hierName, char *dstp);
+extern char *efHNToStrFunc(const HierName *hierName, char *dstp);
 extern bool EFHNBest(const HierName *hierName1, const HierName *hierName2);
 
     /* Functions for hashing of HierNames */

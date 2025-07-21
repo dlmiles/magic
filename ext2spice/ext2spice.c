@@ -3943,7 +3943,7 @@ EFHNSprintf(
 {
     bool trimGlob, trimLocal, convertComma, convertEqual, convertBrackets;
     char *s, *cp, c;
-    char *efHNSprintfPrefix(HierName *, char *);
+    char *efHNSprintfPrefix(const HierName *, char *); /* fwd decl */
 
     s = str;
     if (hierName->hn_parent) str = efHNSprintfPrefix(hierName->hn_parent, str);
@@ -3977,10 +3977,11 @@ EFHNSprintf(
 
 char *
 efHNSprintfPrefix(
-    HierName *hierName,
+    const HierName *hierName,
     char *str)
 {
-    char *cp, c;
+    const char *cp;
+    char c;
     bool convertEqual = (EFOutputFlags & EF_CONVERTEQUAL) ? TRUE : FALSE;
     bool convertComma = (EFOutputFlags & EF_CONVERTCOMMA) ? TRUE : FALSE;
     bool convertBrackets = (EFOutputFlags & EF_CONVERTBRACKETS) ? TRUE : FALSE;

@@ -1462,8 +1462,8 @@ usage:
  */
 EFNode *
 SpiceGetNode(
-    HierName *prefix,
-    HierName *suffix)
+    const HierName *prefix,
+    const HierName *suffix)
 {
     HashEntry *he;
     EFNodeName *nn;

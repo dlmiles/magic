@@ -242,10 +242,11 @@ EFStrToHN(
 	if (*cp == '/' || *cp == '\0')
 	{
 	    size = HIERNAMESIZE(cp - slashPtr);
-	    hierName = (HierName *) mallocMagic((unsigned)(size));
+	    HierName *tmp = (HierName *) mallocMagic((unsigned)(size));
 	    if (efHNStats) efHNRecord(size, HN_ALLOC);
-	    efHNInit(hierName, slashPtr, cp);
-	    hierName->hn_parent = prefix;
+	    efHNInit(tmp, slashPtr, cp);
+	    tmp->hn_parent = prefix;
+	    hierName = tmp;
 	    if (*cp++ == '\0')
 		break;
 	    slashPtr = cp;

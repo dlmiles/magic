@@ -1677,8 +1677,9 @@ subcktVisit(
     subcktname = def->def_name;
     if (!isalpha(*subcktname))
     {
-	subcktname = mallocMagic(2 + strlen(def->def_name));
-	sprintf(subcktname, "x%s", def->def_name);
+	char *tmp = mallocMagic(2 + strlen(def->def_name));
+	sprintf(tmp, "x%s", def->def_name);
+	subcktname = tmp; /* (char*) to (const char*) */
 	freeMagic((char *)def->def_name);
 	def->def_name = subcktname;
     }
@@ -1807,8 +1808,9 @@ topVisit(
     subcktname = def->def_name;
     if (!isalpha(*subcktname))
     {
-	subcktname = mallocMagic(2 + strlen(def->def_name));
-	sprintf(subcktname, "x%s", def->def_name);
+	char *tmp = mallocMagic(2 + strlen(def->def_name));
+	sprintf(tmp, "x%s", def->def_name);
+	subcktname = tmp; /* (char*) to (const char*) */
 	freeMagic((char *)def->def_name);
 	def->def_name = subcktname;
     }

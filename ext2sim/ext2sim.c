@@ -1531,8 +1531,8 @@ simdevOutNode(
 /* @typedef cb_extflat_visitcaps_t (UNUSED) */
 int
 simcapVisit(
-    HierName *hierName1,
-    HierName *hierName2,
+    const HierName *hierName1,
+    const HierName *hierName2,
     double cap,
     ClientData cdata)	/* unused */
 {

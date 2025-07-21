@@ -1578,8 +1578,8 @@ simcapVisit(
 /* @typedef cb_extflat_visitresists_t (UNUSED) */
 int
 simresistVisit(
-    HierName *hierName1,
-    HierName *hierName2,
+    const HierName *hierName1,
+    const HierName *hierName2,
     float res,
     ClientData)	/* unused */
 {

@@ -330,8 +330,8 @@ usage:
  */
 EFNode *
 AntennaGetNode(
-    HierName *prefix,
-    HierName *suffix)
+    const HierName *prefix,
+    const HierName *suffix)
 {
         HashEntry *he;
 

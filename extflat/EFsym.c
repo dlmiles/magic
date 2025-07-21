@@ -45,9 +45,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* C99 compat */
 #include "textio/textio.h"
 
-/* Forward declarations */
-bool efSymAdd();
-
 HashTable efSymHash;
 
 /*

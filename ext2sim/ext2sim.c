@@ -56,7 +56,7 @@ int simnodeVisit(EFNode *node, int res, double cap, ClientData cdata); /* @typed
 int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, ClientData cdata); /* @typedef cb_extflat_visitdevs_t (UNUSED) */
 
 /* C99 compat */
-int simdevOutNode(HierName *prefix, HierName *suffix, char *name, FILE *outf);
+int simdevOutNode(const HierName *prefix, const HierName *suffix, const char *name, FILE *outf);
 int simdevSubstrate(HierName *prefix, HierName *suffix, int type, float scale, bool doAP, FILE *outf);
 
 /* Options specific to ext2sim */
@@ -1478,9 +1478,9 @@ simnAPHier(
 
 int
 simdevOutNode(
-    HierName *prefix,
-    HierName *suffix,
-    char *name,
+    const HierName *prefix,
+    const HierName *suffix,
+    const char *name,
     FILE *outf)
 {
     HashEntry *he;

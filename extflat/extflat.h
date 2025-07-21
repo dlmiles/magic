@@ -69,7 +69,7 @@ extern HashEntry *EFHNLook(HierName *prefix, char *suffixStr, char *errorStr);
 extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *errorStr);
 extern HierName *EFHNConcat(HierName *prefix, HierName *suffix);
 extern HierName *EFStrToHN(HierName *prefix, char *suffixStr);
-extern char *EFHNToStr(HierName *hierName);
+extern char *EFHNToStr(const HierName *hierName);
 extern int EFGetPortMax(const Def *def);
 
 /* C99 compat */

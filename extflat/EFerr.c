@@ -41,7 +41,7 @@ extern const char *efReadFileName;
 extern int efReadLineNum;
 
 #ifdef MAGIC_WRAPPER
-extern int Tcl_printf();
+extern int Tcl_printf(FILE *fp, const char *fmt, va_list ap);
 #endif
 
 

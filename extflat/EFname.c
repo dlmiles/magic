@@ -579,8 +579,8 @@ EFHNBest(
 
 int
 efHNLexOrder(
-    HierName *hierName1,
-    HierName *hierName2)
+    const HierName *hierName1,
+    const HierName *hierName2)
 {
     int i;
 

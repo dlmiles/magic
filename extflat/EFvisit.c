@@ -47,7 +47,7 @@ extern Use efFlatRootUse;
 extern HierContext efFlatContext;
 
 extern void efDevFixLW(char *attrs, int *pL, int *pW);
-extern void efHNOutPrefix(HierName *hierName, FILE *outf);
+extern void efHNOutPrefix(const HierName *hierName, FILE *outf);
 
 bool efDevKilled(Dev *dev, HierName *prefix);
 
@@ -939,16 +939,17 @@ EFHNOut(
 
 void
 efHNOutPrefix(
-    HierName *hierName,
+    const HierName *hierName,
     FILE *outf)
 {
-    char *cp, c;
+    const char *cp;
+    char c;
 
     if (hierName->hn_parent)
 	efHNOutPrefix(hierName->hn_parent, outf);
 
     cp = hierName->hn_name;
     while ((c = *cp++))
-	putc(c, outf);
+	putc(c, outf); /* FIXME consider fputs() */
     putc('/', outf);
 }

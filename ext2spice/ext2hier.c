@@ -1518,10 +1518,10 @@ spcnodeHierVisit(
  */
 static char esTempName[MAX_STR_SIZE];
 
-char *
+const char *
 nodeSpiceHierName(
     HierContext *hc,
-    HierName *hname)
+    const HierName *hname)
 {
     EFNodeName *nn;
     HashEntry *he, *he2;

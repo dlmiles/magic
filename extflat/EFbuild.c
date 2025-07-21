@@ -334,7 +334,7 @@ efBuildNode(
 void
 efAdjustSubCap(
     Def *def,			/* Def to which this connection is to be added */
-    char *nodeName,		/* One of the names for this node */
+    const char *nodeName,	/* One of the names for this node */
     double nodeCapAdjust)	/* Substrate capacitance adjustment */
 {
     EFNodeName *nodename;
@@ -376,10 +376,10 @@ efAdjustSubCap(
 void
 efBuildAttr(
     Def *def,
-    char *nodeName,
-    Rect *r,
-    char *layerName,
-    char *text)
+    const char *nodeName,
+    const Rect *r,
+    const char *layerName,
+    const char *text)
 {
     HashEntry *he;
     EFNodeName *nn;
@@ -432,8 +432,8 @@ efBuildAttr(
 void
 efBuildDist(
     Def *def,		/* Def for which we're adding a new Distance */
-    char *driver,	/* Source terminal */
-    char *receiver,	/* Destination terminal */
+    const char *driver,	/* Source terminal */
+    const char *receiver,/* Destination terminal */
     int min,
     int max)		/* Minimum and maximum acyclic distance from source
 			 * to destination.
@@ -508,7 +508,7 @@ efBuildDist(
 void
 efBuildKill(
     Def *def,		/* Def for which we're adding a new Kill */
-    char *name)		/* Name of node to die */
+    const char *name)	/* Name of node to die */
 {
     Kill *kill;
 
@@ -540,8 +540,8 @@ efBuildKill(
 void
 efBuildEquiv(
     Def *def,		/* Def for which we're adding a new node name */
-    char *nodeName1,	/* One of node names to be made equivalent */
-    char *nodeName2,	/* Other name to be made equivalent.  One of nodeName1
+    const char *nodeName1,/* One of node names to be made equivalent */
+    const char *nodeName2,/* Other name to be made equivalent.  One of nodeName1
 			 * or nodeName2 must already be known.
 			 */
     bool resist,	/* True if "extresist on" option was selected */
@@ -735,7 +735,7 @@ efGetDeviceParams(
 
 void
 efBuildDeviceParams(
-    char *name,
+    const char *name,
     int argc,
     char *argv[])
 {
@@ -835,8 +835,8 @@ int
 efBuildDevice(
     Def *def,		/* Def to which this connection is to be added */
     char class,		/* Class (dev, bjt, etc.) of this device */
-    char *type,		/* Type (name) of this device */
-    Rect *r,		/* Coordinates of 1x1 rectangle entirely inside device */
+    const char *type,	/* Type (name) of this device */
+    const Rect *r,	/* Coordinates of 1x1 rectangle entirely inside device */
     int argc,		/* Size of argv */
     char *argv[])	/* Tokens for the rest of the dev line.
 			 * Starts with the last two position values, used to
@@ -1216,11 +1216,11 @@ efBuildDevice(
 void
 efBuildPortNode(
     Def *def,		/* Def to which this connection is to be added */
-    char *name,		/* One of the names for this node */
+    const char *name,	/* One of the names for this node */
     int idx,		/* Port number (order) */
     int x,
     int y,		/* Location of a point inside this node */
-    char *layername,	/* Name of tile type */
+    const char *layername,/* Name of tile type */
     bool toplevel)	/* 1 if the cell def is the top level cell */
 {
     HashEntry *he;
@@ -1263,17 +1263,17 @@ efBuildPortNode(
 
 int
 EFGetPortMax(
-   Def *def)
+    const Def *def)
 {
-    EFNode *snode;
-    EFNodeName *nodeName;
+    const EFNode *snode;
+    const EFNodeName *nodeName;
     int portmax, portorder;
 
     portmax = -1;
 
-    for (snode = (EFNode *) def->def_firstn.efnode_next;
+    for (snode = (const EFNode *) def->def_firstn.efnode_next;
                 snode != &def->def_firstn;
-                snode = (EFNode *) snode->efnode_next)
+                snode = (const EFNode *) snode->efnode_next)
     {
         if (snode->efnode_flags & EF_PORT)
 	{

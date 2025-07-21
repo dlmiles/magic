@@ -70,13 +70,13 @@ extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *error
 extern HierName *EFHNConcat(HierName *prefix, HierName *suffix);
 extern HierName *EFStrToHN(HierName *prefix, char *suffixStr);
 extern char *EFHNToStr(HierName *hierName);
-extern int EFGetPortMax(Def *def);
+extern int EFGetPortMax(const Def *def);
 
 /* C99 compat */
 extern void EFHNFree(HierName *hierName, HierName *prefix, int type);
 extern bool EFHNIsGlob(HierName *hierName);
 extern int EFNodeResist(EFNode *node);
-extern void efAdjustSubCap(Def *def, char *nodeName, double nodeCapAdjust);
+extern void efAdjustSubCap(Def *def, const char *nodeName, double nodeCapAdjust);
 extern void efBuildAttr(Def *def, char *nodeName, Rect *r, char *layerName, char *text);
 extern int efBuildDevice(Def *def, char class, char *type, Rect *r, int argc, char *argv[]);
 extern void efBuildDeviceParams(char *name, int argc, char *argv[]);

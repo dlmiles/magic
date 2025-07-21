@@ -77,6 +77,7 @@ extern void EFHNFree(HierName *hierName, HierName *prefix, int type);
 extern bool EFHNIsGlob(HierName *hierName);
 extern int EFNodeResist(EFNode *node);
 extern void efAdjustSubCap(Def *def, const char *nodeName, double nodeCapAdjust);
+extern int efBuildAddStr(const char *table[], int *pMax, int size, const char *str);
 extern void efBuildAttr(Def *def, const char *nodeName, const Rect *r, const char *layerName, const char *text);
 extern int efBuildDevice(Def *def, char class, const char *type, const Rect *r, int argc, char *argv[]);
 extern void efBuildDeviceParams(const char *name, int argc, char *argv[]);
@@ -84,7 +85,6 @@ extern void efBuildDist(Def *def, const char *driver, const char *receiver, int 
 extern void efBuildEquiv(Def *def, const char *nodeName1, const char *nodeName2, bool resist, bool isspice);
 extern void efBuildKill(Def *def, const char *name);
 extern void efBuildPortNode(Def *def, const char *name, int idx, int x, int y, const char *layername, bool toplevel);
-extern int efBuildAddStr(const char *table[], int *pMax, int size, const char *str);
                        int ta, int tb, int tc, int td, int te, int tf);
 extern int efFlatCaps(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */
 extern int efFlatDists(HierContext *hc, ClientData unused); /* @typedef cb_extflat_hiersruses_t (UNUSED) */

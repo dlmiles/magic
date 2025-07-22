@@ -57,7 +57,7 @@ int simmergeVisit(Dev *dev, HierContext *hc, float scale, Transform *trans, Clie
 
 /* C99 compat */
 int simdevOutNode(const HierName *prefix, const HierName *suffix, const char *name, FILE *outf);
-int simdevSubstrate(HierName *prefix, HierName *suffix, int type, float scale, bool doAP, FILE *outf);
+int simdevSubstrate(const HierName *prefix, const HierName *suffix, int type, float scale, bool doAP, FILE *outf);
 
 /* Options specific to ext2sim */
 #ifdef EXT2SIM_AUTO
@@ -1328,8 +1328,8 @@ simdevVisit(
 
 int
 simdevSubstrate(
-    HierName *prefix,
-    HierName *suffix,
+    const HierName *prefix,
+    const HierName *suffix,
     int type,
     float scale,
     bool doAP,
@@ -1337,8 +1337,8 @@ simdevSubstrate(
 {
     HashEntry *he;
     EFNodeName *nn;
-    char *suf ;
-    int  l ;
+    char *suf;
+    int l;
     EFNode *subnode;
 
     suf = EFHNToStr(suffix);

@@ -473,11 +473,13 @@ EFHierVisitDevs(
  *	Calls the client procedure (*ca->ca_proc)().
  */
 
+/* @typedef cb_extflat_hiersruses_t (CallArg *) */
 int
 efHierVisitDevs(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* (CallArg *) */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Dev *dev;
     HashSearch hs;

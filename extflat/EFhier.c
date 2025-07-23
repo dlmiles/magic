@@ -338,7 +338,7 @@ EFHierVisitSubcircuits(
     /* a subcircuit, call subProc.				*/
 
     ca.ca_proc = (int (*)()) subProc;
-    ca.ca_cdata = (ClientData)hc->hc_use->use_def;	/* Save top-level def */
+    ca.ca_cdata = PTR2CD(hc->hc_use->use_def);	/* Save top-level def */
 
     if (efHierSrUses(hc, efHierVisitSubcircuits, PTR2CD(&ca)))
 	return 1;
@@ -364,7 +364,7 @@ efHierVisitSubcircuits(
 {
     CallArg *ca = (CallArg *) CD2PTR(cdata);
     /* Visit all children of this def */
-    Def *def = (Def *)ca->ca_cdata;
+    Def *def = (Def *) CD2PTR(ca->ca_cdata);
     bool is_top = (def == hc->hc_use->use_def) ? TRUE : FALSE;
 
     if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */

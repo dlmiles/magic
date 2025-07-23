@@ -1808,7 +1808,8 @@ esMakePorts(
     EFNodeName *nn;
     flagDefRecord *flagrec, *flagrec2, *flagtop;
 
-    char *name, *portname, *tptr, *aptr, *locname;
+    const char *name, *portname, *locname;
+    char *tptr, *aptr;
     int j;
 
     /* Done when the bottom of the hierarchy is reached */

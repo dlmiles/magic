@@ -133,12 +133,12 @@ efHierSrUses(
  * This procedure should be of the following form
  *   (see also typedef cb_extflat_hiersrarray_t) :
  *
- *	(*proc)(hc, name1, name2, conn, cdata)
- *	    HierContext *hc;
- *	    char *name1;	/# Fully-expanded first name #/
- *	    char *name2;	/# Fully-expanded 2nd name, or NULL #/
- *	    Connection *conn;
- *	    ClientData cdata;
+ *	int (*proc)(
+ *	    HierContext *hc,
+ *	    const char *hierName1,	/# Fully-expanded first name #/
+ *	    const char *hierName2,	/# Fully-expanded 2nd name, or NULL #/
+ *	    Connection *conn,
+ *	    ClientData cdata)
  *	{
  *	}
  *
@@ -175,7 +175,7 @@ efHierSrArray(
     switch (c1->cn_nsubs)
     {
 	case 0:
-	    return (*proc)(hc, c1->cn_name, c2->cn_name, conn, cdata);
+	    return (*proc)(hc, c1->cn_name, c2->cn_name, conn, cdata); /* @invoke cb_extflat_hiersrarray_t */
 	    break;
 	case 1:
 	    i1lo = c1->cn_subs[0].r_lo, i2lo = c2->cn_subs[0].r_lo;
@@ -185,7 +185,7 @@ efHierSrArray(
 		if (c2->cn_name)
 		    (void) sprintf(name2, c2->cn_name, i - i1lo + i2lo);
 		if ((*proc)(hc, name1, c2->cn_name ? name2 : (char *) NULL,
-				conn, cdata))
+				conn, cdata)) /* @invoke cb_extflat_hiersrarray_t */
 		    return 1;
 	    }
 	    break;
@@ -208,7 +208,7 @@ efHierSrArray(
 			(void) sprintf(name2, c2->cn_name,
 				    i - i1lo + i2lo, j - j1lo + j2lo);
 		    if ((*proc)(hc,name1,c2->cn_name ? name2 : (char *) NULL,
-				conn, cdata))
+				conn, cdata)) /* @invoke cb_extflat_hiersrarray_t */
 			return 1;
 		}
 	    }

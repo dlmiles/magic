@@ -4301,11 +4301,18 @@ parallelDevs(
 
 void
 mergeAttr(
-    char **a1,
-    char **a2)
+    const char **a1,
+    const char **a2)
 {
     if (*a1 == NULL)
+    {
+#if 0
 	*a1 = *a2; /* TODO check strdup() is appropiate due to lifetime ambiguity this creates */
+        /* efFreeDevTable() looks like it will double-free this shared reference */
+#else
+	*a1 = StrDup(NULL, *a2); /* TODO check strdup() is appropiate due to lifetime ambiguity this creates */
+#endif
+    }
     else
     {
 	size_t l1 = strlen(*a1);

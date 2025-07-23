@@ -330,7 +330,7 @@ EFHierVisitSubcircuits(
     ClientData cdata)	/* unused */
 {
     CallArg ca;
-    int efHierVisitSubcircuits();   /* Forward declaration */
+    int efHierVisitSubcircuits(HierContext *hc, ClientData cdata);   /* Forward declaration cb_extflat_hiersruses_t (CallArg *ca) */
 
     /* For each subcell of the top-level def that is defined as */
     /* a subcircuit, call subProc.				*/
@@ -338,7 +338,7 @@ EFHierVisitSubcircuits(
     ca.ca_proc = (int (*)()) subProc;
     ca.ca_cdata = (ClientData)hc->hc_use->use_def;	/* Save top-level def */
 
-    if (efHierSrUses(hc, efHierVisitSubcircuits, (ClientData) &ca))
+    if (efHierSrUses(hc, efHierVisitSubcircuits, PTR2CD(&ca)))
 	return 1;
 
     return 0;
@@ -358,8 +358,9 @@ EFHierVisitSubcircuits(
 int
 efHierVisitSubcircuits(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* CallArg* */
 {
+    CallArg *ca = (CallArg *) CD2PTR(cdata);
     /* Visit all children of this def */
     Def *def = (Def *)ca->ca_cdata;
     bool is_top = (def == hc->hc_use->use_def) ? TRUE : FALSE;

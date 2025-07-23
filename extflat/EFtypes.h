@@ -122,7 +122,7 @@ typedef struct efnn
 {
     struct efnode	*efnn_node;	/* Corresponding node */
     struct efnn		*efnn_next;	/* Next name for this node */
-    HierName		*efnn_hier;	/* HierName for this node */
+    const HierName	*efnn_hier;	/* HierName for this node */
     int			 efnn_port;	/* Port number for this node */
     unsigned short	 efnn_refc;	/* #times referenced in hash */
 } EFNodeName;

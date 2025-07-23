@@ -1419,8 +1419,8 @@ efBuildAddStr(
 void
 efBuildUse(
     Def *def,		/* Def to which this connection is to be added */
-    char *subDefName,	/* Def of which this a use */
-    char *subUseId,	/* Use identifier for the def 'subDefName' */
+    const char *subDefName,	/* Def of which this a use */
+    const char *subUseId,	/* Use identifier for the def 'subDefName' */
     int ta,
     int tb,
     int tc,

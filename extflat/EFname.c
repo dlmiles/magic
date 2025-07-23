@@ -355,9 +355,9 @@ efHNToStrFunc(
 
 HashEntry *
 EFHNLook(
-    HierName *prefix,	/* Components of name on root side */
-    char *suffixStr,	/* Part of name on leaf side */
-    char *errorStr)	/* Explanatory string for errors */
+    const HierName *prefix,	/* Components of name on root side */
+    const char *suffixStr,	/* Part of name on leaf side */
+    const char *errorStr)	/* Explanatory string for errors */
 {
     const HierName *hierName;
     bool dontFree = FALSE;

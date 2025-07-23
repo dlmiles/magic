@@ -153,7 +153,6 @@ EFArgs(
 {
     static char libpath[FNSIZE];
     char *realIn, line[1024], *inname = NULL, *name, *cp;
-    HierName *hierName;
     FILE *f;
 
     const char usage_text[] =
@@ -244,8 +243,8 @@ EFArgs(
 		if ((name = ArgStr(&argc, &argv, "nodename")) == NULL)
 		    goto usage;
 		printf("Watching node '%s'\n", name);
-		hierName = EFStrToHN((HierName *) NULL, name);
-		(void) HashFind(&efWatchTable, (char *) hierName);
+		const HierName *hierName = EFStrToHN((HierName *) NULL, name);
+		(void) HashFind(&efWatchTable, (const char *) hierName);
 		efWatchNodes = TRUE;
 		break;
 	    case 'N':
@@ -264,8 +263,8 @@ EFArgs(
 		    cp = strchr(line, '\n');
 		    if (cp) *cp = '\0';
 		    printf("Watching node '%s'\n", line);
-		    hierName = EFStrToHN((HierName *) NULL, line);
-		    (void) HashFind(&efWatchTable, (char *) hierName);
+		    const HierName *hierName = EFStrToHN((HierName *) NULL, line);
+		    (void) HashFind(&efWatchTable, (const char *) hierName);
 		}
 		(void) fclose(f);
 		efWatchNodes = TRUE;

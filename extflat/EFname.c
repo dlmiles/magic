@@ -277,7 +277,7 @@ EFStrToHN(
 
 char *
 EFHNToStr(
-    HierName *hierName)		/* Name to be converted */
+    const HierName *hierName)		/* Name to be converted */
 {
     static char namebuf[2048];
 

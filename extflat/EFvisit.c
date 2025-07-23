@@ -51,6 +51,8 @@ extern void efHNOutPrefix(const HierName *hierName, FILE *outf);
 
 bool efDevKilled(Dev *dev, const HierName *prefix);
 
+int efVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+
 /*
  * ----------------------------------------------------------------------------
  *

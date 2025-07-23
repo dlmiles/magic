@@ -455,7 +455,7 @@ EFHierVisitDevs(
 {
     CallArg ca;
 
-    ca.ca_proc = devProc;
+    ca.ca_proc = (int (*)()) devProc;
     ca.ca_cdata = cdata;
     return efHierVisitDevs(hc, (ClientData) &ca);
 }

@@ -617,7 +617,7 @@ efHNLexOrder(
 HierName *
 efHNFromUse(
     HierContext *hc,	/* Contains use and array information */
-    HierName *prefix)	/* Root part of name */
+    const HierName *prefix)	/* Root part of name */
 {
     char *srcp, *dstp;
     char name[2048], *namePtr;

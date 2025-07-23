@@ -51,7 +51,7 @@
 typedef struct dist
 {
     int		 dist_min, dist_max;	/* Min and max distance (lambda) */
-    HierName	*dist_1, *dist_2;	/* Two points */
+    const HierName *dist_1, *dist_2;	/* Two points */
 } Distance;
 
 /* ------------------------- Kill information ------------------------- */

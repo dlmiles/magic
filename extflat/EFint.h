@@ -80,7 +80,7 @@ typedef struct dist
 typedef struct kill
 {
     struct kill	*kill_next;	/* Next kill in def */
-    HierName	*kill_name;	/* Node to kill */
+    const HierName *kill_name;	/* Node to kill */
 } Kill;
 
 /* --------------------------- Connections ---------------------------- */

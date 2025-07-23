@@ -3466,11 +3466,11 @@ newFmt:
 int
 spcnAPHier(
     DevTerm *dterm,
-    HierName *hierName,
+    const HierName *hierName,
     int resClass,
     float scale,
-    char *asterm,
-    char *psterm,
+    const char *asterm,
+    const char *psterm,
     float m,
     FILE *outf)
 {

@@ -72,7 +72,7 @@ typedef float EFCapValue;
  */
 typedef struct hiername
 {
-    struct hiername	*hn_parent;	/* Back-pointer toward root */
+    const struct hiername *hn_parent;	/* Back-pointer toward root */
     int			 hn_hash;	/* For speed in hashing */
     char		 hn_name[4];	/* String is allocated here */
 } HierName;

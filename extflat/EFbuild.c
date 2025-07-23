@@ -2186,7 +2186,7 @@ efFreeNodeTable(
 {
     HashSearch hs;
     HashEntry *he;
-    HierName *hn;
+    const HierName *hn;
     EFNodeName *nn;
 
     HashStartSearch(&hs);

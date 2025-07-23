@@ -194,7 +194,8 @@ efReadDef(
     CellDef *dbdef;
     EFCapValue cap;
     EFNode *node;
-    char *line = NULL, *argv[128], *name, *attrs;
+    const char *name;
+    char *line = NULL, *argv[128], *attrs;
     int size = 0;
     int rscale = 1;	/* Multiply resistances by this */
     int cscale = 1;	/* Multiply capacitances by this */

@@ -1550,7 +1550,8 @@ subcktVisit(
     HashEntry *he;
     int portorder, portmax, portidx, tchars;
     char stmp[MAX_STR_SIZE];
-    char *instname, *subcktname;
+    char *instname;
+    const char *subcktname;
     DevParam *plist, *pptr;
     EFNodeName **nodeList;
 
@@ -1793,7 +1794,7 @@ topVisit(
     bool explicit;
     DevParam *plist, *pptr;
     char *instname;
-    char *subcktname;
+    const char *subcktname;
     char *pname;
     char **sorted_ports;
     linkedNodeName *lnn = NULL;

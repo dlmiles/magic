@@ -115,7 +115,7 @@ ESGenerateHierarchy(
 EFNode *
 GetHierNode(
     HierContext *hc,
-    HierName *name)
+    const HierName *name)
 {
     HashEntry *he;
     EFNodeName *nn;

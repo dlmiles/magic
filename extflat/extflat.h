@@ -66,7 +66,7 @@ extern char *EFArgs(int argc, char *argv[], bool *err_result, const cb_extflat_a
 
     /* HierName manipulation */
 extern HashEntry *EFHNLook(const HierName *prefix, const char *suffixStr, const char *errorStr);
-extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *errorStr);
+extern HashEntry *EFHNConcatLook(const HierName *prefix, const HierName *suffix, const char *errorStr);
 extern const HierName *EFHNConcat(const HierName *prefix, const HierName *suffix);
 extern const HierName *EFStrToHN(const HierName *prefix, const char *suffixStr);
 extern char *EFHNToStr(const HierName *hierName);

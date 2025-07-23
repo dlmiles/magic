@@ -409,9 +409,9 @@ EFHNLook(
 
 HashEntry *
 EFHNConcatLook(
-    HierName *prefix,	/* Components of name on root side */
-    HierName *suffix,	/* Part of name on leaf side */
-    char *errorStr)	/* Explanatory string for errors */
+    const HierName *prefix,	/* Components of name on root side */
+    const HierName *suffix,	/* Part of name on leaf side */
+    const char *errorStr)	/* Explanatory string for errors */
 {
     HashEntry *he;
     HierName *hn;
@@ -428,7 +428,7 @@ EFHNConcatLook(
 	hn = hn->hn_parent;
     hn->hn_parent = prefix;
 
-    he = HashLookOnly(&efNodeHashTable, (char *) suffix);
+    he = HashLookOnly(&efNodeHashTable, (const char *) suffix);
     if (he == NULL || HashGetValue(he) == NULL)
     {
 	PrintErr("%s: no such node %s\n", errorStr, EFHNToStr(suffix));

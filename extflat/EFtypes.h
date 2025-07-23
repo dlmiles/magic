@@ -251,7 +251,7 @@ typedef struct efnode
 typedef struct devterm
 {
     EFNode	*dterm_node;	/* Node to which we're connected */
-    char	*dterm_attrs;	/* Attribute list */
+    const char	*dterm_attrs;	/* Attribute list */
     int		 dterm_length;	/* Length of terminal connection to gate */
 } DevTerm;
 

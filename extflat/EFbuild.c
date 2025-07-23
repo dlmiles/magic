@@ -1432,7 +1432,7 @@ efBuildUse(
 {
     Use *newuse;
     Def *newdef;
-    char *cp;
+    const char *cp;
     HashEntry *he;
 
     newdef = efDefLook(subDefName);
@@ -1467,9 +1467,18 @@ efBuildUse(
 		    &newuse->use_xlo, &newuse->use_xhi, &newuse->use_xsep,
 		    &newuse->use_ylo, &newuse->use_yhi, &newuse->use_ysep)) == 6)
 	{
-	    *cp = '\0';
-	    newuse->use_id = StrDup((char **) NULL, subUseId);
-	    *cp = '[';
+#if 0
+	    *cp = '\0'; /* FIXME don't do this */
+#else
+            char *modptr = cp; /* FIXME make this const, use strndup() */
+            *modptr = '\0'; /* FIXME don't do this */
+#endif
+	    newuse->use_id = StrDup((char **) NULL, subUseId); /* FIXME strndup(subUseId, (size_t)cp - (size_t)subUseId) */
+#if 0
+	    *cp = '['; /* FIXME don't do this */
+#else
+            *modptr = '['; /* FIXME don't do this */
+#endif
 	}
 	else
 	{

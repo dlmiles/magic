@@ -624,7 +624,8 @@ efHNFromUse(
     char name[2048];
     const char *namePtr;
     Use *u = hc->hc_use;
-    HierName *hierName, *hn;
+    HierName *hierName;
+    const HierName *hn;
     bool hasX, hasY;
     HashEntry *he;
     unsigned size;

@@ -265,7 +265,7 @@ typedef struct devterm
 typedef struct parm
 {
     char	 parm_type[2];
-    char	*parm_name;
+    const char	*parm_name;
     double	 parm_scale;
     int	 	 parm_offset;
     struct parm	*parm_next;

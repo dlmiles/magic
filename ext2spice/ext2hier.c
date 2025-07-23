@@ -1403,12 +1403,12 @@ spcsubHierVisit(
     ClientData cdata)	// char **resstrptr
 {
     char **resstrptr = (char **) CD2PTR(cdata);
-    HierName *hierName;
+    const HierName *hierName;
     const char *nsn;
 
     if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
-	hierName = (HierName *) node->efnode_name->efnn_hier;
+	hierName = node->efnode_name->efnn_hier;
 	nsn = nodeSpiceHierName(hc, hierName);
 	*resstrptr = StrDup((char **)NULL, nsn);
 	return 1;
@@ -1444,7 +1444,7 @@ spcnodeHierVisit(
     ClientData cdata)	// UNUSED
 {
     EFNodeName *nn;
-    HierName *hierName;
+    const HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt, *nsn;
     EFAttr *ap;
@@ -1462,7 +1462,7 @@ spcnodeHierVisit(
     /* Don't mark known ports as "FLOATING" nodes */
     if (!isConnected && node->efnode_flags & EF_PORT) isConnected = TRUE;
 
-    hierName = (HierName *) node->efnode_name->efnn_hier;
+    hierName = node->efnode_name->efnn_hier;
     nsn = nodeSpiceHierName(hc, hierName);
 
     if (esFormat == SPICE2 || (esFormat == HSPICE && !strncmp(nsn, "z@", 2))) {

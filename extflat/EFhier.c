@@ -409,7 +409,7 @@ bool
 efHierDevKilled(
     HierContext *hc,
     Dev *dev,
-    HierName *prefix)
+    const HierName *prefix)
 {
     HierName *suffix;
     HashEntry *he;

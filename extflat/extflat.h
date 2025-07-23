@@ -106,7 +106,6 @@ typedef int (*cb_extflat_hiersrarray_t)(HierContext *hc, const char *name1, cons
 extern int efHierSrArray(HierContext *hc, Connection *conn, const cb_extflat_hiersrarray_t proc, ClientData cdata);
 typedef int (*cb_extflat_hiersruses_t)(HierContext *hc, ClientData cdata);
 extern int efHierSrUses(HierContext *hc, const cb_extflat_hiersruses_t func, ClientData cdata);
-extern int efHierVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 extern EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 extern void efReadError(const char *fmt, ...) ATTR_FORMAT_PRINTF_1;
 extern int efReadLine(char **lineptr, int *sizeptr, FILE *file, char *argv[]);

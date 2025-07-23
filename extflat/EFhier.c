@@ -33,6 +33,8 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 
+
+int efHierVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
 /*
  * ----------------------------------------------------------------------------
  *

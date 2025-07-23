@@ -560,7 +560,7 @@ efVisitResists(
 			res, ca))
 		return 1;
 	}
-	else if (efHierSrArray(hc, res, efVisitSingleResist, (ClientData) ca))
+	else if (efHierSrArray(hc, res, efVisitSingleResist, PTR2CD(ca)))
 	    return 1;
     }
 

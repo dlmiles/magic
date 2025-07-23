@@ -110,7 +110,7 @@ typedef struct {
 } nodeClient;
 
 typedef struct {
-	HierName *lastPrefix;
+	const HierName *lastPrefix;
 	TileTypeBitMask visitMask;
 } nodeClientHier;
 

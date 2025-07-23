@@ -2184,7 +2184,15 @@ spcWriteParams(
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
 						* scale * esScale * 1.0E-6);
+#if 1
+				char *modptr = (char *) dparam->parm_name; /* (const char *) => (char *) */
+				*modptr ='\0'; /* this is modifying the data */
+				/* this is highlighted to understand this better
+				 *  and maybe document the purpose of why it is required
+				 */
+#else
 				dparam->parm_name[0] = '\0';
+#endif
 				break;
 			    }
 			}
@@ -2229,7 +2237,15 @@ spcWriteParams(
 				else
 				    esSIvalue(esSpiceF, (dval + plist->parm_offset)
 						* scale * esScale * 1.0E-6);
+#if 1
+				char *modptr = (char *) dparam->parm_name; /* (const char *) => (char *) */
+				*modptr ='\0'; /* this is modifying the data */
+				/* this is highlighted to understand this better
+				 *  and maybe document the purpose of why it is required
+				 */
+#else
 				dparam->parm_name[0] = '\0';
+#endif
 				break;
 			    }
 			}

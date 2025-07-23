@@ -134,7 +134,7 @@ typedef struct {
 } nodeClient;
 
 typedef struct {
-	HierName 	*lastPrefix;
+	const HierName 	*lastPrefix;
 	maskOrWidth	m_w;
 } nodeClientHier;
 

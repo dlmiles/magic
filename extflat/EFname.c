@@ -165,10 +165,10 @@ EFHNIsGND(
  * ----------------------------------------------------------------------------
  */
 
-HierName *
+const HierName *
 EFHNConcat(
-    HierName *prefix,		/* Components of name on root side */
-    HierName *suffix)	/* Components of name on leaf side */
+    const HierName *prefix,	/* Components of name on root side */
+    const HierName *suffix)	/* Components of name on leaf side */
 {
     HierName *new, *prev;
     HierName *firstNew;

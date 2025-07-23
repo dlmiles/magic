@@ -467,7 +467,7 @@ efAddNodes(
     EFNode *node, *newnode;
     EFAttr *ap, *newap;
     LinkedRect *lr, *newlr;
-    HierName *hierName;
+    const HierName *hierName;
     int size, asize;
     HashEntry *he;
     bool is_subcircuit = (def->def_flags & DEF_SUBCIRCUIT) ? TRUE : FALSE;
@@ -542,7 +542,7 @@ efAddNodes(
 	     */
 	    if (node->efnode_flags & EF_DEVTERM) hierName = nn->efnn_hier;
 	    else hierName = EFHNConcat(hc->hc_hierName, nn->efnn_hier);
-	    he = HashFind(&efNodeHashTable, (char *) hierName);
+	    he = HashFind(&efNodeHashTable, (const char *) hierName);
 
 	    /*
 	     * The name should only have been in the hash table already
@@ -723,7 +723,7 @@ efFlatGlob(void)
     EFNodeName *nameFlat, *nameGlob;
     EFNode *nodeFlat, *nodeGlob;
     HashEntry *heFlat, *heGlob;
-    HierName *hnFlat, *hnGlob;
+    const HierName *hnFlat, *hnGlob;
     HashTable globalTable;
     HashSearch hs;
 
@@ -759,7 +759,7 @@ efFlatGlob(void)
 	 * (only the leaf component) in the global name table.  If one
 	 * isn't found, an entry gets created.
 	 */
-	heGlob = HashFind(&globalTable, (char *) hnFlat);
+	heGlob = HashFind(&globalTable, (const char *) hnFlat);
 	nameGlob = (EFNodeName *) HashGetValue(heGlob);
 	if (nameGlob == NULL)
 	{
@@ -813,7 +813,7 @@ efFlatGlob(void)
 	 */
 	nameGlob = (EFNodeName *) HashGetValue(heGlob);
 	hnGlob = nameGlob->efnn_hier;
-	heFlat = HashFind(&efNodeHashTable, (char *) hnGlob);
+	heFlat = HashFind(&efNodeHashTable, (const char *) hnGlob);
 	if (HashGetValue(heFlat) == NULL)
 	{
 	    nodeFlat = nameGlob->efnn_node;

@@ -247,7 +247,7 @@ EFGetLengthAndWidth(
 		l = gate->dterm_length / 2;
 		w = (source->dterm_length + drain->dterm_length) / 2;
 	    }
-	    if (gate->dterm_attrs) efDevFixLW(gate->dterm_attrs, &l, &w);
+	    if (gate->dterm_attrs) efDevFixLW((char*)gate->dterm_attrs, &l, &w); /* FIXME remove cast */
 	    break;
 
 	default:
@@ -420,12 +420,11 @@ efDevKilled(
 
 void
 efDevFixLW(
-    char *attrs,
+    char *attrs, /* FIXME const this */
     int *pL,
     int *pW)
 {
-    char *cp, *ep;
-    char attrName, savec;
+    char *cp; /* FIXME const this */
     int value;
 
     cp = attrs;
@@ -437,6 +436,32 @@ efDevFixLW(
 	cp += 4;
 	if (*cp && cp[1] == '=')
 	{
+#if 0
+	    int *resp;
+	    if (*cp == 'w' || *cp == 'W')
+	       resp = pW;
+	    else if (*cp == 'l' || *cp == 'L')
+	       resp = PL;
+	    else
+	       resp = NULL;
+
+	    if (resp) {
+		cp += 2; /* "[wWlL]=" */
+		for (ep = cp; *ep && *ep != ','; ep++)
+		    /* Nothing */;
+
+		size_t n = ep - cp;
+		if (StrWithLengthIsInt(cp, n))
+		    value = atoin(cp, n); /* ParseIntegerFromStringWithLength(cp, n, &value) */
+		else if (!efSymLookN(cp, n, &value))
+		    goto done1;
+
+	        *resp = value;
+	    done1:
+	    }
+#endif
+	    char attrName, savec;
+	    char *ep;
 	    switch (*cp)
 	    {
 		case 'w': case 'W':
@@ -448,10 +473,16 @@ efDevFixLW(
 		    cp += 2;
 		    for (ep = cp; *ep && *ep != ','; ep++)
 			/* Nothing */;
+#if 1
 		    savec = *ep;
-		    *ep = '\0';
+		    *ep = '\0'; /* FIXME remove this */
 		    if (StrIsInt(cp)) value = atoi(cp);
 		    else if (!efSymLook(cp, &value)) goto done;
+#else
+		    size_t n = ep - cp;
+		    if (StrWithLengthIsInt(cp, n)) value = atoin(cp, n); /* ParseIntegerFromStringWithLength(cp, n, &value) */
+		    else if (!efSymLookN(cp, n, &value)) goto done
+#endif
 
 		    if (attrName == 'w')
 			*pW = value;
@@ -459,7 +490,9 @@ efDevFixLW(
 			*pL = value;
 
 		done:
+#if 1
 		    *ep = savec;
+#endif
 	    }
 	}
 

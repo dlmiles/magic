@@ -1795,7 +1795,7 @@ topVisit(
     DevParam *plist, *pptr;
     char *instname;
     const char *subcktname;
-    char *pname;
+    const char *pname;
     char **sorted_ports;
     linkedNodeName *lnn = NULL;
 

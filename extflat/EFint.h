@@ -150,7 +150,7 @@ typedef struct conn
 /* A Def exists for each .ext file */
 typedef struct def
 {
-    char	*def_name;	/* Name of this def */
+    const char	*def_name;	/* Name of this def */
     float	 def_scale;	/* Multiply all dimensions by this */
     int		 def_flags;	/* Flags -- see below */
     HashTable	 def_nodes;	/* Map names into EFNodeNames */

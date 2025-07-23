@@ -463,7 +463,7 @@ char *defHNsprintfPrefix(
 
 char *
 nodeDefName(
-    HierName *hname)
+    const HierName *hname)
 {
     EFNodeName *nn;
     HashEntry *he;
@@ -660,6 +660,7 @@ defnodeVisit(
     ClientData cdata) /* (DefData*) */
 {
     DefData *defdata = (DefData *) CD2PTR(cdata);
+    const HierName *hierName;
     char *ndn;
     char ndn2[256];
     char locndn[256];
@@ -695,7 +696,7 @@ defnodeVisit(
 	    return 0;
     }
 
-    hierName = (HierName *) node->efnode_name->efnn_hier;
+    hierName = node->efnode_name->efnn_hier;
     ndn = nodeDefName(hierName);
     defHNsprintf(ndn2, node->efnode_name->efnn_hier, '/');
     if (strcmp(ndn, ndn2))

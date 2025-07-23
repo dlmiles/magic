@@ -2304,7 +2304,7 @@ spcWriteParams(
 void
 esOutputResistor(
     Dev *dev,			/* Dev being output */
-    HierName *hierName,		/* Hierarchical path down to this dev */
+    const HierName *hierName,	/* Hierarchical path down to this dev */
     float scale,		/* Scale transform for output */
     DevTerm *term1,
     DevTerm *term2,		/* Terminals of the device */

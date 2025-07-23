@@ -12,7 +12,7 @@ typedef struct _devMerge {
 	EFNode *g, *s, *d, *b;
 	Dev * dev;
 	int	  esFMIndex;
-	HierName *hierName;
+	const HierName *hierName;
 	struct _devMerge *next;
 } devMerge;
 

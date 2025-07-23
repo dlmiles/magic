@@ -214,7 +214,7 @@ typedef struct
     Use		*hc_use;	/* Use being visited */
     int		 hc_x, hc_y;	/* X and Y indices if array */
     Transform	 hc_trans;	/* Transform to flat coordinates (for fets) */
-    HierName	*hc_hierName;	/* Ptr to trailing component of HierName list */
+    const HierName *hc_hierName;	/* Ptr to trailing component of HierName list */
 } HierContext;
 
 /* ------------------------------ Debugging --------------------------- */

@@ -68,7 +68,7 @@ extern char *EFArgs(int argc, char *argv[], bool *err_result, const cb_extflat_a
 extern HashEntry *EFHNLook(HierName *prefix, char *suffixStr, char *errorStr);
 extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *errorStr);
 extern HierName *EFHNConcat(HierName *prefix, HierName *suffix);
-extern HierName *EFStrToHN(HierName *prefix, char *suffixStr);
+extern const HierName *EFStrToHN(const HierName *prefix, const char *suffixStr);
 extern char *EFHNToStr(const HierName *hierName);
 extern int EFGetPortMax(const Def *def);
 

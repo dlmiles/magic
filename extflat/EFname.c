@@ -214,15 +214,14 @@ EFHNConcat(
  * ----------------------------------------------------------------------------
  */
 
-HierName *
+const HierName *
 EFStrToHN(
-    HierName *prefix,	/* Components of name on side of root */
-    char *suffixStr)	/* Leaf part of name (may have /'s) */
+    const HierName *prefix,	/* Components of name on side of root */
+    const char *suffixStr)	/* Leaf part of name (may have /'s) */
 {
-    char *cp;
-    HashEntry *he;
-    char *slashPtr;
-    HierName *hierName;
+    const char *cp;
+    const char *slashPtr;
+    const HierName *hierName;
     unsigned size;
     int len;
 

@@ -191,7 +191,7 @@ typedef struct def
 
 typedef struct use
 {
-    char	*use_id;	/* Use identifier (appears in hier paths) */
+    const char	*use_id;	/* Use identifier (appears in hier paths) */
     Def		*use_def;	/* Sub def being used */
     Transform	 use_trans;	/* Transform up to parent coords (for fets) */
     ArrayInfo	 use_array;	/* Arraying information */

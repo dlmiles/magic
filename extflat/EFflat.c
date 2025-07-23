@@ -1130,7 +1130,7 @@ efFlatSingleCap(
 	/* node1 to node2 */
 	if (n1 < n2) ck.ck_1 = n1, ck.ck_2 = n2;
 	else ck.ck_1 = n2, ck.ck_2 = n1;
-	he = HashFind(&efCapHashTable, (char *) &ck);
+	he = HashFind(&efCapHashTable, (const char *) &ck);
 	CapHashSetValue(he, (double) (conn->conn_cap + CapHashGetValue(he)));
     }
 
@@ -1177,7 +1177,7 @@ efFlatDists(
     {
 	dist = (Distance *) HashGetValue(he);
 	efHNBuildDistKey(hc->hc_hierName, dist, &distKey);
-	heFlat = HashFind(&efDistHashTable, (char *) &distKey);
+	heFlat = HashFind(&efDistHashTable, (const char *) &distKey);
 	if ((distFlat = (Distance *) HashGetValue(heFlat)))
 	{
 	    /*

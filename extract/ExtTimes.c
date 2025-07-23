@@ -294,7 +294,7 @@ extTimesInitFunc(use)
     struct cellStats *cs;
     HashEntry *he;
 
-    he = HashFind(&cellStatsTable, (char *) def);
+    he = HashFind(&cellStatsTable, (const char *) def);
     if (HashGetValue(he))
 	return (0);
 
@@ -989,7 +989,7 @@ extGetStats(def)
 {
     HashEntry *he;
 
-    he = HashLookOnly(&cellStatsTable, (char *) def);
+    he = HashLookOnly(&cellStatsTable, (const char *) def);
     if (he == (HashEntry *) NULL)
 	return ((struct cellStats *) NULL);
 

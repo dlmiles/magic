@@ -752,7 +752,7 @@ extHierAdjustments(ha, cumFlat, oneFlat, lookFlat)
 		np = ckCum.ck_1, ckCum.ck_1 = ckCum.ck_2, ckCum.ck_2 = np;
 
 	    /* Update the capacitor record in cumFlat->et_coupleHash */
-	    heCum = HashFind(&cumFlat->et_coupleHash, (char *) &ckCum);
+	    heCum = HashFind(&cumFlat->et_coupleHash, (const char *) &ckCum);
 	    extSetCapValue(heCum, extGetCapValue(heCum) - extGetCapValue(he));
 	}
     }

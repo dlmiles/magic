@@ -1895,10 +1895,9 @@ topVisit(
 	     * and should be removed from the port list.
 	     */
 	    if (def->def_flags & DEF_ABSTRACT)
-    	        heh = HashLookOnly(&efNodeHashTable, (char *)nodeName->efnn_hier);
+		heh = HashLookOnly(&efNodeHashTable, (const char *) nodeName->efnn_hier);
 	    else
-    	        heh = HashLookOnly(&efNodeHashTable,
-			    (char *)snode->efnode_name->efnn_hier);
+		heh = HashLookOnly(&efNodeHashTable, (const char *) snode->efnode_name->efnn_hier);
 
 	    /* If view is abstract, rely on the given port name, not
 	     * the node.  Otherwise, artifacts of the abstract view

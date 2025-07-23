@@ -523,7 +523,7 @@ extAddOverlap(tbelow, ecpls)
 	/* Find the coupling hash record */
 	if (rabove < rbelow) ck.ck_1 = rabove, ck.ck_2 = rbelow;
 	else ck.ck_1 = rbelow, ck.ck_2 = rabove;
-	he = HashFind(extCoupleHashPtr, (char *) &ck);
+	he = HashFind(extCoupleHashPtr, (const char *) &ck);
 
 	/* Add the overlap capacitance to the table */
 	c = extGetCapValue(he);
@@ -1251,7 +1251,7 @@ extSideOverlapHalo(tp, esws)
 	    ck.ck_1 = rbp;
 	    ck.ck_2 = rtp;
 	}
-	he = HashFind(extCoupleHashPtr, (char *) &ck);
+	he = HashFind(extCoupleHashPtr, (const char *) &ck);
 	if (CAP_DEBUG) extAdjustCouple(he, cap, "sideoverlap");
 	extSetCapValue(he, cap + extGetCapValue(he));
     }
@@ -1429,7 +1429,7 @@ extSideOverlap(tp, esws)
 	    ck.ck_1 = rbp;
 	    ck.ck_2 = rtp;
 	}
-	he = HashFind(extCoupleHashPtr, (char *) &ck);
+	he = HashFind(extCoupleHashPtr, (const char *) &ck);
 	if (CAP_DEBUG) extAdjustCouple(he, cap, "sideoverlap");
 	extSetCapValue(he, cap + extGetCapValue(he));
     }
@@ -2129,7 +2129,7 @@ extSideCommon(rinside, rfar, tpnear, tpfar, overlap, sep, extCoupleList)
 
     if (rinside < rfar) ck.ck_1 = rinside, ck.ck_2 = rfar;
     else ck.ck_1 = rfar, ck.ck_2 = rinside;
-    he = HashFind(extCoupleHashPtr, (char *) &ck);
+    he = HashFind(extCoupleHashPtr, (const char *) &ck);
 
     cap = extGetCapValue(he);
     for (e = extCoupleList; e; e = e->ec_next)

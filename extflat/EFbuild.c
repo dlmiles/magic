@@ -463,7 +463,7 @@ efBuildDist(
     TxError("%d %d\n", min, max);
 #endif	/* notdef */
 
-    he = HashFind(&def->def_dists, (char *) &distKey);
+    he = HashFind(&def->def_dists, (const char *) &distKey);
     if ((dist = (Distance *) HashGetValue(he)))
     {
 	/*
@@ -716,7 +716,7 @@ efGetDeviceParams(
     HashEntry *he;
     DevParam *plist = NULL;
 
-    he = HashLookOnly(&efDevParamTable, (const char *)name);
+    he = HashLookOnly(&efDevParamTable, name);
     if (he != NULL)
 	plist = (DevParam *)HashGetValue(he);
     return plist;
@@ -1941,10 +1941,9 @@ efNodeMerge(
 
     if (efWatchNodes)
     {
-	if (HashLookOnly(&efWatchTable, (char *) keeping->efnode_name->efnn_hier)
+	if (HashLookOnly(&efWatchTable, (const char *) keeping->efnode_name->efnn_hier)
 	    || (removing->efnode_name
-		&& HashLookOnly(&efWatchTable,
-				(char *) removing->efnode_name->efnn_hier)))
+		&& HashLookOnly(&efWatchTable, (const char *) removing->efnode_name->efnn_hier)))
 	{
 	    printf("\ncombine: %s\n",
 		EFHNToStr(keeping->efnode_name->efnn_hier));
@@ -2194,7 +2193,7 @@ efFreeNodeTable(
 	if ((nn = (EFNodeName *) HashGetValue(he)))
 	{
 	    for (hn = nn->efnn_hier; hn; hn = hn->hn_parent)
-		(void) HashFind(&efFreeHashTable, (char *) hn);
+		(void) HashFind(&efFreeHashTable, (const char *) hn);
 
 	    /* Node equivalences made by "equiv" statements are	handled	*/
 	    /* by reference count.  Don't free the node structure until	*/

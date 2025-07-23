@@ -721,7 +721,7 @@ EFVisitNodes(
 	if (efWatchNodes)
 	{
 	    for (nn = node->efnode_name; nn; nn = nn->efnn_next)
-		if (HashLookOnly(&efWatchTable, (char *) nn->efnn_hier))
+		if (HashLookOnly(&efWatchTable, (const char *) nn->efnn_hier))
 		{
 		    TxPrintf("Equivalent nodes:\n");
 		    for (nn = node->efnode_name; nn; nn = nn->efnn_next)
@@ -860,7 +860,7 @@ EFLookDist(
 	distKey.dist_1 = hn2;
 	distKey.dist_2 = hn1;
     }
-    he = HashLookOnly(&efDistHashTable, (char *) &distKey);
+    he = HashLookOnly(&efDistHashTable, (const char *) &distKey);
     if (he == NULL)
 	return FALSE;
 

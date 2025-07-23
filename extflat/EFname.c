@@ -673,7 +673,7 @@ efHNFromUse(
     hierName->hn_parent = prefix;
 
     /* See if we already have an entry for this one */
-    he = HashFind(&efHNUseHashTable, (char *) hierName);
+    he = HashFind(&efHNUseHashTable, (const char *) hierName);
     if (HashGetValue(he))
     {
 	freeMagic((char *) hierName);
@@ -682,7 +682,7 @@ efHNFromUse(
     HashSetValue(he, (ClientData) hierName);
 
     for (hn = hierName; hn; hn = hn->hn_parent)
-	HashFind(&efFreeHashTable, (char *) hierName);
+	HashFind(&efFreeHashTable, (const char *) hierName);
 
     return hierName;
 }
@@ -904,9 +904,9 @@ efHNDistKill(
     const HierName *hn;
 
     for (hn = dist->dist_1; hn; hn = hn->hn_parent)
-	(void) HashFind(&efFreeHashTable, (char *) hn);
+	(void) HashFind(&efFreeHashTable, (const char *) hn);
     for (hn = dist->dist_2; hn; hn = hn->hn_parent)
-	(void) HashFind(&efFreeHashTable, (char *) hn);
+	(void) HashFind(&efFreeHashTable, (const char *) hn);
 
     freeMagic((char *) dist);
 }

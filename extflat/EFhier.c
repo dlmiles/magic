@@ -404,7 +404,7 @@ efHierDevKilled(
     {
 	if (dev->dev_terms[n].dterm_node == NULL) continue;
 	suffix = dev->dev_terms[n].dterm_node->efnode_name->efnn_hier;
-	he = HashLookOnly(&efNodeHashTable, (char *)suffix);
+	he = HashLookOnly(&efNodeHashTable, (const char *)suffix);
 	if (he  && (nn = (EFNodeName *) HashGetValue(he))
 		&& (nn->efnn_node->efnode_flags & EF_KILLED))
 	    return TRUE;

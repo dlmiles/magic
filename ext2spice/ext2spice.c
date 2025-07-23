@@ -3739,7 +3739,7 @@ spcsubVisit(
 {
     char **resstr = (char **) CD2PTR(cdata);
     HierName *hierName;
-    char *nsn;
+    const char *nsn;
 
     if (node->efnode_flags & EF_GLOB_SUBS_NODE)
     {
@@ -3781,7 +3781,7 @@ spcnodeVisit(
     HierName *hierName;
     bool isConnected = FALSE;
     const char *fmt;
-    char *nsn;
+    const char *nsn;
     EFAttr *ap;
 
     if (node->efnode_client)
@@ -3845,7 +3845,7 @@ nodeVisitDebug(
 {
     EFNodeName *nn;
     HierName *hierName;
-    char *nsn;
+    const char *nsn;
     EFAttr *ap;
 
     hierName = (HierName *) node->efnode_name->efnn_hier;

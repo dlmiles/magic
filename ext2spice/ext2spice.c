@@ -3098,8 +3098,8 @@ spcdevVisit(
  */
 EFNode *
 spcdevSubstrate(
-    HierName *prefix,
-    HierName *suffix,
+    const HierName *prefix,
+    const HierName *suffix,
     int type,
     FILE *outf)
 {

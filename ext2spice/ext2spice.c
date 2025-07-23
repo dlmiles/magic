@@ -3335,8 +3335,8 @@ spcnAP(
     EFNode *node,
     int resClass,
     float scale,
-    char *asterm,
-    char *psterm,
+    const char *asterm,
+    const char *psterm,
     float m,
     FILE *outf,
     int w)

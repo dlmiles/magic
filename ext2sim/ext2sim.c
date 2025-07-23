@@ -1716,7 +1716,7 @@ simmkDevMerge(
     EFNode *s,
     EFNode *d,
     EFNode *b,
-    HierName *hn,
+    const HierName *hn,
     Dev *dev)
 {
 	devMerge *fp;

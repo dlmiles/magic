@@ -411,7 +411,7 @@ efHierDevKilled(
     Dev *dev,
     const HierName *prefix)
 {
-    HierName *suffix;
+    const HierName *suffix;
     HashEntry *he;
     EFNodeName *nn;
     int n;

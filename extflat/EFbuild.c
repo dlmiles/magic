@@ -63,7 +63,7 @@ int   EFLayerNumNames;
 
 /* Forward declarations */
 EFNode *efBuildDevNode(Def *def, char *name, bool isSubsNode);
-void efNodeAddName(EFNode *node, HashEntry *he, HierName *hn, bool isNew);
+void efNodeAddName(EFNode *node, HashEntry *he, const HierName *hn, bool isNew);
 EFNode *efNodeMerge(EFNode **node1ptr, EFNode **node2ptr);
 
 bool efConnBuildName(ConnName *cnp, char *name);
@@ -1849,7 +1849,7 @@ void
 efNodeAddName(
     EFNode *node,
     HashEntry *he,
-    HierName *hn,
+    const HierName *hn,
     bool isNew)		// If TRUE, added name is never the preferred name.
 {
     EFNodeName *newnn;

@@ -49,7 +49,7 @@ extern HierContext efFlatContext;
 extern void efDevFixLW(char *attrs, int *pL, int *pW);
 extern void efHNOutPrefix(const HierName *hierName, FILE *outf);
 
-bool efDevKilled(Dev *dev, HierName *prefix);
+bool efDevKilled(Dev *dev, const HierName *prefix);
 
 /*
  * ----------------------------------------------------------------------------
@@ -359,7 +359,7 @@ efVisitDevs(
 bool
 efDevKilled(
     Dev *dev,
-    HierName *prefix)
+    const HierName *prefix)
 {
     HierName *suffix;
     HashEntry *he;

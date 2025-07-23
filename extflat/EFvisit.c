@@ -41,6 +41,21 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 /* C99 compat */
 #include "textio/textio.h"
 
+/* Structure for passing procedures and cdata to client functions */
+typedef struct
+{
+    union {
+        /* EFVisitDevs() */
+        cb_extflat_visitdevs_t ca_visitdevs_proc;
+        /* EFVisitResists() */
+        cb_extflat_visitresists_t ca_visitresists_proc;
+        /* EFVisitSubcircuits() */
+        cb_extflat_visitsubcircuits_t ca_visitsubcircuits_proc;
+    };
+    ClientData	 ca_cdata;
+} CallVisitArg;
+
+
 /* Root of the tree being flattened */
 extern Def *efFlatRootDef;
 extern Use efFlatRootUse;
@@ -51,8 +66,9 @@ extern void efHNOutPrefix(const HierName *hierName, FILE *outf);
 
 bool efDevKilled(Dev *dev, const HierName *prefix);
 
-int efVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
-int efVisitResists(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+int efVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
+int efVisitResists(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
+int efVisitSubcircuits(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
 
 /*
  * ----------------------------------------------------------------------------
@@ -98,9 +114,8 @@ EFVisitSubcircuits(
     const cb_extflat_visitsubcircuits_t subProc,
     ClientData cdata)	// UNUSED (ca.ca_cdata is set but never read again)
 {
-    CallArg ca;
+    CallVisitArg ca;
     HierContext *hc;
-    int efVisitSubcircuits(HierContext *hc, ClientData cdata);   /* Forward declaration cb_extflat_hiersruses_t (CallArg *ca) */
 
     /* If the top-level def is defined as a subcircuit, call topProc */
 
@@ -112,7 +127,7 @@ EFVisitSubcircuits(
     /* For each subcell of the top-level def that is defined as */
     /* a subcircuit, call subProc.				*/
 
-    ca.ca_proc = (int (*)()) subProc;
+    ca.ca_visitsubcircuits_proc = subProc;
     ca.ca_cdata = cdata;
 
     if (efHierSrUses(hc, efVisitSubcircuits, PTR2CD(&ca)))
@@ -129,22 +144,22 @@ EFVisitSubcircuits(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->ca_visitsubcircuits_proc)().
  */
 
-/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+/* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
 int
 efVisitSubcircuits(
     HierContext *hc,
-    ClientData cdata)	/* CallArg *ca */
+    ClientData cdata)	/* CallVisitArg *ca */
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallVisitArg *ca = (CallVisitArg *) CD2PTR(cdata);
     /* Look for children of this def which are defined	*/
     /* as subcircuits via the DEF_SUBCIRCUIT flag.	*/
 
     if (hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT)
     {
-	if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, NULL)) /* @invoke cb_extflat_visitsubcircuits_t */
+	if ((*ca->ca_visitsubcircuits_proc)(hc->hc_use, hc->hc_hierName, NULL)) /* @invoke cb_extflat_visitsubcircuits_t */
 	    return 1;
 	else
 	    return 0;
@@ -285,9 +300,9 @@ EFVisitDevs(
     const cb_extflat_visitdevs_t devProc,
     ClientData cdata)
 {
-    CallArg ca;
+    CallVisitArg ca;
 
-    ca.ca_proc = (int (*)()) devProc;
+    ca.ca_visitdevs_proc = devProc;
     ca.ca_cdata = cdata;
     return efVisitDevs(&efFlatContext, PTR2CD(&ca));
 }
@@ -300,16 +315,16 @@ EFVisitDevs(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->ca_visitdevs_proc)().
  */
 
-/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+/* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
 int
 efVisitDevs(
     HierContext *hc,
-    ClientData cdata)	/* CallArg *ca */
+    ClientData cdata)	/* CallVisitArg *ca */
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallVisitArg *ca = (CallVisitArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Dev *dev;
     float scale;
@@ -335,7 +350,7 @@ efVisitDevs(
 	if (efDevKilled(dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(dev, hc, scale, &t, ca->ca_cdata)) /* @invoke cb_extflat_visitdevs_t */
+	if ((*ca->ca_visitdevs_proc)(dev, hc, scale, &t, ca->ca_cdata)) /* @invoke cb_extflat_visitdevs_t */
 	    return 1;
     }
     return 0;
@@ -496,9 +511,9 @@ EFVisitResists(
     const cb_extflat_visitresists_t resProc,
     ClientData cdata)
 {
-    CallArg ca;
+    CallVisitArg ca;
 
-    ca.ca_proc = (int (*)()) resProc;
+    ca.ca_visitresists_proc = resProc;
     ca.ca_cdata = cdata;
     return efVisitResists(&efFlatContext, PTR2CD(&ca));
 }
@@ -511,20 +526,20 @@ EFVisitResists(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->ca_visitresists_proc)().
  */
 
 extern int efVisitSingleResist(HierContext *hc, const char *name1, const char *name2,
-                               Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallArg*) */
+                               Connection *res, ClientData cdata); /* @typedef cb_extflat_hiersrarray_t (CallVisitArg*) */
 
 
-/* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+/* @typedef cb_extflat_hiersruses_t (CallVisitArg *ca) */
 int
 efVisitResists(
     HierContext *hc,
-    ClientData cdata)	/* CallArg *ca */
+    ClientData cdata)	/* CallVisitArg *ca */
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallVisitArg *ca = (CallVisitArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Connection *res;
 
@@ -562,7 +577,7 @@ efVisitResists(
  * process the resistor if either terminal is a killed node.
  *
  * Results:
- *	Whatever the user-supplied procedure (*ca->ca_proc)() returns
+ *	Whatever the user-supplied procedure (*ca->ca_visitresists_proc)() returns
  *	(type int).
  *
  * Side effects:
@@ -571,7 +586,7 @@ efVisitResists(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_hiersrarray_t (CallArg*) */
+/* @typedef cb_extflat_hiersrarray_t (CallVisitArg*) */
 int
 efVisitSingleResist(
     HierContext *hc,		/* Contains hierarchical pathname to cell */
@@ -580,7 +595,7 @@ efVisitSingleResist(
     Connection *res,		/* Contains resistance to add */
     ClientData cdata)
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallVisitArg *ca = (CallVisitArg *) CD2PTR(cdata);
     EFNode *n1, *n2;
     HashEntry *he;
 
@@ -600,7 +615,7 @@ efVisitSingleResist(
     if (n1 == n2)
 	return 0;
 
-    return (*ca->ca_proc)(n1->efnode_name->efnn_hier,
+    return (*ca->ca_visitresists_proc)(n1->efnode_name->efnn_hier,
 		n2->efnode_name->efnn_hier,
 		res->conn_res, ca->ca_cdata); /* @invoke cb_extflat_visitresists_t */
 }

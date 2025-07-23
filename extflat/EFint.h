@@ -223,15 +223,6 @@ extern bool efHNStats;	/* TRUE if we keep statistics on HierNames */
 
 /* -------------------------------------------------------------------- */
 
-/* Structure for passing procedures and cdata to client functions */
-typedef struct
-{
-    int	       (*ca_proc)();
-    ClientData	 ca_cdata;
-} CallArg;
-
-/* -------------------------------------------------------------------- */
-
 /*
  * Structure used as key in hash table of internodal capacitors.
  * Keys are EFNodes, since capacitors exist between a pair of electrical

@@ -33,8 +33,24 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 
+/* Structure for passing procedures and cdata to client functions */
+typedef struct
+{
+    union {
+        /* EFHierVisitDevs() */
+        cb_extflat_hiervisitdevs_t ca_hiervisitdevs_proc;
+        /* EFHierVisitResists() */
+        cb_extflat_hiervisitresists_t ca_hiervisitresists_proc;
+        /* EFHierVisitSubcircuits() */
+        cb_extflat_visitsubcircuits_t ca_visitsubcircuits_proc;
+    };
+    ClientData	 ca_cdata;
+} CallHierArg;
 
-int efHierVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallArg *ca) */
+int efHierVisitDevs(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallHierArg *ca) */
+int efHierVisitResists(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallHierArg *ca) */
+int efHierVisitSubcircuits(HierContext *hc, ClientData cdata); /* @typedef cb_extflat_hiersruses_t (CallHierArg *ca) */
+
 /*
  * ----------------------------------------------------------------------------
  *
@@ -331,13 +347,12 @@ EFHierVisitSubcircuits(
     const cb_extflat_visitsubcircuits_t subProc,
     ClientData cdata)	/* unused */
 {
-    CallArg ca;
-    int efHierVisitSubcircuits(HierContext *hc, ClientData cdata);   /* Forward declaration cb_extflat_hiersruses_t (CallArg *ca) */
+    CallHierArg ca;
 
     /* For each subcell of the top-level def that is defined as */
     /* a subcircuit, call subProc.				*/
 
-    ca.ca_proc = (int (*)()) subProc;
+    ca.ca_visitsubcircuits_proc = subProc;
     ca.ca_cdata = PTR2CD(hc->hc_use->use_def);	/* Save top-level def */
 
     if (efHierSrUses(hc, efHierVisitSubcircuits, PTR2CD(&ca)))
@@ -354,20 +369,20 @@ EFHierVisitSubcircuits(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->cb_extflat_visitsubcircuits_t)().
  */
 
 int
 efHierVisitSubcircuits(
     HierContext *hc,
-    ClientData cdata)	/* CallArg* */
+    ClientData cdata)	/* CallHierArg* */
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallHierArg *ca = (CallHierArg *) CD2PTR(cdata);
     /* Visit all children of this def */
     Def *def = (Def *) CD2PTR(ca->ca_cdata);
     bool is_top = (def == hc->hc_use->use_def) ? TRUE : FALSE;
 
-    if ((*ca->ca_proc)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */
+    if ((*ca->cb_extflat_visitsubcircuits_t)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */
 	return 1;
     else
 	return 0;
@@ -455,11 +470,11 @@ EFHierVisitDevs(
     const cb_extflat_hiervisitdevs_t devProc,
     ClientData cdata)
 {
-    CallArg ca;
+    CallHierArg ca;
 
-    ca.ca_proc = (int (*)()) devProc;
+    ca.ca_hiervisitdevs_proc = devProc;
     ca.ca_cdata = cdata;
-    return efHierVisitDevs(hc, (ClientData) &ca);
+    return efHierVisitDevs(hc, PTR2CD(&ca));
 }
 
 /*
@@ -470,16 +485,16 @@ EFHierVisitDevs(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->ca_hiervisitdevs_proc)().
  */
 
-/* @typedef cb_extflat_hiersruses_t (CallArg *) */
+/* @typedef cb_extflat_hiersruses_t (CallHierArg *) */
 int
 efHierVisitDevs(
     HierContext *hc,
-    ClientData cdata)	/* (CallArg *) */
+    ClientData cdata)	/* (CallHierArg *) */
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallHierArg *ca = (CallHierArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Dev *dev;
     HashSearch hs;
@@ -502,7 +517,7 @@ efHierVisitDevs(
 	if (efHierDevKilled(hc, dev, hc->hc_hierName))
 	    continue;
 
-	if ((*ca->ca_proc)(hc, dev, scale, ca->ca_cdata)) /* @invoke cb_extflat_hiervisitdevs_t */
+	if ((*ca->ca_hiervisitdevs_proc)(hc, dev, scale, ca->ca_cdata)) /* @invoke cb_extflat_hiervisitdevs_t */
 	    return 1;
     }
     return 0;
@@ -518,7 +533,7 @@ efHierVisitDevs(
  * process the resistor if either terminal is a killed node.
  *
  * Results:
- *	Whatever the user-supplied procedure (*ca->ca_proc)() returns
+ *	Whatever the user-supplied procedure (*ca->ca_hiervisitresists_proc)() returns
  *	(type int).
  *
  * Side effects:
@@ -527,7 +542,7 @@ efHierVisitDevs(
  * ----------------------------------------------------------------------------
  */
 
-/* @typedef cb_extflat_hiersrarray_t (CallArg*) */
+/* @typedef cb_extflat_hiersrarray_t (CallHierArg*) */
 int
 efHierVisitSingleResist(
     HierContext *hc,		/* Contains hierarchical pathname to cell */
@@ -536,7 +551,7 @@ efHierVisitSingleResist(
     Connection *res,		/* Contains resistance to add */
     ClientData cdata)
 {
-    CallArg *ca = (CallArg *) CD2PTR(cdata);
+    CallHierArg *ca = (CallHierArg *) CD2PTR(cdata);
     EFNode *n1, *n2;
     HashEntry *he;
     Def *def = hc->hc_use->use_def;
@@ -557,7 +572,7 @@ efHierVisitSingleResist(
     if (n1 == n2)
 	return 0;
 
-    return (*ca->ca_proc)(hc, n1->efnode_name->efnn_hier,
+    return (*ca->ca_hiervisitresists_proc)(hc, n1->efnode_name->efnn_hier,
 		n2->efnode_name->efnn_hier,
 		res->conn_res, ca->ca_cdata);
 }
@@ -604,12 +619,11 @@ EFHierVisitResists(
     const cb_extflat_hiervisitresists_t resProc,
     ClientData cdata)
 {
-    CallArg ca;
-    int efHierVisitResists();	/* Forward reference */
+    CallHierArg ca;
 
-    ca.ca_proc = (int (*)()) resProc;
+    ca.ca_hiervisitresists_proc = resProc;
     ca.ca_cdata = cdata;
-    return efHierVisitResists(hc, (ClientData) &ca);
+    return efHierVisitResists(hc, &ca);
 }
 
 /*
@@ -620,14 +634,15 @@ EFHierVisitResists(
  *	Returns 0 to keep efHierSrUses going.
  *
  * Side effects:
- *	Calls the client procedure (*ca->ca_proc)().
+ *	Calls the client procedure (*ca->ca_hiervisitresists_proc)().
  */
 
 int
 efHierVisitResists(
     HierContext *hc,
-    CallArg *ca)
+    ClientData cdata)	/* (CallHierArg *) */
 {
+    CallHierArg *ca = (CallHierArg *) CD2PTR(cdata);
     Def *def = hc->hc_use->use_def;
     Connection *res;
     Transform t;

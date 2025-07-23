@@ -619,8 +619,10 @@ efHNFromUse(
     HierContext *hc,	/* Contains use and array information */
     const HierName *prefix)	/* Root part of name */
 {
-    char *srcp, *dstp;
-    char name[2048], *namePtr;
+    const char *srcp;
+    char *dstp;
+    char name[2048];
+    const char *namePtr;
     Use *u = hc->hc_use;
     HierName *hierName, *hn;
     bool hasX, hasY;

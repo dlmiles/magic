@@ -117,7 +117,7 @@ typedef struct
      */
 typedef struct
 {
-    char	*cn_name;
+    const char	*cn_name;
     int		 cn_nsubs;
     Range	 cn_subs[MAXSUBS];
 } ConnName;

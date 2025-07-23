@@ -129,7 +129,7 @@ typedef union {
 } maskOrWidth ;
 
 typedef struct {
-	char		*spiceNodeName;
+	const char	*spiceNodeName;
 	maskOrWidth	m_w;
 } nodeClient;
 

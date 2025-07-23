@@ -379,7 +379,7 @@ antennacheckVisit(
     SearchContext scx;
     TileTypeBitMask gatemask, saveConMask;
     bool antennaError;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     extern CellDef *extPathDef;	    /* see extract/ExtLength.c */
     extern CellUse *extPathUse;	    /* see extract/ExtLength.c */

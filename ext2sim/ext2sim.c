@@ -1029,7 +1029,7 @@ simdevVisit(
     Rect r;
     char name[12];
     bool is_subckt = FALSE;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
 
@@ -1797,7 +1797,7 @@ simmergeVisit(
 	int      pmode, l, w;
 	float	 m;
 	devMerge *fp, *cfp;
-	HierName *hierName = hc->hc_hierName;
+	const HierName *hierName = hc->hc_hierName;
 
 	if (dev->dev_nterm < 2) {
 		TxError("outPremature\n");

@@ -2500,7 +2500,7 @@ spcdevVisit(
     float sdM;
     char name[12], devchar;
     bool has_model = TRUE;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     sprintf(name, "output");
 
@@ -4352,7 +4352,7 @@ devMergeVisit(
     bool     hS, hD, chS, chD;
     devMerge *fp, *cfp;
     float m;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     if (esDistrJunct)
 	devDistJunctVisit(dev, hc, scale, trans, cdata);
@@ -4568,7 +4568,7 @@ devDistJunctVisit(
     EFNode  *n;
     int      i;
     int l, w;
-    HierName *hierName = hc->hc_hierName;
+    const HierName *hierName = hc->hc_hierName;
 
     if (dev->dev_nterm < 2)
     {

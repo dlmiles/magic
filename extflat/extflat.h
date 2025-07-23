@@ -65,7 +65,7 @@ typedef bool (*cb_extflat_args_t)(int *pargc, char ***pargv, ClientData cdata);
 extern char *EFArgs(int argc, char *argv[], bool *err_result, const cb_extflat_args_t argsProc, ClientData cdata);
 
     /* HierName manipulation */
-extern HashEntry *EFHNLook(HierName *prefix, char *suffixStr, char *errorStr);
+extern HashEntry *EFHNLook(const HierName *prefix, const char *suffixStr, const char *errorStr);
 extern HashEntry *EFHNConcatLook(HierName *prefix, HierName *suffix, char *errorStr);
 extern const HierName *EFHNConcat(const HierName *prefix, const HierName *suffix);
 extern const HierName *EFStrToHN(const HierName *prefix, const char *suffixStr);

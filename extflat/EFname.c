@@ -359,7 +359,7 @@ EFHNLook(
     char *suffixStr,	/* Part of name on leaf side */
     char *errorStr)	/* Explanatory string for errors */
 {
-    HierName *hierName, *hn;
+    const HierName *hierName;
     bool dontFree = FALSE;
     HashEntry *he;
 
@@ -370,7 +370,7 @@ EFHNLook(
     }
     else hierName = EFStrToHN(prefix, suffixStr);
 
-    he = HashLookOnly(&efNodeHashTable, (char *) hierName);
+    he = HashLookOnly(&efNodeHashTable, (const char *) hierName);
     if (he == NULL || HashGetValue(he) == NULL)
     {
 	if (errorStr)

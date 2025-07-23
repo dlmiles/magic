@@ -440,7 +440,7 @@ efBuildDist(
 			 */
 {
     Distance *dist, distKey;
-    HierName *hn1, *hn2;
+    const HierName *hn1, *hn2;
     HashEntry *he;
 
     hn1 = EFStrToHN((HierName *) NULL, driver);

@@ -2000,7 +2000,7 @@ topVisit(
 void
 spcWriteParams(
     Dev *dev,		/* Dev being output */
-    HierName *hierName,	/* Hierarchical path down to this dev */
+    const HierName *hierName,	/* Hierarchical path down to this dev */
     float scale,	/* Scale transform for output */
     int l,		/* Device length, in internal units */
     int w,		/* Device width, in internal units */

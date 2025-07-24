@@ -422,11 +422,19 @@ EFHNConcatLook(
      * because HashLookOnly() doesn't ever store anything in the
      * hash table, so we don't have to worry about this temporarily
      * built key somehow being saved without our knowledge.
+     * Indeed but then threads came along, and this method prevents
+     * this data model from being used by two threads, because it
+     * is modifying data instead of using it read-only/additive.
      */
-    hn = suffix;
+
+    hn = suffix; /* FIXME EFHNConcatLook() make this const, data temporarily modified, thread-unsafe */
     while (hn->hn_parent)
-	hn = hn->hn_parent;
+	hn = hn->hn_parent; /* FIXME EFHNConcatLook() make this const, data temporarily modified, thread-unsafe */
     hn->hn_parent = prefix;
+    /* a few ways to fix:
+     *    provide alternative method to generate hash and perform lookup (this would be one that can append 'prefix' to the list)
+     *    locally copy hn_hash + hn_name (pointer to original const char *)
+     */
 
     he = HashLookOnly(&efNodeHashTable, (const char *) suffix);
     if (he == NULL || HashGetValue(he) == NULL)

@@ -382,7 +382,7 @@ efHierVisitSubcircuits(
     Def *def = (Def *) CD2PTR(ca->ca_cdata);
     bool is_top = (def == hc->hc_use->use_def) ? TRUE : FALSE;
 
-    if ((*ca->cb_extflat_visitsubcircuits_t)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */
+    if ((*ca->ca_visitsubcircuits_proc)(hc->hc_use, hc->hc_hierName, is_top)) /* @invoke cb_extflat_visitsubcircuits_t */
 	return 1;
     else
 	return 0;

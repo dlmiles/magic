@@ -136,6 +136,45 @@ StrIsInt(s)
 /*
  * ----------------------------------------------------------------------------
  *
+ * StrWithLengthIsInt --
+ *
+ * 	Check a string for being an integer (upto first <NUL> or limited char
+ *      count 'n').
+ *
+ * Results:
+ *	TRUE if the string is a well-formed integer, FALSE otherwise.
+ *
+ * Side effects:
+ *	None.
+ *
+ * ----------------------------------------------------------------------------
+ */
+
+bool
+StrWithLengthIsInt(
+    const char *s,
+    size_t n)
+{
+    bool res = FALSE;
+    if (n > 0 && (*s == '-' || *s == '+'))
+    {
+        n--;
+        s++;
+    }
+    while (n > 0 && *s)
+    {
+	if (!isdigit(*s++))
+	    return FALSE;
+        res = TRUE; // well-formed requires at least one digit
+        n--;
+    }
+
+    return res;
+}
+
+/*
+ * ----------------------------------------------------------------------------
+ *
  * StrIsNumeric --
  *
  *	Check a string for being any numeric value.

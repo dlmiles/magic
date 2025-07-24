@@ -57,6 +57,7 @@ extern bool Match(const char *pattern, const char *string);
 extern char *ArgStr(int *pargc, char ***pargv, const char *argType);
 extern bool StrIsWhite(const char *, bool);
 extern bool StrIsInt(const char *);
+extern bool StrWithLengthIsInt(const char *s, size_t n);
 extern bool StrIsNumeric(const char *);
 
 /* C99 compat */

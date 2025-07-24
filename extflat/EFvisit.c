@@ -159,7 +159,7 @@ efVisitSubcircuits(
 
     if (hc->hc_use->use_def->def_flags & DEF_SUBCIRCUIT)
     {
-	if ((*ca->ca_visitsubcircuits_proc)(hc->hc_use, hc->hc_hierName, NULL)) /* @invoke cb_extflat_visitsubcircuits_t */
+	if ((*ca->ca_visitsubcircuits_proc)(hc->hc_use, hc->hc_hierName, FALSE)) /* @invoke cb_extflat_visitsubcircuits_t */
 	    return 1;
 	else
 	    return 0;

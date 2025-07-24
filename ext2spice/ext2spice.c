@@ -3359,7 +3359,7 @@ spcnAP(
     char afmt[15], pfmt[15];
     float dsc;
     int area, perim;
-    char *cptr;
+    const char *cptr;
     bool haveAttrs = FALSE;
 
     if ((node == NULL) || (node->efnode_client == (ClientData)NULL))
@@ -3432,7 +3432,17 @@ newFmt:
 	else
 	{
 	    haveAttrs = TRUE;
+#if 1
+	    /* this appears to be modifying an otherwise read-only data model,
+	     * to emit into outf values, and will prevent another subsequent
+	     * pass from seeing the data exists, as it appears to truncate the
+	     * string after parsing the data.
+	     */
+	    char *modptr = (char *)cptr; /* remove (const char *) => (char *) to allow edit */
+	    *modptr = '\0';
+#else
 	    *cptr = '\0';
+#endif
 	    break;
 	}
     }
@@ -3493,7 +3503,7 @@ spcnAPHier(
     nodeClientHier   *nc;
     char afmt[15], pfmt[15];
     int area, perim;
-    char *cptr;
+    const char *cptr;
     bool haveAttrs = FALSE;
 
     sprintf(afmt," %s=", asterm);
@@ -3520,7 +3530,17 @@ spcnAPHier(
 	else
 	{
 	    haveAttrs = TRUE;
+#if 1
+	    /* this appears to be modifying an otherwise read-only data model,
+	     * to emit into outf values, and will prevent another subsequent
+	     * pass from seeing the data exists, as it appears to truncate the
+	     * string after parsing the data.
+	     */
+	    char *modptr = (char *)cptr; /* remove (const char *) => (char *) to allow edit */
+	    *modptr = '\0';
+#else
 	    *cptr = '\0';
+#endif
 	    break;
 	}
     }

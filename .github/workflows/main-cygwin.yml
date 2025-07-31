@@ -21,14 +21,16 @@ jobs:
 
       - name: Setup Cygwin
         id: cygwin
-        uses: cygwin/cygwin-install-action@v2
+        uses: cygwin/cygwin-install-action@v6
         with:
           # libX11-xcb-devel
-          packages: automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 tcl-tk-devel tk-devel libX11-devel libcairo-devel libGL-devel libGLU-devel zlib-devel
+          packages: automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 tcl-tk-devel tcl-devel libX11-devel libcairo-devel libGL-devel libGLU-devel zlib-devel
 
       - name: System Info
-        shell: bash
+        # Windows bash has igncr option, the project should be Unix EOL compatible
+        shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
         run: |
+          set -o
           set +e
           cygcheck -s
           cygcheck --inst -i cygwin
@@ -67,8 +69,11 @@ jobs:
           # FIXME The build does not properly use this information above, it was just used a
           # diagnostics to get the build to complete.
 
+          # Help identify files with CRNL EOLs that might not work as expected (--info will report only not change)
+          find "$GITHUB_WORKSPACE" -type f \( -name "Makefile" -or -name "*.mak" -or -name "configure" -or -name "*.sh" \) -exec dos2unix --info {} \;
+
       - name: Build
-        shell: bash
+        shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
         run: |
           set -o pipefail
           set -e
@@ -101,13 +106,13 @@ jobs:
           make 2>&1 | tee MAKE.LOG
 
       - name: Install
-        shell: bash
+        shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
         run: |
             make install 2>&1 | tee INSTALL.LOG
             find . /usr/local /opt -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
 
       - name: Kick Tyres Test
-        shell: bash
+        shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
         run: |
             hash -r || true
             PATH="$PATH:/usr/local/bin"

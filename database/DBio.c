@@ -33,7 +33,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #ifdef HAVE_DIRENT_H
 #include <dirent.h>
-#include <unistd.h>
 #define direct dirent
 #else
 #include <sys/dir.h>
@@ -270,7 +269,7 @@ DBSearchForTech(techname, techroot, pathroot, level)
 	for (ld = dlist; ld; ld = ld->ld_next)
 	{
 	    tdent = ld->ld_dirent;
-#ifdef HAVE_STRUCT_DIRENT_D_TYPE
+#if (defined(HAVE_STRUCT_DIRENT_D_TYPE) && defined(DT_DIR))
             int is_dir = tdent->d_type == DT_DIR;
 #else
             int is_dir = path_is_dir(pathroot, tdent->d_name) > 0; /* treat error as false */
@@ -347,7 +346,7 @@ DBAddStandardCellPaths(pathptr, level)
 
 	while ((tdent = readdir(tdir)) != NULL)
 	{
-#ifdef HAVE_STRUCT_DIRENT_D_TYPE
+#if (defined(HAVE_STRUCT_DIRENT_D_TYPE) && defined(DT_DIR))
             int is_dir = tdent->d_type == DT_DIR;
 #else
             int is_dir = path_is_dir(pathptr, tdent->d_name) > 0; /* treat error as false */

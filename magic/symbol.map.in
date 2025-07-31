@@ -1,5 +1,6 @@
 MAGIC_8.0 {
-   global: Exttosim_Init;
+   global:
+	   Exttosim_Init;
 	   Exttospice_Init;
 	   Tclmagic_Init;
 	   Tclmagic_SafeInit;

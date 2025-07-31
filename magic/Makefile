@@ -35,18 +35,30 @@ DEST_XBM = $(BITMAPS:%=$(DESTDIR)${INSTALL_TCLDIR}/bitmaps/%)
 # DFLAGS += -DCAD_DIR="${LIBDIR}"
 LIBS   += ${GR_LIBS} ${READLINE_LIBS} -lm ${LD_EXTRA_LIBS} \
 		${OA_LIBS} ${ZLIB_FLAG} ${TOP_EXTRA_LIBS}
-CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc
+CLEANS += tclmagic${SHDLIB_EXT} libtclmagic${SHDLIB_EXT}.a proto.magicrc symbol.map
 
 main: magic proto.magicrc
 
 tcl-main: tclmagic${SHDLIB_EXT} proto.magicrc
 
-tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
+tclmagic${SHDLIB_EXT}: symbol.map ${EXTRA_LIBS}
 	@echo --- making magic Tcl library \(tclmagic${SHDLIB_EXT}\)
 	${RM} tclmagic${SHDLIB_EXT}
 	${CC} ${CFLAGS} ${CPPFLAGS} -o $@ ${LDDL_FLAGS} ${LD_RUN_PATH} \
 		${EXTRA_LIBS} ${LD_EXTRA_LIBS} \
 		-lc ${LIBS} ${LIB_SPECS} ${LDFLAGS}
+
+symbol.map: symbol.map.in ${EXTRA_LIBS}
+	${PERL} filter_symbol_map.pl $@.out $< ${EXTRA_LIBS}
+	@if test -f $@ && cmp -s $@ $@.out; then \
+	${RM} $@.out; \
+	echo "$@: No change, up-to-date"; \
+	else \
+	${RM} $@.old; \
+	test -f $@ && ${LN} -f $@ $@.old; \
+	${MV} -f $@.out $@; \
+	echo "$@: Updated"; \
+	fi
 
 proto.magicrc: proto.magicrc.in
 	${MCPP} ${GR_DFLAGS} ${DFLAGS} proto.magicrc.in > proto.magicrc

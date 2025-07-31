@@ -23,7 +23,7 @@ jobs:
         id: cygwin
         uses: cygwin/cygwin-install-action@v6
         with:
-          # libX11-xcb-devel
+          # libX11-xcb-devel ICE Xmu Xext
           packages: automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 tcl-tk-devel tcl-devel libX11-devel libcairo-devel libGL-devel libGLU-devel zlib-devel
 
       - name: System Info

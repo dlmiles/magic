@@ -23,13 +23,13 @@ jobs:
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
             # Query the package visibility
-            for pkg in bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM cairo freeglut git python3 perl5 readline findutils pkgconf; \
+            for pkg in bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM x11/libXi x11/libXmu x11/libXext cairo freeglut git python3 perl5 readline findutils pkgconf; \
             do \
                echo "### pkg_info -aQ ${pkg}*"; \
                pkg_info -aQ "${pkg}*"; \
             done
             # zlib is in base
-            pkg_add -vv bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 cairo freeglut git python3 perl5 readline findutils pkgconf
+            pkg_add -vv bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM x11/libXi x11/libXmu x11/libXext cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
             set +e
             openbsd-version
@@ -42,6 +42,7 @@ jobs:
             ld -v
             make --version
             gmake --version
+            sed --version
             pwd
             ls -lah
             whoami

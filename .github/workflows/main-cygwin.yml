@@ -1,0 +1,119 @@
+# This is a basic workflow to help you get started with Actions
+
+name: CI-cygwin
+
+# Controls when the workflow will run
+on:
+  push:
+  workflow_dispatch:
+
+# A workflow run is made up of one or more jobs that can run sequentially or in parallel
+jobs:
+  simple_build_cygwin:
+    runs-on: windows-latest
+    steps:
+      - name: Setup Git
+        shell: cmd
+        run: git config --global core.autocrlf input
+
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Cygwin
+        id: cygwin
+        uses: cygwin/cygwin-install-action@v2
+        with:
+          # libX11-xcb-devel
+          packages: automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 tcl-tk-devel tk-devel libX11-devel libcairo-devel libGL-devel libGLU-devel zlib-devel
+
+      - name: System Info
+        shell: bash
+        run: |
+          set +e
+          cygcheck -s
+          cygcheck --inst -i cygwin
+          cygcheck --inst -i tk-devel
+          cygcheck --inst -i tcl-tk-devel
+          uname -a
+          systeminfo
+          cc -v
+          ld -v
+          make --version
+          gmake --version
+          sed --version
+          pwd
+          ls -lah
+          whoami
+          env | grep -v "TOKEN" | grep -v "SECRET" | sort
+          nproc=$(nproc)
+          export nproc
+          echo "nproc=$nproc"
+
+          git config --global --add safe.directory "$(pwd)"
+
+          find . /usr/local /opt /usr/X11R6 -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
+          find . /usr/local /opt /usr/X11R6 -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+          find . /usr/local /opt /usr/X11R6 -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
+          find . /usr/local /opt /usr/X11R6 -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
+          grep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
+          nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
+          # freeglut # not found
+          # pthread # not found
+          for pkg in x11 cairo freeglut tcl86 tk86 pthread; \
+          do \
+            echo "### pkg-config --libs --cflags ${pkg} :"; \
+            pkg-config --libs --cflags "$pkg"; \
+          done
+          # FIXME The build does not properly use this information above, it was just used a
+          # diagnostics to get the build to complete.
+
+      - name: Build
+        shell: bash
+        run: |
+          set -o pipefail
+          set -e
+
+          # /usr/local/lib/tcl8.7/tclConfig.sh
+          # /usr/local/lib/tk8.7/tkConfig.sh
+          # Need this to provide -I/usr/local/include because tcltk/*.c accesses <X11/Xlib.h>
+          # headers but is not using GR_CFLAGS
+          # CPPFLAGS want this extra option for depends and compile
+          #CPPFLAGS="-I/usr/local/include"
+          #export CPPFLAGS
+          with_x11_libsdir=$(  pkg-config --libs-only-L   x11    | sed -e 's/-L//g')
+          with_x11_incsdir=$(  pkg-config --cflags-only-I x11    | sed -e 's/-I//g')
+          with_tcl_libsdir=$(  pkg-config --libs-only-L   tcl    | sed -e 's/-L//g')
+          with_tk_libsdir=$(   pkg-config --libs-only-L   tk     | sed -e 's/-L//g')
+          with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
+          echo --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include ${with_cairo_libsdir}
+          # The only really important ones as --with-tcl and --with-tk the others
+          CFLAGS="-std=c17 -g"
+          export CFLAGS
+          ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+          unset CFLAGS
+          unset CPPFLAGS
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make database/database.h
+          make 2>&1 | tee MAKE.LOG
+
+      - name: Install
+        shell: bash
+        run: |
+            make install 2>&1 | tee INSTALL.LOG
+            find . /usr/local /opt -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
+
+      - name: Kick Tyres Test
+        shell: bash
+        run: |
+            hash -r || true
+            PATH="$PATH:/usr/local/bin"
+            export PATH
+            which magic
+            magic --version || true
+
+            echo "version; quit" | magic -T scmos -noconsole -nowindow
+            true

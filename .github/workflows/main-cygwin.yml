@@ -23,8 +23,11 @@ jobs:
         id: cygwin
         uses: cygwin/cygwin-install-action@v6
         with:
-          # libX11-xcb-devel ICE Xmu Xext
-          packages: automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 tcl-tk-devel tcl-devel libX11-devel libcairo-devel libGL-devel libGLU-devel zlib-devel
+          packages: >-
+            automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 \
+            tcl-tk-devel tcl-devel libreadline-devel libncurses-devel \
+            libX11-devel libX11-xcb-devel libICE-devel libXmu-devel libXext-devel \
+            libcairo-devel libGL-devel libGLU-devel zlib-devel
 
       - name: System Info
         # Windows bash has igncr option, the project should be Unix EOL compatible
@@ -41,7 +44,7 @@ jobs:
           cc -v
           ld -v
           make --version
-          gmake --version
+          gmake --version # seems older version
           sed --version
           pwd
           ls -lah
@@ -53,15 +56,15 @@ jobs:
 
           git config --global --add safe.directory "$(pwd)"
 
-          find . /usr/local /opt /usr/X11R6 -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
-          find . /usr/local /opt /usr/X11R6 -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
-          find . /usr/local /opt /usr/X11R6 -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
-          find . /usr/local /opt /usr/X11R6 -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
+          find . /usr/local /usr -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
+          find . /usr/local /usr -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+          find . /usr/local /usr/include -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
+          find . /usr/local /usr/share/pkgconfig -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
           grep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
           nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
           # freeglut # not found
           # pthread # not found
-          for pkg in x11 cairo freeglut tcl86 tk86 pthread; \
+          for pkg in x11 cairo freeglut tcl tk pthread; \
           do \
             echo "### pkg-config --libs --cflags ${pkg} :"; \
             pkg-config --libs --cflags "$pkg"; \
@@ -88,13 +91,15 @@ jobs:
           with_x11_libsdir=$(  pkg-config --libs-only-L   x11    | sed -e 's/-L//g')
           with_x11_incsdir=$(  pkg-config --cflags-only-I x11    | sed -e 's/-I//g')
           with_tcl_libsdir=$(  pkg-config --libs-only-L   tcl    | sed -e 's/-L//g')
+          [ -z "$with_tcl_libsdir" ] && with_tcl_libsdir=$(find /usr -type f -name tclConfig.sh -printf "%h\n" | head -n1)
           with_tk_libsdir=$(   pkg-config --libs-only-L   tk     | sed -e 's/-L//g')
+          [ -z "$with_tk_libsdir" ] && with_tk_libsdir=$(find /usr -type f -name tkConfig.sh -printf "%h\n" | head -n1)
           with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
-          echo --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include ${with_cairo_libsdir}
+          echo --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir} --with-tk=${with_tk_libsdir} --with-cairo=/usr/local/include ${with_cairo_libsdir}
           # The only really important ones as --with-tcl and --with-tk the others
           CFLAGS="-std=c17 -g"
           export CFLAGS
-          ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+          ./configure ${with_x11_libsdir:+--x-libraries=}${with_x11_libsdir} ${with_x11_incsdir:+--x-includes=}${with_x11_incsdir} --with-tcl=${with_tcl_libsdir} --with-tk=${with_tk_libsdir} --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
           unset CFLAGS
           unset CPPFLAGS
 

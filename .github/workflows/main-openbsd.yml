@@ -25,8 +25,8 @@ jobs:
             # Query the package visibility
             for pkg in bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM cairo freeglut git python3 perl5 readline findutils pkgconf; \
             do \
-               echo "### pkg search -g ${pkg}*"; \
-               pkg search -g "${pkg}*"; \
+               echo "### pkg_info -aQ ${pkg}*"; \
+               pkg_info -aQ "${pkg}*"; \
             done
             # zlib is in base
             pkg_add -vv bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 cairo freeglut git python3 perl5 readline findutils pkgconf

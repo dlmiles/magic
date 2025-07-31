@@ -9,6 +9,9 @@
  * Written by Chuan Chen
  */
 
+/* M_PI from CYGWIN needs */
+#define _XOPEN_SOURCE 700
+
 #include <stdio.h>
 #include <string.h>
 

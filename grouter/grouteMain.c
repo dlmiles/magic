@@ -27,7 +27,9 @@
  */
 
 #include <stdio.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <sys/times.h>
 #include "utils/magic.h"
 #include "utils/geometry.h"

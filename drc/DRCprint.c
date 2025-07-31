@@ -22,7 +22,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 
 #include <stdio.h>
 #include <string.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 
 #include "utils/magic.h"
 #include "utils/geometry.h"

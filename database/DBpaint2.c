@@ -20,7 +20,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/database/DBpaint2.c,v 1.6 2010/06/24 12:37:15 tim Exp $";
 #endif  /* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 
 #include "utils/magic.h"

@@ -26,7 +26,9 @@ static const char rcsid[] __attribute__ ((unused)) ="$Header: /usr/cvsroot/magic
 #include <string.h>
 #include <strings.h>
 #include <ctype.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <arpa/inet.h>	/* for htons() */
 #ifdef TIME_WITH_SYS_TIME
 # include <sys/time.h>

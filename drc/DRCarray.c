@@ -23,7 +23,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/drc/DRCarray.c,v 1.2 2009/05/01 18:59:44 tim Exp $";
 #endif	/* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 #include "utils/magic.h"
 #include "utils/geometry.h"

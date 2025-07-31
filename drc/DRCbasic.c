@@ -23,7 +23,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/drc/DRCbasic.c,v 1.7 2010/09/20 21:13:22 tim Exp $";
 #endif	/* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 #include <string.h>		// for memcpy()
 #include <math.h>		// for sqrt() for diagonal check

@@ -3,7 +3,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/drc/DRCextend.c,v 1.6 2010/09/20 21:13:22 tim Exp $";
 #endif
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 

@@ -26,7 +26,9 @@ static char sccsid[] = "@(#)grouteNet.c	4.3 MAGIC (Berkeley) 12/6/85";
 #endif  /* not lint */
 
 #include <stdio.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <sys/times.h>
 
 #include "utils/magic.h"

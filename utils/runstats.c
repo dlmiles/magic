@@ -22,7 +22,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/utils/runstats.c,v 1.2 2009/05/13 15:03:18 tim Exp $";
 #endif  /* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <sys/times.h>
 #ifdef HAVE_SYS_TIME_H
 #include <sys/time.h>

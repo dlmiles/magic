@@ -21,7 +21,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/textio/txMain.c,v 1.2 2010/03/08 13:33:34 tim Exp $";
 #endif  /* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>

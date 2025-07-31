@@ -24,7 +24,9 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <string.h>
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <signal.h>
 
 #include <X11/Xlib.h>

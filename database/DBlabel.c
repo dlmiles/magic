@@ -20,7 +20,9 @@
 static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/database/DBlabel.c,v 1.9 2010/08/25 17:33:55 tim Exp $";
 #endif  /* not lint */
 
+#ifdef HAVE_SYS_TYPES_H
 #include <sys/types.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -28,7 +28,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #ifndef	SYSV
 #include <sys/wait.h>
 #endif /* SYSV */
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 #include <unistd.h>
 
 #include "utils/magic.h"

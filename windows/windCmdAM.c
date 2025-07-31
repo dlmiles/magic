@@ -28,7 +28,9 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #endif
 #include <sys/types.h>
 #include <sys/times.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 #include <errno.h>
 #include <math.h>		/* for round() function */
 

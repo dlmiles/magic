@@ -13,7 +13,9 @@
 #include <string.h>
 #include <unistd.h>
 #include <sys/types.h>
+#ifdef HAVE_SYS_STAT_H
 #include <sys/stat.h>
+#endif
 #include <fcntl.h>
 #include <signal.h>
 

@@ -152,11 +152,12 @@ jobs:
           [ -d /opt ]       && dirs="$dirs /opt"
           find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec ldd {} \;
 
-     - name: Post Install
-       shell: cmd
-       run: |
+      - name: Post Install
+        shell: cmd
+        run: |
           vcvarsall.bat x64
           dumpbin
+          echo DONE
           #find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec dumpbin /imports {} \;
 
       - name: Kick Tyres Test

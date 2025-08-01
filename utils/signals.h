@@ -24,18 +24,6 @@
 
 #include "utils/magic.h"
 
-/* Some machines have signal handlers returning an int, while other machines
- * have it returning a void.  If you have a machine that requires ints put
- * it in the list of machines in utils/magic.h.
- */
-#ifdef	SIG_RETURNS_INT
-#define	sigRetVal	int
-#define sigReturn	return 0
-#else
-#define	sigRetVal	void
-#define sigReturn	return
-#endif
-
 /* data structures */
 extern bool SigInterruptPending;
 extern bool SigIOReady;
@@ -57,6 +45,6 @@ extern void SigTimerDisplay();
 /* C99 compat */
 extern void SigRemoveTimer();
 
-extern sigRetVal sigOnInterrupt();
+extern RETSIGTYPE sigOnInterrupt();
 
 #endif /* _MAGIC__UTILS__SIGNALS_H */

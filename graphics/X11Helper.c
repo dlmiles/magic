@@ -25,22 +25,8 @@
  * Portability stuff
  */
 
-#if     (defined(MIPSEB) && defined(SYSTYPE_BSD43)) || ibm032
-# define        SIG_RETURNS_INT
-#endif
-
-/* Some machines have signal handlers returning an int, while other machines
- * have it returning a void.  If you have a machine that requires ints put
- * it in the list of machines in utils/magic.h.
- */
-#ifdef	SIG_RETURNS_INT
-#define	sigRetVal	int
-#else
-#define	sigRetVal	void
-#endif
-
-void sigSetAction(int, sigRetVal (*)(int));
-sigRetVal TimeOut(int);
+void sigSetAction(int, RETSIGTYPE (*)(int));
+RETSIGTYPE TimeOut(int);
 void SetTimeOut();
 void ParseEvent(XEvent *);
 
@@ -52,7 +38,7 @@ int readPipe,writePipe;	/* pipe file descriptor to magic process */
 int parentID;		/* process id of parent */
 Display *grXdpy;	/* X11 display */
 
-sigRetVal MapWindow();
+RETSIGTYPE MapWindow();
 
 /*
  * Main program:
@@ -268,7 +254,7 @@ SetTimeOut()
  *   TIMEOUT minutes, otherwise.
  */
 
-sigRetVal
+RETSIGTYPE
 TimeOut(int signo)
 {
     int tmpid;
@@ -292,7 +278,7 @@ TimeOut(int signo)
  *   window (keystrokes, mouse button, and expose and resize events)
  */
 
-sigRetVal
+RETSIGTYPE
 MapWindow(int signo)
 {
     Window window;
@@ -315,7 +301,7 @@ MapWindow(int signo)
  */
 
 void
-sigSetAction(int signo, sigRetVal (*handler)(int))
+sigSetAction(int signo, RETSIGTYPE (*handler)(int))
 {
 #if defined(SYSV) || defined(CYGWIN)
   struct sigaction sa;

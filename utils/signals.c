@@ -79,7 +79,7 @@ extern bool DBWriteBackup();
 #undef SYSV
 #endif
 
-void sigSetAction(int, sigRetVal (*)(int));
+void sigSetAction(int, RETSIGTYPE (*)(int));
 
 /* becomes true when we get an interrupt */
 global bool SigInterruptPending = FALSE;
@@ -160,13 +160,13 @@ SigRemoveTimer()
     setitimer(ITIMER_REAL, &zero, NULL);
 }
 
-sigRetVal
+RETSIGTYPE
 sigOnAlarm(int signo)
 {
     if (GrDisplayStatus == DISPLAY_IN_PROGRESS)
 	GrDisplayStatus = DISPLAY_BREAK_PENDING;
 
-    sigReturn;
+    return ((RETSIGTYPE) 0);
 }
 
 /*-----------------------------------------*/
@@ -194,14 +194,14 @@ SigTimerInterrupts()
  *	This procedure handles stop signals.
  *
  * Results:
- *	sigReturn result (see signals.h)
+ *	None
  *
  * Side Effects:
  *	The text display is reset, and we stop
  *---------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigOnStop(int signo)
 {
     /* fix things up */
@@ -233,7 +233,7 @@ sigOnStop(int signo)
     /* catch future stops now that we have finished resuming */
 
     sigSetAction(SIGTSTP, sigOnStop);
-    sigReturn;
+    return ((RETSIGTYPE) 0);
 }
 
 /*
@@ -437,21 +437,21 @@ SigUnWatchFile(filenum, filename)
  *	This procedure handles interupt signals.
  *
  * Results:
- *	sigReturn result (see signals.h)
+ *	None
  *
  * Side Effects:
  *    A global flag is set
  *---------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigOnInterrupt(int signo)
 {
     if (sigNumDisables != 0)
 	sigInterruptReceived = TRUE;
     else
 	SigInterruptPending = TRUE;
-    sigReturn;
+    return ((RETSIGTYPE) 0);
 }
 
 
@@ -472,7 +472,7 @@ sigOnInterrupt(int signo)
  * ----------------------------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigOnTerm(int signo)
 {
     DBWriteBackup(NULL);
@@ -488,18 +488,18 @@ sigOnTerm(int signo)
  *	A window has changed size or otherwise needs attention.
  *
  * Results:
- *	sigReturn result (see signals.h)
+ *	None
  *
  * Side effects:
  *	Sets a global flag.
  * ----------------------------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigOnWinch(int signo)
 {
     SigGotSigWinch = TRUE;
-    sigReturn;
+    return ((RETSIGTYPE) 0);
 }
 
 /*
@@ -509,19 +509,19 @@ sigOnWinch(int signo)
  *	Some IO device is ready (probably the keyboard or the mouse).
  *
  * Results:
- *	sigReturn result (see signals.h)
+ *	None
  *
  * Side effects:
  *	Sets a global flag.
  * ----------------------------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigIO(int signo)
 {
     SigIOReady = TRUE;
     if (SigInterruptOnSigIO == 1) sigOnInterrupt(0);
-    sigReturn;
+    return ((RETSIGTYPE) 0);
 }
 
 /*
@@ -540,7 +540,7 @@ sigIO(int signo)
  * ----------------------------------------------------------------------------
  */
 
-sigRetVal
+RETSIGTYPE
 sigCrash(signum)
     int signum;
 {
@@ -672,7 +672,7 @@ SigInit(batchmode)
 }
 
 void
-sigSetAction(int signo, sigRetVal (*handler)(int))
+sigSetAction(int signo, RETSIGTYPE (*handler)(int))
 {
 #if defined(SYSV) || defined(CYGWIN) || defined(__NetBSD__) || defined(EMSCRIPTEN)
     struct sigaction sa;

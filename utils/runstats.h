@@ -21,6 +21,10 @@
 #ifndef	_MAGIC__UTILS__RUNSTATS_H
 #define	_MAGIC__UTILS__RUNSTATS_H
 
+#ifdef HAVE_SYS_TIME_H
+#include <sys/time.h>	/* struct tms */
+#endif
+
 #define	RS_TCUM		01	/* Cumulative user and system time */
 #define	RS_TINCR	02	/* User and system time since last call */
 #define	RS_MEM		04	/* Size of heap area */

@@ -1471,10 +1471,13 @@ case $target in
   *-freebsd*)
     AC_DEFINE(_POSIX_C_SOURCE, 200809L)
     AC_DEFINE(_XOPEN_SOURCE, 500)
+    AC_DEFINE(_BSD_SOURCE)
     ;;
   *-openbsd*)
     AC_DEFINE(_POSIX_C_SOURCE, 200809L)
     AC_DEFINE(_XOPEN_SOURCE, 500)
+    # _BSD_SOURCE: MAP_ANON
+    AC_DEFINE(_BSD_SOURCE)
     ;;
   *irix*)
     AC_DEFINE(SYSV)
@@ -1494,6 +1497,8 @@ case $target in
     AC_DEFINE(_XOPEN_SOURCE, 500)
     ;;
   *darwin*)
+    # _DARWIN_C_SOURCE: MAP_ANON
+    AC_DEFINE(_DARWIN_C_SOURCE)
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi

@@ -110,7 +110,8 @@ jobs:
         run: |
           set +o pipefail # macosx this is on by default (turn it off)
           export PATH="/opt/X11/bin:$PATH"
-          export CFLAGS="$CFLAGS -std=c17"  # reduce warning output
+          export CFLAGS="$CFLAGS -std=c17 -g"  # reduce warning output
+          CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
           ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
 
           config_log=""
@@ -344,7 +345,8 @@ jobs:
         run: |
           set +o pipefail # macosx this is on by default (turn it off)
           export PATH="/opt/X11/bin:$PATH"
-          export CFLAGS="$CFLAGS -std=c17"  # reduce warning output
+          export CFLAGS="$CFLAGS -std=c17 -g"  # reduce warning output
+          CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
           ./scripts/configure_mac 2>&1 | tee CONFIGURE.LOG
 
           config_log=""

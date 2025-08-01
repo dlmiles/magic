@@ -25,7 +25,7 @@
 #define	RS_TINCR	02	/* User and system time since last call */
 #define	RS_MEM		04	/* Size of heap area */
 
-extern char *RunStats();
+extern char *RunStats(int flags, struct tms *lastt, struct tms *deltat)
 extern char *RunStatsRealTime();
 
 #endif	/* _MAGIC__UTILS__RUNSTATS_H */

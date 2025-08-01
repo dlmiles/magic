@@ -42,7 +42,7 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "dbwind/dbwind.h"
 #include "utils/main.h"
 #include "commands/commands.h"
-#include "utils/runstats.h"
+#include "utils/runstats.h"	/* RunStats() */
 #include "textio/textio.h"
 #include "graphics/graphics.h"
 #include "utils/utils.h"
@@ -757,7 +757,6 @@ CmdPsearch(
     MagWindow *w,
     TxCommand *cmd)
 {
-    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     static struct tms tlast, tdelta;
     Point p;
     Plane *plane;
@@ -825,7 +824,6 @@ cmdPsearchStats(
     struct tms *td,
     int count)
 {
-    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;
     int us, ups;
 
@@ -870,7 +868,6 @@ CmdTsearch(
     TxCommand *cmd)
 {
     int cmdTsrFunc(Tile *tp);
-    char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
     char *rstatp;
     static TileTypeBitMask mask;
     static struct tms tlast, tdelta;

@@ -112,6 +112,10 @@ jobs:
             echo LIBS=$LIBS
             ./configure --with-wish=/usr/bin/wish8.6 --x-libraries=/usr/local/lib --x-includes=/usr/local/include --with-tcl=/opt/csw/lib/amd64 --with-tk=/opt/csw/lib/amd64 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS
+            unset CXXFLAGS
+            unset CPPFLAGS
+            unset LDFLAGS
+            unset LIBS
 
             echo "===== defs.mak ====="
             cat defs.mak

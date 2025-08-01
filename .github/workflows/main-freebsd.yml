@@ -1,11 +1,23 @@
-# This is a basic workflow to help you get started with Actions
-
+#
 name: CI-freebsd
 
-# Controls when the workflow will run
 on:
   push:
   workflow_dispatch:
+    inputs:
+      OS_VERSION:
+        description: VM OS Version
+        required: false
+        # https://github.com/vmactions/freebsd-vm
+        # [05-Dec-2022] 12.4
+        # [11-Apr-2023] 13.2 13.3 13.4 13.5
+        # [20-Nov-2023] 14.0 14.1 14.2 14.3 [10-Jun-2025]
+        # [??-???-2025] 15.0
+        default: '14.3'
+        type: string
+      MYENV:
+        required: false
+        type: string
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -17,8 +29,11 @@ jobs:
       - name: FreeBSD shell actions
         id: freebsd
         uses: vmactions/freebsd-vm@v1
+        env:
+          MYENV: ${{ inputs.MYENV }}
         with:
           envs: MYENV
+          release: ${{ inputs.OS_VERSION }}
           usesh: true
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
@@ -32,6 +47,8 @@ jobs:
             pkg install -y bash gmake gnugrep gsed tcl86 tk86 libSM libXi libXmu libXext cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
             set +e
+            echo MYENV=$MYENV
+            test -f /etc/os-release && cat /etc/os-release
             freebsd-version
             uname -a
             sysctl hw.model

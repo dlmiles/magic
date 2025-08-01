@@ -53,10 +53,10 @@ jobs:
           nproc=$(nproc)
           export nproc
           echo "nproc=$nproc"
-          echo "### gcc -dM -E - | sort :"
-          echo | gcc -dM -E - | sort
-          echo "### g++ -dM -E -x c++ - | sort :"
-          echo | g++ -dM -E -x c++ - | sort
+          echo "### cc -dM -E - | sort :"
+          echo | cc -dM -E - | sort
+          echo "### c++ -dM -E -x c++ - | sort :"
+          echo | c++ -dM -E -x c++ - | sort
           echo "###"
 
           git config --global --add safe.directory "$(pwd)"

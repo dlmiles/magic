@@ -1465,20 +1465,25 @@ case $target in
     ;;
   *solaris*)
     AC_DEFINE(SYSV)
-    AC_DEFINE(_POSIX_C_SOURCE, 200809L)
     # Lower settings than _XOPEN_SOURCE=600 result in compiler error due to enforcement of c89
+    # _XOPEN_SOURCE=600 appears to be a compiler default anyway, so we
+    # combine with newer _POSIX_C_SOURCE to make visible more APIs:
+    #   mkstemp()
     AC_DEFINE(_XOPEN_SOURCE, 600)
+    AC_DEFINE(_POSIX_C_SOURCE, 200809L)
     ;;
   *-freebsd*)
-    AC_DEFINE(_POSIX_C_SOURCE, 200809L)
-    AC_DEFINE(_XOPEN_SOURCE, 600)
-    AC_DEFINE(_BSD_SOURCE)
+    # FreeBSD only uses feature_macros to restrict visible APIs
+    #AC_DEFINE(_POSIX_C_SOURCE, 200809L)
+    #AC_DEFINE(_XOPEN_SOURCE, 600)
+    #AC_DEFINE(_BSD_SOURCE)
     ;;
   *-openbsd*)
-    AC_DEFINE(_POSIX_C_SOURCE, 200809L)
-    AC_DEFINE(_XOPEN_SOURCE, 600)
+    # OpenBSD only uses feature_macros to restrict visible APIs
+    #AC_DEFINE(_POSIX_C_SOURCE, 200809L)
+    #AC_DEFINE(_XOPEN_SOURCE, 600)
     # _BSD_SOURCE: MAP_ANON
-    AC_DEFINE(_BSD_SOURCE)
+    #AC_DEFINE(_BSD_SOURCE)
     ;;
   *irix*)
     AC_DEFINE(SYSV)
@@ -1491,6 +1496,7 @@ case $target in
   *cygwin*)
     AC_DEFINE(CYGWIN)
     AC_DEFINE(i386)
+    # CYGWIN needs feature_macros to make certain APIs visible during compile
     # _POSIX_C_SOURCE >= 200112L: setitimer()
     # _POSIX_C_SOURCE >= 200809L: mkstemp()
     AC_DEFINE(_POSIX_C_SOURCE, 200809L)

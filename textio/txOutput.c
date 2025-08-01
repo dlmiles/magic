@@ -334,6 +334,12 @@ TxErrorV(const char *fmt, va_list args)
 
 #ifndef MAGIC_WRAPPER
 
+#ifdef PAGERDIR
+/* Support legacy codebase compile time option */
+static const char *DEFAULT_PAGER = PAGERDIR;
+#else
+static const char *DEFAULT_PAGER = "/usr/bin/more"; /* or use $PAGER see below */
+#endif
 
 /*
  * ----------------------------------------------------------------------------
@@ -371,8 +377,8 @@ TxUseMore(void)
 
     if ((useenv = getenv("PAGER")) == NULL)
     {
-	pagerpath = (char *) mallocMagic((unsigned) (strlen(PAGERDIR) + 1));
-	strcpy(pagerpath, PAGERDIR);
+	pagerpath = (char *) mallocMagic((unsigned) (strlen(DEFAULT_PAGER) + 1));
+	strcpy(pagerpath, DEFAULT_PAGER);
     }
     else
 	pagerpath = useenv;

@@ -45,29 +45,6 @@
 #define HELPER_PATH	". BIN_DIR"		/* Used by graphics drivers */
 
 /*
- * Path to default pager
- */
-#ifdef SYSV
-# ifdef hpux
-#  define PAGERDIR "/usr/bin/more"
-# else
-#  ifdef linux
-#    define PAGERDIR "/bin/more"
-#  else
-#    define PAGERDIR "/usr/bin/pg"
-#  endif
-# endif
-#else
-# if defined(linux) || defined(__FreeBSD__) || defined(__NetBSD__) || defined(__OpenBSD__) || defined(__DragonFly__)
-#  define PAGERDIR "/usr/bin/more"
-# elif defined(CYGWIN)
-#  define PAGERDIR "./less"
-# else
-#  define PAGERDIR "/usr/ucb/more"
-# endif
-#endif
-
-/*
  * Other common paths.
  */
 #define CAD_LIB_PATH	". $CAD_ROOT/"

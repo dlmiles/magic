@@ -142,6 +142,8 @@ AC_TYPE_SIGNAL
 
 AC_FUNC_ALLOCA
 
+AC_FUNC_FORK
+
 AC_FUNC_VPRINTF
 
 dnl Need either setenv or putenv
@@ -154,7 +156,9 @@ dnl Check for setrlimit
 AC_CHECK_FUNCS(setrlimit)
 
 dnl Check for vfork
-AC_CHECK_FUNC(vfork)
+AC_CHECK_FUNC(vfork, [
+	AC_DEFINE(HAVE_VFORK, 1, [])
+])
 
 dnl Check for sigaction
 AC_CHECK_FUNC(sigaction, [

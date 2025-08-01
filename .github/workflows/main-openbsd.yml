@@ -1,11 +1,25 @@
-# This is a basic workflow to help you get started with Actions
-
+#
 name: CI-openbsd
 
-# Controls when the workflow will run
 on:
   push:
   workflow_dispatch:
+    inputs:
+      OS_VERSION:
+        description: VM OS Version
+        required: false
+        # https://github.com/vmactions/openbsd-vm
+        # [10-Apr-2023] 7.3
+        # [16-Oct-2023] 7.4
+        # [05-Apr-2024] 7.5
+        # [08-Oct-2024] 7.6
+        # [28-Apr-2025] 7.7
+        default: '7.7'
+        type: string
+      MYENV:
+        required: false
+        type: string
+
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -17,8 +31,11 @@ jobs:
       - name: OpenBSD shell actions
         id: openbsd
         uses: vmactions/openbsd-vm@v1
+        env:
+          MYENV: ${{ inputs.MYENV }}
         with:
           envs: MYENV
+          release: ${{ inputs.OS_VERSION }}
           usesh: true
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
@@ -32,6 +49,8 @@ jobs:
             pkg_add -vv bash gmake ggrep gsed tcl-8.6.16 tk-8.6.16 libSM x11/libXi x11/libXmu x11/libXext cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
             set +e
+            echo MYENV=$MYENV
+            test -f /etc/os-release && cat /etc/os-release
             openbsd-version
             uname -a
             sysctl hw.model

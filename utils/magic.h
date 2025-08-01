@@ -211,11 +211,6 @@ extern char AbortMessage[];
 
     /* ------- Configuration:  Handle Missing Routines/Definitions ------- */
 
-/* Some machines need vfprintf().  (A temporary MIPS bug?) (see txOutput.c) */
-#if 	(defined(MIPSEB) && defined(SYSTYPE_BSD43)) || ibm032
-# define	NEED_VFPRINTF
-#endif
-
 /*
  * Irix
  */

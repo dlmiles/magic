@@ -384,7 +384,7 @@ get_etext(void)
     extern char etext;
 #elif defined(CYGWIN)
     extern char etext;
-#elif defined(linux
+#elif defined(linux)
     extern int etext asm("etext");
 #else
     extern int etext;

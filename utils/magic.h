@@ -217,14 +217,6 @@ extern char AbortMessage[];
 #endif
 
 /*
- * Linux
- */
-#ifdef	linux
-#define       sigvec          sigaction
-#define       sv_handler      sa_handler
-#endif
-
-/*
  * Irix
  */
 #ifdef sgi

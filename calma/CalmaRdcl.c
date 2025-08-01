@@ -507,12 +507,12 @@ calmaParseStructure(
 	/* the same way that cell references are handled in .mag files.	*/
 	DBPathSubstitute(filename, cstring, cifReadCellDef);
 	fncopy = StrDup(NULL, cstring);
-	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
+	sprintf(fpcopy, "%"DLONG_PREFIX, (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_START", (ClientData)fpcopy);
 
 	fpcopy = (char *)mallocMagic(20);
 	filepos = FTELL(calmaInputFile);
-	sprintf(fpcopy, "%"DLONG_PREFIX"d", (dlong) filepos);
+	sprintf(fpcopy, "%"DLONG_PREFIX, (dlong) filepos);
 	DBPropPut(cifReadCellDef, "GDS_END", (ClientData)fpcopy);
 
 	DBPropPut(cifReadCellDef, "GDS_FILE", (ClientData)fncopy);

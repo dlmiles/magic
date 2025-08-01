@@ -256,7 +256,7 @@ gcrMakePinLR(fp, x, size)
     {
 	/* FIXME: Reading a pointer from file is almost guaranteed to break. */
 	dlong pointer_bits;
-	(void) fscanf(fp, "%"DLONG_PREFIX"d", &pointer_bits);
+	(void) fscanf(fp, "%"DLONG_PREFIX, &pointer_bits);
 	result[i].gcr_pId = (struct gcrnet *) pointer_bits;
 	result[i].gcr_x = x;
 	result[i].gcr_y = i;

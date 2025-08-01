@@ -4095,7 +4095,7 @@ printSubcktDict(void)
     HashStartSearch(&hs);
     while ((he = HashNext(&subcktNameTable, &hs)) != NULL)
 #endif
-	fprintf(esSpiceF,"* x%"DLONG_PREFIX"d\t%s\n", (dlong) HashGetValue(he), he->h_key.h_name);
+	fprintf(esSpiceF,"* x%"DLONG_PREFIX"\t%s\n", (dlong) HashGetValue(he), he->h_key.h_name);
     return 0;
 }
 

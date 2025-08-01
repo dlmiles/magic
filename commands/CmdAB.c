@@ -1155,7 +1155,7 @@ CmdBox(
 			boxptr->r_xbot, boxptr->r_ybot,
 			boxptr->r_xtop, boxptr->r_ytop);
 	    if (area > 0)
-		TxPrintf("  %-10"DLONG_PREFIX"d", area);
+		TxPrintf("  %-10"DLONG_PREFIX, area);
 	    TxPrintf("\n");
 	    break;
 

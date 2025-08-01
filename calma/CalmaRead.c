@@ -479,7 +479,7 @@ CalmaReadError(const char *format, ...)
             {
                 fprintf(calmaErrorFile, "Error while reading cell \"%s\" ",
                                 cifReadCellDef->cd_name);
-		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"d): ",
+		fprintf(calmaErrorFile, "(byte position %"DLONG_PREFIX"): ",
 				(dlong)filepos);
 		va_start(args, format);
 		Vfprintf(calmaErrorFile, format, args);
@@ -489,7 +489,7 @@ CalmaReadError(const char *format, ...)
         else
         {
             TxError("Error while reading cell \"%s\" ", cifReadCellDef->cd_name);
-	    TxError("(byte position %"DLONG_PREFIX"d): ", (dlong)filepos);
+	    TxError("(byte position %"DLONG_PREFIX"): ", (dlong)filepos);
 	    va_start(args, format);	    
 	    TxErrorV(format, args);
 	    va_end(args);	    

@@ -1991,7 +1991,7 @@ mzDumpEstFunc(tile, fd)
 
 	    for(e=tilec->tc_estimates; e!=NULL; e=e->e_next)
 	    {
-		fprintf(fd,"\t\t%"DLONG_PREFIX"d + ABS(x - %d)*%d + ABS(y - %d)*%d\n",
+		fprintf(fd,"\t\t%"DLONG_PREFIX" + ABS(x - %d)*%d + ABS(y - %d)*%d\n",
 			e->e_cost0,e->e_x0,e->e_hCost,
 			e->e_y0,e->e_vCost);
 	    }
@@ -2013,7 +2013,7 @@ mzDumpEstFunc(tile, fd)
 
 	    for(e=tilec->tc_estimates; e!=NULL; e=e->e_next)
 	    {
-		TxPrintf("\t\t%"DLONG_PREFIX"d + ABS(x - %d)*%d + ABS(y - %d)*%d\n",
+		TxPrintf("\t\t%"DLONG_PREFIX" + ABS(x - %d)*%d + ABS(y - %d)*%d\n",
 			 e->e_cost0,e->e_x0,e->e_hCost,
 			 e->e_y0,e->e_vCost);
 	    }

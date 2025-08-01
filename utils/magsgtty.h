@@ -27,30 +27,34 @@
  #include <termios.h>
 
  #ifdef HAVE_SYS_IOCTL_H
-  /* Linux glibx 2.x       - present
+  /* Linux glibc 2.x       - present
    * FreeBSD 14.3-RELEASE  - present
+   * OpenBSD 7.7           - present
    * Solaris 11.4          - present
    */
   #include <sys/ioctl.h>
  #endif
 
 #elif defined(HAVE_TERMIO_H)
- /* Linux glibx 2.x       - present (just includes termios.h & sys/ioctl.h)
+ /* Linux glibc 2.x       - present (just includes termios.h & sys/ioctl.h)
   * Linux glibc 2.45+     - not present
   * FreeBSD 14.3-RELEASE  - not present
+  * OpenBSD 7.7           - not present
   * Solaris 11.4          - present
   */
  #include <termio.h>
 #else /* sgtty */
  #if defined(HAVE_SYS_IOCTL_COMPAT_H)
-  /* Linux glibc2.x        - not present
+  /* Linux glibc 2.x       - not present
    * FreeBSD 14.3-RELEASE  - not present
+   * OpenBSD 7.7           - not present
    * Solaris 11.4          - not present
    */
   #include <sys/ioctl_compat.h> /* replaced sgtty.h */
  #elif defined(HAVE_SGTTY_H)
-  /* Linux glibc2.x        - present (includes sys/ioctl.h)
+  /* Linux glibc 2.x       - present (includes sys/ioctl.h)
    * FreeBSD 14.3-RELEASE  - not present
+   * OpenBSD 7.7           - not present
    * Solaris 11.4          - present
    */
   #include <sgtty.h> /* legacy - struct sgttyb{} defn */

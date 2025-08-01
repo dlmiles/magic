@@ -80,10 +80,12 @@ jobs:
             [ -d /usr/local ] && dirs="$dirs /usr/local"
             [ -d /opt ]       && dirs="$dirs /opt"
             [ -d /usr/X11R6 ] && dirs="$dirs /usr/X11R6"
+            [ -d /usr/bin ]   && dirs="$dirs /usr/bin"
             gfind $dirs -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
             gfind $dirs -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
             gfind $dirs -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
             gfind $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
+            gfind $dirs -type f \( -name "tclsh" -or -name "tclsh[89]*" -or -name "wish" -or -name "wish[89]*" \) -print
             ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
             # freeglut # not found

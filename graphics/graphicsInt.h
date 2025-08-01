@@ -53,9 +53,6 @@ extern void grNoLock();
 /* The size of the crosses drawn for degenerate box outlines: */
 #define GR_CROSSSIZE 5
 
-/* This becomes TRUE if we should quit drawing things and return */
-extern bool SigInterruptPending;
-
 /* clipping stuff from GrLock() */
 extern MagWindow *grLockedWindow;
 extern Rect grCurClip;

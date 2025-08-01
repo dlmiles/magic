@@ -77,29 +77,29 @@ extern bool DBWriteBackup();
 void sigSetAction(int, RETSIGTYPE (*)(int));
 
 /* becomes true when we get an interrupt */
-global bool SigInterruptPending = FALSE;
+global sig_atomic_t SigInterruptPending = FALSE;
 
 /* Becomes true when IO is possible on one of the files passed to SigWatchFile.
  * Spurious signals are sometimes generated -- use select() to make
  * sure that what you want is really there.
  */
-global bool SigIOReady = FALSE;
+global sig_atomic_t SigIOReady = FALSE;
 
 /* If set to 1, we will set SigInterruptPending whenever we set SigIOReady. */
 /* If set to -1, then SigInterruptPending is never set */
-global char SigInterruptOnSigIO;
+global sig_atomic_t SigInterruptOnSigIO;
 
 /*
  * Set to true when we recieve a SIGWINCH/SIGWINDOW signal
  * (indicating that a window has changed size or otherwise needs attention).
  */
-global bool SigGotSigWinch = FALSE;
+global sig_atomic_t SigGotSigWinch = FALSE;
 
 
 /*
  * Local data structures
  */
-static bool sigInterruptReceived = FALSE;
+static sig_atomic_t sigInterruptReceived = FALSE;
 static int sigNumDisables = 0;
 
 /*---------------------------------------------------------

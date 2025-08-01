@@ -22,13 +22,15 @@
 #ifndef _MAGIC__UTILS__SIGNALS_H
 #define _MAGIC__UTILS__SIGNALS_H
 
+#include <signal.h>
+
 #include "utils/magic.h"
 
 /* data structures */
-extern bool SigInterruptPending;
-extern bool SigIOReady;
-extern char SigInterruptOnSigIO;
-extern bool SigGotSigWinch;
+extern sig_atomic_t SigInterruptPending;
+extern sig_atomic_t SigIOReady;
+extern sig_atomic_t SigInterruptOnSigIO;
+extern sig_atomic_t SigGotSigWinch;
 
 /* procedures */
 extern void SigInit();

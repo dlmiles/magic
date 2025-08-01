@@ -61,9 +61,9 @@ jobs:
 
             echo "### getconf -a :"
             getconf -a
-            #echo XBSS_LP64_OFF64_CFLAGS=$(getconf XBSS_LP64_OFF64_CFLAGS)
-            #echo XBSS_LP64_OFF64_LDFLAGS=$(getconf XBSS_LP64_OFF64_LDFLAGS)
-            #echo XBSS_LP64_OFF64_LIBS=$(getconf XBSS_LP64_OFF64_LIBS)
+            echo XBS5_LP64_OFF64_CFLAGS=$(getconf  XBS5_LP64_OFF64_CFLAGS)
+            echo XBS5_LP64_OFF64_LDFLAGS=$(getconf XBS5_LP64_OFF64_LDFLAGS)
+            echo XBS5_LP64_OFF64_LIBS=$(getconf    XBS5_LP64_OFF64_LIBS)
 
             echo "### cc -dM -E - | sort :"
             echo | gcc -dM -E - | sort
@@ -83,6 +83,8 @@ jobs:
             gfind $dirs -type f \( -name "tcl.h" -or -name "Xlib*.h" -or -name "cairo.h" \) -print
             gfind $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" \) -print
             gfind $dirs -type f \( -name "tclsh" -or -name "tclsh[89]*" -or -name "wish" -or -name "wish[89]*" \) -print
+            # /usr/bin/amd64/tclsh8.6
+            # /usr/bin/wish8.6
             ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
             #
@@ -106,7 +108,7 @@ jobs:
             echo CPPFLAGS=$CPPFLAGS
             echo LDFLAGS=$LDFLAGS
             echo LIBS=$LIBS
-            ./configure --x-libraries=/usr/local/lib --x-includes=/usr/local/include --with-tcl=/opt/csw/lib/amd64 --with-tk=/opt/csw/lib/amd64 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            ./configure --with-wish=/usr/bin/wish8.6 --x-libraries=/usr/local/lib --x-includes=/usr/local/include --with-tcl=/opt/csw/lib/amd64 --with-tk=/opt/csw/lib/amd64 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS
 
             echo "===== defs.mak ====="

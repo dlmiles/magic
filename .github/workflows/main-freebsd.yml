@@ -23,13 +23,13 @@ jobs:
           prepare: |
             echo pkg_add devel/gmake lang/tcl/8.6 x11/tk/8.6 graphics/cairo graphics/freeglut devel/git
             # Query the package visibility
-            for pkg in bash gmake gnugrep gsed tcl86 tk86 libSM cairo freeglut git python3 perl5 readline findutils pkgconf; \
+            for pkg in bash gmake gnugrep gsed tcl86 tk86 libSM libXi libXmu libXext cairo freeglut git python3 perl5 readline findutils pkgconf; \
             do \
                echo "### pkg search -g ${pkg}*"; \
                pkg search -g "${pkg}*"; \
             done
             # zlib is in base
-            pkg install -y bash gmake gnugrep gsed tcl86 tk86 libSM cairo freeglut git python3 perl5 readline findutils pkgconf
+            pkg install -y bash gmake gnugrep gsed tcl86 tk86 libSM libXi libXmu libXext cairo freeglut git python3 perl5 readline findutils pkgconf
           run: |
             set +e
             freebsd-version

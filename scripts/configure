@@ -9047,28 +9047,27 @@ case $target in
   *solaris*)
     $as_echo "#define SYSV 1" >>confdefs.h
 
-    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
-
     # Lower settings than _XOPEN_SOURCE=600 result in compiler error due to enforcement of c89
+    # _XOPEN_SOURCE=600 appears to be a compiler default anyway, so we
+    # combine with newer _POSIX_C_SOURCE to make visible more APIs:
+    #   mkstemp()
     $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
+
+    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
     ;;
   *-freebsd*)
-    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
-
-    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
-
-    $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
-
+    # FreeBSD only uses feature_macros to restrict visible APIs
+    #AC_DEFINE(_POSIX_C_SOURCE, 200809L)
+    #AC_DEFINE(_XOPEN_SOURCE, 600)
+    #AC_DEFINE(_BSD_SOURCE)
     ;;
   *-openbsd*)
-    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
-
-    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
-
+    # OpenBSD only uses feature_macros to restrict visible APIs
+    #AC_DEFINE(_POSIX_C_SOURCE, 200809L)
+    #AC_DEFINE(_XOPEN_SOURCE, 600)
     # _BSD_SOURCE: MAP_ANON
-    $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
-
+    #AC_DEFINE(_BSD_SOURCE)
     ;;
   *irix*)
     $as_echo "#define SYSV 1" >>confdefs.h
@@ -9087,6 +9086,7 @@ case $target in
 
     $as_echo "#define i386 1" >>confdefs.h
 
+    # CYGWIN needs feature_macros to make certain APIs visible during compile
     # _POSIX_C_SOURCE >= 200112L: setitimer()
     # _POSIX_C_SOURCE >= 200809L: mkstemp()
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h

@@ -404,7 +404,8 @@ NLNetName(net)
 	return "(NULL)";
 
     /* Handle case of small integers, for debugging the channel router */
-    if (net <= (const NLNet *)get_etext())
+    const void *etext_value = get_etext();
+    if (etext_value && net <= (const NLNet *)etext_value)
     {
 	(void) sprintf(tempId, "#%"DLONG_FMTd, (dlong) net);
 	return tempId;

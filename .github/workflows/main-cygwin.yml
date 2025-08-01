@@ -155,10 +155,15 @@ jobs:
       - name: Post Install
         shell: cmd
         run: |
-          vcvarsall.bat x64
+          call "C:\Program Files (x86)\Microsoft Visual Studio\2019\Enterprise\VC\Auxiliary\Build\vcvarsall.bat" x64
+          :: Check if VCToolsRedistDir is set
+          if not defined VCToolsRedistDir (
+            echo Error: Environment variable VCToolsRedistDir is not set.
+            exit /b 1
+          )
           dumpbin
           echo DONE
-          #find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec dumpbin /imports {} \;
+          :: find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec dumpbin /imports {} \;
 
       - name: Kick Tyres Test
         shell: bash --noprofile --norc -e -o pipefail -o igncr {0}

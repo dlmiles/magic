@@ -761,7 +761,7 @@ windGrstatsCmd(w, cmd)
     MagWindow *w;
     TxCommand *cmd;
 {
-    char *RunStats(), *rstatp;
+    char *rstatp;
     static struct tms tlast, tdelta;
     int i, style, count;
     int us;

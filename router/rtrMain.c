@@ -249,7 +249,6 @@ static int rtrFeedCount;	/* Most recent # of feedback areas */
 void
 RtrRunStats()
 {
-    char *RunStats();
     static struct tms last, delta;
 
     TxPrintf("%s\n", RunStats(RS_TINCR|RS_MEM, &last, &delta));

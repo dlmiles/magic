@@ -2318,7 +2318,7 @@ CmdDoProperty(
     TxCommand *cmd,
     int argstart)
 {
-    int printPropertiesFunc();
+    int printPropertiesFunc(const char *name, ClientData value, ClientData cdata); /* @typedef cb_db_propenum_t (const char *value, unused) */
     char *value;
     bool propfound;
     int locargc = cmd->tx_argc - argstart + 1;

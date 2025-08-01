@@ -196,6 +196,9 @@ AC_CHECK_HEADERS(sys/ioctl_compat.h)
 dnl Check for <sgtty.h>
 AC_CHECK_HEADERS(sgtty.h)
 
+dnl Check for <vfont.h>
+AC_CHECK_HEADERS(vfont.h)
+
 AC_STRUCT_DIRENT_D_TYPE
 
 dnl Check for va_copy

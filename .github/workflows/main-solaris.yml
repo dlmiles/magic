@@ -80,6 +80,7 @@ jobs:
             [ -d /usr/bin ]   && dirs="$dirs /usr/bin"
             gfind $dirs -type f \( -name "tkConfig.sh" -or -name "tclConfig*" \) -print
             gfind $dirs -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+            gfind $dirs -type f \( -name "libX11*" -or -name "libXi*" -or -name "libXmu*" -or -name "libXext*" -or -name "libICE*" \) -print
             gfind $dirs -type f \( -name "tcl.h" -or -name "Xlib*.h" -or -name "cairo.h" \) -print
             gfind $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" \) -print
             gfind $dirs -type f \( -name "tclsh" -or -name "tclsh[89]*" -or -name "wish" -or -name "wish[89]*" \) -print
@@ -102,6 +103,7 @@ jobs:
             # CFLAGS by default it looks like the compiler targets 32bit then errors on linking to
             #  amd64 libraries.  We add the -g back in due to this being the default in ./configure
             CFLAGS="$CFLAGS -m64 -g"
+            #CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
             export CFLAGS
             echo CFLAGS=$CFLAGS
             echo CXXFLAGS=$CXXFLAGS

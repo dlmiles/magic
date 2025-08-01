@@ -128,6 +128,10 @@ jobs:
             echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
           fi
 
+          echo "===== config.log ====="
+          cat scripts/config.log
+          echo "===== config.log ====="
+
           echo "===== defs.mak ====="
           cat defs.mak
           echo "===== defs.mak ====="
@@ -362,6 +366,10 @@ jobs:
             CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "./configure" | sed -e 's#^ *\$ ##' -e 's#./configure ##')
             echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
           fi
+
+          echo "===== config.log ====="
+          cat scripts/config.log
+          echo "===== config.log ====="
 
           echo "===== defs.mak ====="
           cat defs.mak

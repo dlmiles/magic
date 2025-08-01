@@ -123,6 +123,8 @@ jobs:
             LIBS="$LIBS -L/usr/X11R6/lib"
             echo LIBS=$LIBS
             ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tcl=/usr/local/lib/tcl/tcl8.6 --with-tk=/usr/local/lib/tcl/tk8.6 --with-opengl=/usr/X11R6/include --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
+            unset CFLAGS
+            unset CXXFLAGS
             unset CPPFLAGS
             unset LDFLAGS
             unset LIBS

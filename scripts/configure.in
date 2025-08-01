@@ -1495,7 +1495,7 @@ case $target in
     # _POSIX_C_SOURCE >= 200809L: mkstemp()
     AC_DEFINE(_POSIX_C_SOURCE, 200809L)
     # _XOPEN_SOURCE >= 500: random() srandom() truncate()
-    AC_DEFINE(_XOPEN_SOURCE, 500)
+    AC_DEFINE(_XOPEN_SOURCE, 600)
     ;;
   *darwin*)
     # _DARWIN_C_SOURCE: MAP_ANON

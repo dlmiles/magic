@@ -399,7 +399,7 @@ HeapAdd(
 	/* Need to recopy to a larger area */
 	new = (HeapEntry *) mallocMagic((unsigned) ((2 * heap->he_size + 2)
 			* sizeof (HeapEntry)));
-	bcopy((char *) list, (char *) new,
+	memcpy((char *) new, (char *) list,
 		(heap->he_size + 2) * sizeof (HeapEntry));
 	freeMagic((char *) heap->he_list);
 	heap->he_list = list = new;

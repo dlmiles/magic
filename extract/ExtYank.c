@@ -81,7 +81,7 @@ extHierCopyLabels(sourceDef, targetDef)
     {
 	n = sizeof (Label) + strlen(lab->lab_text) - sizeof lab->lab_text + 1;
 	newlab = (Label *) mallocMagic((unsigned) n);
-	bcopy((char *) lab, (char *) newlab, (int) n);
+	memcpy((char *) newlab, (char *) lab, (int) n);
 
 	if (lastLab == NULL) lastLab = firstLab = newlab;
 	else lastLab->lab_next = newlab, lastLab = newlab;

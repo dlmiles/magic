@@ -222,7 +222,7 @@ glDMCopy(dm1, dm2)
     dm2->dm_max = dm1->dm_max;
     ASSERT(dm2->dm_size == dm1->dm_size, "glDMCopy");
     ASSERT(dm2->dm_cap == dm1->dm_cap, "glDMCopy");
-    bcopy((char *) dm1->dm_value, (char *) dm2->dm_value,
+    memcpy((char *) dm2->dm_value, (char *) dm1->dm_value,
 	    sizeof (short) * dm1->dm_size);
 }
 

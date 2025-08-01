@@ -281,10 +281,10 @@ GCRFlipLeftRight(src, dst)
 	/* Copy the horizontal and vertical density information */
     dst->gcr_dMaxByCol = src->gcr_dMaxByCol;
     dst->gcr_dMaxByRow = src->gcr_dMaxByRow;
-    bcopy((char *) src->gcr_dColsByRow, (char *) dst->gcr_dColsByRow,
+    memcpy((char *) dst->gcr_dColsByRow, (char *) src->gcr_dColsByRow,
 		sizeof (short) * widWds);
 #ifdef	IDENSITY
-    bcopy((char *) src->gcr_iColsByRow, (char *) dst->gcr_iColsByRow,
+    memcpy((char *) dst->gcr_iColsByRow, (char *) src->gcr_iColsByRow,
 		sizeof (short) * widWds);
 #endif	/* IDENSITY */
     for (i = 0; i <= lenWds; i++)
@@ -394,14 +394,14 @@ GCRFlipXY(src, dst)
 	/* Copy the horizontal and vertical density information */
     dst->gcr_dMaxByRow = src->gcr_dMaxByCol;
     dst->gcr_dMaxByCol = src->gcr_dMaxByRow;
-    bcopy((char *) src->gcr_dRowsByCol, (char *) dst->gcr_dColsByRow,
+    memcpy((char *) dst->gcr_dColsByRow, (char *) src->gcr_dRowsByCol,
 		sizeof (short) * lenWds);
-    bcopy((char *) src->gcr_dColsByRow, (char *) dst->gcr_dRowsByCol,
+    memcpy((char *) dst->gcr_dRowsByCol, (char *) src->gcr_dColsByRow,
 		sizeof (short) * widWds);
 #ifdef	IDENSITY
-    bcopy((char *) src->gcr_iRowsByCol, (char *) dst->gcr_iColsByRow,
+    memcpy((char *) dst->gcr_iColsByRow, (char *) src->gcr_iRowsByCol,
 		sizeof (short) * lenWds);
-    bcopy((char *) src->gcr_iColsByRow, (char *) dst->gcr_iRowsByCol,
+    memcpy((char *) dst->gcr_iRowsByCol, (char *) src->gcr_iColsByRow,
 		sizeof (short) * widWds);
 #endif	/* IDENSITY */
 
@@ -459,30 +459,30 @@ GCRNoFlip(src, dst)
 
 	/* Copy pairs of pins in the top and bottom arrays */
     pinBytes = lenWds * sizeof (GCRPin);
-    bcopy((char *) src->gcr_tPins, (char *) dst->gcr_tPins, pinBytes);
-    bcopy((char *) src->gcr_bPins, (char *) dst->gcr_bPins, pinBytes);
+    memcpy((char *) dst->gcr_tPins, (char *) src->gcr_tPins, pinBytes);
+    memcpy((char *) dst->gcr_bPins, (char *) src->gcr_bPins, pinBytes);
 
 	/* Copy flag values from the result array */
     resBytes = widWds * sizeof (short);
     for (i = 0; i <= lenWds; i++)
-	bcopy((char *)src->gcr_result[i], (char *)dst->gcr_result[i], resBytes);
+	memcpy((char *)dst->gcr_result[i], (char *)src->gcr_result[i], resBytes);
 
 	/* Copy the left and right end pins */
     pinBytes = widWds * sizeof (GCRPin);
-    bcopy((char *) src->gcr_lPins, (char *) dst->gcr_lPins, pinBytes);
-    bcopy((char *) src->gcr_rPins, (char *) dst->gcr_rPins, pinBytes);
+    memcpy((char *) dst->gcr_lPins, (char *) src->gcr_lPins, pinBytes);
+    memcpy((char *) dst->gcr_rPins, (char *) src->gcr_rPins, pinBytes);
 
 	/* Copy the horizontal and vertical density information */
     dst->gcr_dMaxByCol = src->gcr_dMaxByCol;
     dst->gcr_dMaxByRow = src->gcr_dMaxByRow;
-    bcopy((char *) src->gcr_dRowsByCol, (char *) dst->gcr_dRowsByCol,
+    memcpy((char *) dst->gcr_dRowsByCol, (char *) src->gcr_dRowsByCol,
 		sizeof (short) * lenWds);
-    bcopy((char *) src->gcr_dColsByRow, (char *) dst->gcr_dColsByRow,
+    memcpy((char *) dst->gcr_dColsByRow, (char *) src->gcr_dColsByRow,
 		sizeof (short) * widWds);
 #ifdef	IDENSITY
-    bcopy((char *) src->gcr_iRowsByCol, (char *) dst->gcr_iRowsByCol,
+    memcpy((char *) dst->gcr_iRowsByCol, (char *) src->gcr_iRowsByCol,
 		sizeof (short) * lenWds);
-    bcopy((char *) src->gcr_iColsByRow, (char *) dst->gcr_iColsByRow,
+    memcpy((char *) dst->gcr_iColsByRow, (char *) src->gcr_iColsByRow,
 		sizeof (short) * widWds);
 #endif	/* IDENSITY */
 

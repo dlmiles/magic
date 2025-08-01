@@ -509,7 +509,7 @@ efAddNodes(
 	newnode->efnode_type = node->efnode_type;
 	newnode->efnode_num = 1;
 	if (!stdcell)
-	    bcopy((char *) node->efnode_pa, (char *) newnode->efnode_pa,
+	    memcpy((char *) newnode->efnode_pa, (char *) node->efnode_pa,
 			efNumResistClasses * sizeof (EFPerimArea));
 	else
 	    bzero((char *) newnode->efnode_pa,

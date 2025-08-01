@@ -50,6 +50,7 @@ jobs:
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
+
             echo "### cc -dM -E - | sort :"
             echo | cc -dM -E - | sort
             echo "### c++ -dM -E -x c++ - | sort :"
@@ -107,7 +108,7 @@ jobs:
             dirs="."
             [ -d /usr/local ] && dirs="$dirs /usr/local"
             [ -d /opt ]       && dirs="$dirs /opt"
-            gfind $dirs -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
+            gfind $dirs -type f \( -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
 
             hash -r || true
             PATH="$PATH:/usr/local/bin"

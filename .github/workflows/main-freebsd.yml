@@ -128,6 +128,7 @@ jobs:
             echo CPPFLAGS=$CPPFLAGS
             echo LDFLAGS=$LDFLAGS
             LIBS="$LIBS -L/usr/local/lib" # Xi Xmu Xexi
+            export LIBS
             echo LIBS=$LIBS
             ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS

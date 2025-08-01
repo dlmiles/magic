@@ -63,6 +63,7 @@ jobs:
             ls -lah
             whoami
             env | grep -v "TOKEN" | grep -v "SECRET" | sort
+            which more # /usr/bin/more
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
@@ -111,8 +112,13 @@ jobs:
             with_tk_libsdir=$(   pkg-config --libs-only-L   tk86   | sed -e 's/-L//g')
             with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
             # The only really important ones as --with-tcl and --with-tk the others
-            CFLAGS="-std=c17 -g"
+            CFLAGS="$CFLAGS -std=c17 -g"
             export CFLAGS
+            echo CFLAGS=$CFLAGS
+            echo CXXFLAGS=$CXXFLAGS
+            echo CPPFLAGS=$CPPFLAGS
+            echo LDFLAGS=$LDFLAGS
+            echo LIBS=$LIBS
             ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS
             unset CPPFLAGS

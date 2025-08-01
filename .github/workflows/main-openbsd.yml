@@ -66,6 +66,7 @@ jobs:
             ls -lah
             whoami
             env | grep -v "TOKEN" | grep -v "SECRET" | sort
+            which more # /usr/bin/more
             nproc=$(sysctl hw.ncpu | sed -e  's/.*=//')
             export nproc
             echo "nproc=$nproc"
@@ -100,16 +101,21 @@ jobs:
             # /usr/local/lib/tcl/tcl8.6/tclConfig.sh
             # /usr/local/lib/tcl/tk8.6/tkConfig.sh
             # Need this to allow autoconf configure to find -lcairo when linking and testing for symbol
-            LDFLAGS="-L/usr/local/lib"
+            LDFLAGS="$LDFLAGS -L/usr/local/lib"
             export LDFLAGS
             # Need this to provide -I/usr/local/include because tcltk/*.c accesses <X11/Xlib.h>
             # headers but is not using GR_CFLAGS
             # CPPFLAGS want this extra option for depends and compile
-            CPPFLAGS="-I/usr/X11R6/include"
+            CPPFLAGS="$CPPFLAGS -I/usr/X11R6/include"
             export CPPFLAGS
             # Need -lpthread on the linker argument
-            LIBS="-lpthread"
+            LIBS="$LIBS -lpthread"
             export LIBS
+            echo CFLAGS=$CFLAGS
+            echo CXXFLAGS=$CXXFLAGS
+            echo CPPFLAGS=$CPPFLAGS
+            echo LDFLAGS=$LDFLAGS
+            echo LIBS=$LIBS
             ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tcl=/usr/local/lib/tcl/tcl8.6 --with-tk=/usr/local/lib/tcl/tk8.6 --with-opengl=/usr/X11R6/include --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CPPFLAGS
             unset LDFLAGS

@@ -45,10 +45,10 @@ jobs:
             echo XBSS_LP64_OFF64_CFLAGS=$(getconf XBSS_LP64_OFF64_CFLAGS)
             echo XBSS_LP64_OFF64_LDFLAGS=$(getconf XBSS_LP64_OFF64_LDFLAGS)
             echo XBSS_LP64_OFF64_LIBS=$(getconf XBSS_LP64_OFF64_LIBS)
-            echo "### gcc -dM -E - | sort :"
-            echo | gcc -dM -E - | sort
-            echo "### g++ -dM -E -x c++ - | sort :"
-            echo | g++ -dM -E -x c++ - | sort
+            echo "### cc -dM -E - | sort :"
+            echo | cc -dM -E - | sort
+            echo "### c++ -dM -E -x c++ - | sort :"
+            echo | c++ -dM -E -x c++ - | sort
             echo "###"
 
             git config --global --add safe.directory "$(pwd)"

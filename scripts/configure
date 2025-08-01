@@ -9057,11 +9057,16 @@ case $target in
 
     $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
 
+    $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
+
     ;;
   *-openbsd*)
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
     $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+
+    # _BSD_SOURCE: MAP_ANON
+    $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
 
     ;;
   *irix*)
@@ -9090,6 +9095,9 @@ case $target in
 
     ;;
   *darwin*)
+    # _DARWIN_C_SOURCE: MAP_ANON
+    $as_echo "#define _DARWIN_C_SOURCE 1" >>confdefs.h
+
     if test "$CPP" = "cc -E" ; then
        CPPFLAGS="$CPPFLAGS -no-cpp-precomp"
     fi

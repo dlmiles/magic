@@ -42,13 +42,27 @@ jobs:
             nproc=$(psrinfo -v)
             export nproc
             echo "nproc=$nproc"
+            echo XBSS_LP64_OFF64_CFLAGS=$(getconf XBSS_LP64_OFF64_CFLAGS)
+            echo XBSS_LP64_OFF64_LDFLAGS=$(getconf XBSS_LP64_OFF64_LDFLAGS)
+            echo XBSS_LP64_OFF64_LIBS=$(getconf XBSS_LP64_OFF64_LIBS)
+            echo "### gcc -dM -E - | sort :"
+            echo | gcc -dM -E - | sort
+            echo "### g++ -dM -E -x c++ - | sort :"
+            echo | g++ -dM -E -x c++ - | sort
+            echo "###"
 
             git config --global --add safe.directory "$(pwd)"
 
-            gfind . /usr/local /opt -type f \( -name "tkConfig.sh" -or -name "tclConfig*" \) -print
-            gfind . /ust/local /opt -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
-            gfind . /usr/local /opt -type f \( -name "tcl.h" -or -name "Xlib*.h" -or -name "cairo.h" \) -print
-            gfind . /usr/local /opt -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" \) -print
+            dirs="."
+            [ -d /usr/local ] && dirs="$dirs /usr/local"
+            [ -d /opt ]       && dirs="$dirs /opt"
+            [ -d /usr/X11R6 ] && dirs="$dirs /usr/X11R6"
+            [ -d /usr/bin ] && dirs="$dirs /usr/bin"
+            gfind $dirs -type f \( -name "tkConfig.sh" -or -name "tclConfig*" \) -print
+            gfind $dirs -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+            gfind $dirs -type f \( -name "tcl.h" -or -name "Xlib*.h" -or -name "cairo.h" \) -print
+            gfind $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" \) -print
+            gfind $dirs -type f \( -name "tclsh" -or "wish" \) -print
             ggrep cairo_user_to_device /usr/local/include/cairo*.h /usr/local/include/cairo/cairo*.h
             nm -D /usr/local/lib/libcairo.so.* | grep cairo_user_to_device
             #
@@ -77,7 +91,10 @@ jobs:
 
             gmake install 2>&1 | tee INSTALL.LOG
             
-            gfind . -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
+            dirs="."
+            [ -d /usr/local ] && dirs="$dirs /usr/local"
+            [ -d /opt ]       && dirs="$dirs /opt"
+            gfind $dirs -type f \( -name "magic" -or -name "magicdnull" -or -name "magicexec" -or -name "*magic*.so" \) -exec ldd {} \;
 
             hash -r || true
             PATH="$PATH:/usr/local/bin"

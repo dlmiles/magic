@@ -35,6 +35,9 @@ jobs:
             libX11-devel libX11-xcb-devel libICE-devel libXi-devel libXmu-devel libXext-devel \
             libcairo-devel libGL-devel libGLU-devel zlib-devel
 
+      - name: Install dumpbin
+        uses: lorenalexm/install-dumpbin-action@3229a4ffc6b63ad6aa6a5e798e2d21ce1c4e38b5 # v0.1.1
+
       - name: System Info
         # Windows bash has igncr option, the project should be Unix EOL compatible
         shell: bash --noprofile --norc -e -o pipefail -o igncr {0}
@@ -140,7 +143,8 @@ jobs:
           [ -d /usr/local ] && dirs="$dirs /usr/local"
           [ -d /opt ]       && dirs="$dirs /opt"
           find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec ldd {} \;
-          find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec dumpbin /imports {} \;
+          which dumpbin
+          which dumpbin && find $dirs -type f \( -name "magicdnull*" -or -name "magicexec*" -or -name "*magic*.so" -or -name "*magic*.dll" \) -exec dumpbin /imports {} \;
 
       - name: Kick Tyres Test
         shell: bash --noprofile --norc -e -o pipefail -o igncr {0}

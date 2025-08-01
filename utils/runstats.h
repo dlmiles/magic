@@ -26,6 +26,6 @@
 #define	RS_MEM		04	/* Size of heap area */
 
 extern char *RunStats(int flags, struct tms *lastt, struct tms *deltat);
-extern char *RunStatsRealTime();
+extern char *RunStatsRealTime(void);
 
 #endif	/* _MAGIC__UTILS__RUNSTATS_H */

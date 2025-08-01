@@ -30,6 +30,7 @@
 #include "textio/textio.h"
 #include "utils/malloc.h"
 #include "utils/utils.h"
+#include "utils/magic_fork.h"
 #include "utils/signals.h"
 
 /*-----------------------------------------------------------------------------

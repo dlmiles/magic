@@ -43,6 +43,7 @@
 #include "utils/stack.h"
 #include "utils/geometry.h"
 #include "utils/utils.h"
+#include "utils/magic_fork.h"
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "database/database.h"

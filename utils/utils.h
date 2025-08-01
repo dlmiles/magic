@@ -93,18 +93,4 @@ extern float MagAtof(const char *s);
 extern int Wait(int *status);
 extern int WaitPid(int pid, int *status);
 
-
-#define FORK_f(pid) do { pid = fork(); if (pid > 0) ForkChildAdd (pid); } while (0)
-#define FORK_vf(pid) do { pid = vfork(); if (pid > 0) ForkChildAdd (pid); } while (0)
-
-#if  defined(SYSV) || defined(CYGWIN) || defined(__APPLE__)
-
-#define FORK(pid) FORK_f(pid)
-
-#else
-
-#define FORK(pid) FORK_vf(pid)
-
-#endif
-
 #endif /* _MAGIC__UTILS__UTILS_H */

@@ -42,6 +42,7 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "graphics/graphics.h"
 #include "utils/paths.h"
 #include "utils/utils.h"
+#include "utils/magic_fork.h"
 #include "utils/malloc.h"
 
 /* When a pipe has been opened to "more", the following variables

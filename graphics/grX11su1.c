@@ -42,6 +42,7 @@
 #include "windows/windows.h"
 #include "graphics/graphicsInt.h"
 #include "utils/utils.h"
+#include "utils/magic_fork.h"
 #include "utils/hash.h"
 #include "grX11Int.h"
 #include "utils/paths.h"

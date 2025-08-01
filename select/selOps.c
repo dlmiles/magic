@@ -965,7 +965,7 @@ SelectShort(char *lab1, char *lab2)
     ttype = CmdFindNetProc(lab1, use, &rect, FALSE, NULL);
     if (ttype == TT_SPACE) return NULL;
 
-    bzero(&scx, sizeof(SearchContext));
+    memset(&scx, 0, sizeof(SearchContext));
     scx.scx_use = use;
     scx.scx_trans = GeoIdentityTransform;
     scx.scx_area = rect;

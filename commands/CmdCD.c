@@ -3851,7 +3851,7 @@ CmdDown(
 	SearchContext scx;
 
 	rootUse = (CellUse *)w->w_surfaceID;
-	bzero(&scx, sizeof(SearchContext));
+	memset(&scx, 0, sizeof(SearchContext));
 	DBTreeFindUse(cmd->tx_argv[1], rootUse, &scx);
 	use = scx.scx_use;
     }

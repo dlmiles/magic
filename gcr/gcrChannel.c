@@ -77,31 +77,31 @@ GCRNewChannel(length, width)
     nBytes = lenWds * sizeof (GCRPin);
     ch->gcr_tPins = (GCRPin *) mallocMagic((unsigned) nBytes);
     ch->gcr_bPins = (GCRPin *) mallocMagic((unsigned) nBytes);
-    bzero((char *) ch->gcr_tPins, (int) nBytes);
-    bzero((char *) ch->gcr_bPins, (int) nBytes);
+    memset((char *) ch->gcr_tPins, 0, (int) nBytes);
+    memset((char *) ch->gcr_bPins, 0, (int) nBytes);
 
     nBytes = widWds * sizeof (GCRPin);
     ch->gcr_lPins = (GCRPin *) mallocMagic((unsigned) nBytes);
     ch->gcr_rPins = (GCRPin *) mallocMagic((unsigned) nBytes);
-    bzero((char *) ch->gcr_lPins, (int) nBytes);
-    bzero((char *) ch->gcr_rPins, (int) nBytes);
+    memset((char *) ch->gcr_lPins, 0, (int) nBytes);
+    memset((char *) ch->gcr_rPins, 0, (int) nBytes);
 
     ch->gcr_lCol = (GCRColEl *) mallocMagic((unsigned) (widWds * sizeof (GCRColEl)));
     ch->gcr_density = (int *) mallocMagic((unsigned) (lenWds * sizeof (int)));
 
     /* Global router-specific initialization */
     ch->gcr_dRowsByCol = (short *) mallocMagic((unsigned) (lenWds * sizeof (short)));
-    bzero((char *) ch->gcr_dRowsByCol, (int) lenWds * sizeof (short));
+    memset((char *) ch->gcr_dRowsByCol, 0, (int) lenWds * sizeof (short));
     ch->gcr_dColsByRow = (short *) mallocMagic ((unsigned) (widWds * sizeof (short)));
-    bzero((char *) ch->gcr_dColsByRow, (int) widWds * sizeof (short));
+    memset((char *) ch->gcr_dColsByRow, 0, (int) widWds * sizeof (short));
     ch->gcr_dMaxByRow = ch->gcr_dMaxByCol = 0;
 
 #ifdef	IDENSITY
 	/* For debugging */
     ch->gcr_iRowsByCol = (short *) mallocMagic((unsigned) (lenWds * sizeof (short)));
-    bzero((char *) ch->gcr_iRowsByCol, (int) lenWds * sizeof (short));
+    memset((char *) ch->gcr_iRowsByCol, 0, (int) lenWds * sizeof (short));
     ch->gcr_iColsByRow = (short *) mallocMagic((unsigned) (widWds * sizeof (short)));
-    bzero((char *) ch->gcr_iColsByRow, (int) widWds * sizeof (short));
+    memset((char *) ch->gcr_iColsByRow, 0, (int) widWds * sizeof (short));
 #endif	/* IDENSITY */
 
     ch->gcr_client = (ClientData) NULL;
@@ -117,7 +117,7 @@ GCRNewChannel(length, width)
     for (i = 0; i < lenWds; i++)
     {
 	ch->gcr_result[i] = (short *) mallocMagic((unsigned) nBytes);
-	bzero((char *) ch->gcr_result[i], (int) nBytes);
+	memset((char *) ch->gcr_result[i], 0, (int) nBytes);
 
 	/* BOTTOM */
 	ch->gcr_bPins[i].gcr_pDist = -1;

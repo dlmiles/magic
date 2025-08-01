@@ -512,7 +512,7 @@ efAddNodes(
 	    memcpy((char *) newnode->efnode_pa, (char *) node->efnode_pa,
 			efNumResistClasses * sizeof (EFPerimArea));
 	else
-	    bzero((char *) newnode->efnode_pa,
+	    memset((char *) newnode->efnode_pa, 0,
 			efNumResistClasses * sizeof (EFPerimArea));
 	GeoTransRect(&hc->hc_trans, &node->efnode_loc, &newnode->efnode_loc);
 

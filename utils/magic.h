@@ -213,9 +213,6 @@ extern char AbortMessage[];
 
 /* System V is missing some BSDisms. */
 #ifdef SYSV
-# ifndef bzero
-#  define bzero(a, b)		memset(a, 0, b)
-# endif
 # ifndef bcmp
 #  define bcmp(a, b, c)		memcmp(b, a, c)
 # endif

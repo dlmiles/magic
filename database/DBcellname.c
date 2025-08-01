@@ -1331,7 +1331,7 @@ DBLockUse(UseName, bval)
     {
 	SearchContext scx;
 
-	bzero(&scx, sizeof(SearchContext));
+	memset(&scx, 0, sizeof(SearchContext));
 	found = 0;
 
 	HashStartSearch(&hs);
@@ -1410,7 +1410,7 @@ DBOrientUse(UseName, dodef)
     {
 	SearchContext scx;
 
-	bzero(&scx, sizeof(SearchContext));
+	memset(&scx, 0, sizeof(SearchContext));
 	found = 0;
 
 	HashStartSearch(&hs);
@@ -1573,7 +1573,7 @@ DBAbutmentUse(UseName, dolist)
     {
 	SearchContext scx;
 
-	bzero(&scx, sizeof(SearchContext));
+	memset(&scx, 0, sizeof(SearchContext));
 	found = 0;
 
 	HashStartSearch(&hs);

@@ -28,6 +28,8 @@
 
  #ifdef HAVE_SYS_IOCTL_H
   /* Linux glibc 2.x       - present
+   * MacOS 13 x86_64       - present
+   * MacOS 14 arm64        - present
    * FreeBSD 14.3-RELEASE  - present
    * OpenBSD 7.7           - present
    * Solaris 11.4          - present
@@ -38,6 +40,8 @@
 #elif defined(HAVE_TERMIO_H)
  /* Linux glibc 2.x       - present (just includes termios.h & sys/ioctl.h)
   * Linux glibc 2.45+     - not present
+  * MacOS 13 x86_64       - not present
+  * MacOS 14 arm64        - not present
   * FreeBSD 14.3-RELEASE  - not present
   * OpenBSD 7.7           - not present
   * Solaris 11.4          - present
@@ -46,6 +50,8 @@
 #else /* sgtty */
  #if defined(HAVE_SYS_IOCTL_COMPAT_H)
   /* Linux glibc 2.x       - not present
+   * MacOS 13 x86_64       - present
+   * MacOS 14 arm64        - present
    * FreeBSD 14.3-RELEASE  - not present
    * OpenBSD 7.7           - not present
    * Solaris 11.4          - not present
@@ -53,6 +59,8 @@
   #include <sys/ioctl_compat.h> /* replaced sgtty.h */
  #elif defined(HAVE_SGTTY_H)
   /* Linux glibc 2.x       - present (includes sys/ioctl.h)
+   * MacOS 13 x86_64       - present
+   * MacOS 14 arm64        - present
    * FreeBSD 14.3-RELEASE  - not present
    * OpenBSD 7.7           - not present
    * Solaris 11.4          - present

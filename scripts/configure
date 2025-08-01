@@ -9065,7 +9065,12 @@ case $target in
 
     $as_echo "#define i386 1" >>confdefs.h
 
-    $as_echo "#define _POSIX_C_SOURCE 1" >>confdefs.h
+    # _POSIX_C_SOURCE >= 200112L: setitimer()
+    # _POSIX_C_SOURCE >= 200809L: mkstemp()
+    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
+
+    # _XOPEN_SOURCE >= 500: random() srandom() truncate()
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
 
     ;;
   *darwin*)

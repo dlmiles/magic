@@ -1437,9 +1437,7 @@ dnl ----------------------------------------------------------------
 case $target in
   *-linux*)
     AC_DEFINE(linux)
-    AC_DEFINE(SYSV)
-    dnl Defining "ISC" prevents compiler failure on redefinition of "wchar_t"
-    AC_DEFINE(ISC)
+    AC_DEFINE(_DEFAULT_SOURCE)
     dnl 64-bit support for AMD Opteron
     case $target in
 	*x86_64*)

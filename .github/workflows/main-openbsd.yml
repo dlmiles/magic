@@ -101,26 +101,27 @@ jobs:
             # FIXME The build does not propertly use this information above, it was just used a
             # diagnostics to get the build to complete.
 
-            # /usr/local/lib/tcl/tcl8.6/tclConfig.sh
-            # /usr/local/lib/tcl/tk8.6/tkConfig.sh
-            # Need this to allow autoconf configure to find -lcairo when linking and testing for symbol
-            LDFLAGS="$LDFLAGS -L/usr/local/lib"
-            export LDFLAGS
+            CFLAGS="$CFLAGS -std=c17 -g"
+            CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
+            export CFLAGS
+            echo CFLAGS=$CFLAGS
+            echo CXXFLAGS=$CXXFLAGS
             # Need this to provide -I/usr/local/include because tcltk/*.c accesses <X11/Xlib.h>
             # headers but is not using GR_CFLAGS
             # CPPFLAGS want this extra option for depends and compile
             CPPFLAGS="$CPPFLAGS -I/usr/X11R6/include"
             export CPPFLAGS
+            echo CPPFLAGS=$CPPFLAGS
+            # /usr/local/lib/tcl/tcl8.6/tclConfig.sh
+            # /usr/local/lib/tcl/tk8.6/tkConfig.sh
+            # Need this to allow autoconf configure to find -lcairo when linking and testing for symbol
+            LDFLAGS="$LDFLAGS -L/usr/local/lib"
+            export LDFLAGS
+            echo LDFLAGS=$LDFLAGS
             # Need -lpthread on the linker argument
             LIBS="$LIBS -lpthread"
-            export LIBS
-            CFLAGS="$CFLAGS -std=c17 -g"
-            CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
-            echo CFLAGS=$CFLAGS
-            echo CXXFLAGS=$CXXFLAGS
-            echo CPPFLAGS=$CPPFLAGS
-            echo LDFLAGS=$LDFLAGS
             LIBS="$LIBS -L/usr/X11R6/lib"
+            export LIBS
             echo LIBS=$LIBS
             ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tcl=/usr/local/lib/tcl/tcl8.6 --with-tk=/usr/local/lib/tcl/tk8.6 --with-opengl=/usr/X11R6/include --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS

@@ -216,15 +216,6 @@ extern char AbortMessage[];
 # define	NEED_VFPRINTF
 #endif
 
-/* Some machines expect signal handlers to return an "int".  But most machines
- * expect them to return a "void".  If your machine expects an "int", put in
- * an "ifdef" below.
- */
-
-#if 	(defined(MIPSEB) && defined(SYSTYPE_BSD43)) || ibm032
-# define	SIG_RETURNS_INT
-#endif
-
 /*
  * Linux
  */

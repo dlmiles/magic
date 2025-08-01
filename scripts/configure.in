@@ -2041,7 +2041,7 @@ fi
 
 if test $usingTcl ; then
    ${ECHO_N} "Tcl/Tk:       "
-   echo "yes"
+   echo "yes (${TCL_VERSION}/${TK_VERSION})"
 else
    if test $usingScheme ; then
      ${ECHO_N} "Scheme:       "

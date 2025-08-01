@@ -6,6 +6,10 @@ name: CI-cygwin
 on:
   push:
   workflow_dispatch:
+    inputs:
+      MYENV:
+        required: false
+        type: string
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,6 +26,8 @@ jobs:
       - name: Setup Cygwin
         id: cygwin
         uses: cygwin/cygwin-install-action@v6
+        env:
+          MYENV: ${{ inputs.MYENV }}
         with:
           packages: >-
             automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 \
@@ -35,6 +41,8 @@ jobs:
         run: |
           set -o
           set +e
+          echo MYENV=$MYENV
+          test -f /etc/os-release && cat /etc/os-release
           cygcheck -s
           cygcheck --inst -i cygwin
           cygcheck --inst -i tk-devel

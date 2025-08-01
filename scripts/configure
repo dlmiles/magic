@@ -9065,6 +9065,8 @@ case $target in
 
     $as_echo "#define i386 1" >>confdefs.h
 
+    $as_echo "#define _POSIX_C_SOURCE 1" >>confdefs.h
+
     ;;
   *darwin*)
     if test "$CPP" = "cc -E" ; then

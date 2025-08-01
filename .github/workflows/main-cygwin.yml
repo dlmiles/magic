@@ -26,7 +26,7 @@ jobs:
           packages: >-
             automake autoconf bash coreutils sed grep findutils pkg-config make gcc-g++ perl python3 \
             tcl-tk-devel tcl-devel libreadline-devel libncurses-devel \
-            libX11-devel libX11-xcb-devel libICE-devel libXmu-devel libXext-devel \
+            libX11-devel libX11-xcb-devel libICE-devel libXi-devel libXmu-devel libXext-devel \
             libcairo-devel libGL-devel libGLU-devel zlib-devel
 
       - name: System Info

@@ -366,15 +366,19 @@ NLSort(netList, netHeap)
 #if defined(__APPLE__)
 /* MacOS provides get_etext(void) function */
 #include <mach-o/getsect.h>	/* get_etext() */
+#elif defined(EMSCRIPTEN)
+static const void *
+get_etext(void)
+{
+    /* unknown, WASM is more like a Harvard machine than a Von Neumann machine */
+    /* WASM employs code verification and security that keeps code and data isolated by default */
+    return NULL;
+}
 #else
 static const void *
 get_etext(void)
 {
-#if defined(EMSCRIPTEN)
-    /* unknown, WASM is more like a Harvard machine than a Von Neumann machine */
-    /* WASM employs code verification and security that keeps code and data isolated by default */
-    return NULL;
-#elif defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
+#if defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
     extern char etext;
 #elif defined(linux) && defined(__clang__)
     extern char etext;

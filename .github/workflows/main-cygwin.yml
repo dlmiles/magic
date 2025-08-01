@@ -123,6 +123,7 @@ jobs:
           [ -z "$with_tk_libsdir" ] && with_tk_libsdir=$(find /usr -type f -name tkConfig.sh -printf "%h\n" | head -n1)
           with_cairo_libsdir=$(pkg-config --libs-only-L   cairo  | sed -e 's/-L//g') # multiple
           echo --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir} --with-tk=${with_tk_libsdir} --with-cairo=/usr/local/include ${with_cairo_libsdir}
+
           # The only really important ones as --with-tcl and --with-tk the others
           CFLAGS="$CFLAGS -std=c17 -g"
           export CFLAGS

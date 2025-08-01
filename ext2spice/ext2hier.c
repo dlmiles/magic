@@ -43,7 +43,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "extflat/extflat.h"
 #include "extflat/EFint.h"
 #include "extract/extract.h"	/* for extDevTable */
-#include "utils/runstats.h"
 #include "ext2spice/ext2spice.h"
 
 /* C99 compat */

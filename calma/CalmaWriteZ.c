@@ -988,7 +988,7 @@ calmaProcessDefZ(
 	else
 	{
 	    offptr = (char *)DBPropGet(def, "GDS_END", NULL);
-	    sscanf(offptr, "%"DLONG_PREFIX, &cval);
+	    sscanf(offptr, "%"DLONG_FMTd, &cval);
 	    cellend = (z_off_t)cval;
 	    offptr = (char *)DBPropGet(def, "GDS_BEGIN", &oldStyle);
 	    if (!oldStyle)
@@ -1010,7 +1010,7 @@ calmaProcessDefZ(
 		calmaOutStructNameZ(CALMA_STRNAME, def, outf);
 	    }
 
-	    sscanf(offptr, "%"DLONG_PREFIX, &cval);
+	    sscanf(offptr, "%"DLONG_FMTd, &cval);
 	    cellstart = (z_off_t)cval;
 
 	    /* GDS_START has been defined as the start of data after the cell	*/
@@ -1032,7 +1032,7 @@ calmaProcessDefZ(
 		if (buffer[0] != 0x06 || buffer[1] != 0x06)
 		{
 		    TxError("Calma output error:  Structure name not found"
-				" at GDS file position %"DLONG_PREFIX"\n", cellstart);
+				" at GDS file position %"DLONG_FMTd"\n", cellstart);
 		    TxError("Calma output error:  Can't write cell from vendor GDS."
 				"  Using magic's internal definition\n");
 		    isReadOnly = FALSE;
@@ -1079,7 +1079,7 @@ calmaProcessDefZ(
 				buffer[defsize - 1] != 0x00)
 		    {
 			TxError("Calma output error:  Structure end definition not found"
-				" at GDS file position %"DLONG_PREFIX"\n", cellend);
+				" at GDS file position %"DLONG_FMTd"\n", cellend);
 			TxError("Calma output error:  Can't write cell from vendor GDS."
 				"  Using magic's internal definition\n");
 			isReadOnly = FALSE;
@@ -1102,8 +1102,8 @@ calmaProcessDefZ(
 				"  Using magic's internal definition\n");
 
 		    /* Additional information as to why data did not match */
-		    TxError("Size of data requested: %"DLONG_PREFIX, defsize);
-		    TxError("Length of data read: %"DLONG_PREFIX, numbytes);
+		    TxError("Size of data requested: %"DLONG_FMTd, defsize);
+		    TxError("Length of data read: %"DLONG_FMTd, numbytes);
 		    isReadOnly = FALSE;
 		}
 		freeMagic(buffer);

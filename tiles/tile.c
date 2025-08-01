@@ -810,7 +810,7 @@ void
 tiPrint(
     Tile *tp)
 {
-    printf("tp=%p LL=(%d,%d) body=0x%"DLONG_PREFIX"x\n",
+    printf("tp=%p LL=(%d,%d) body=0x%"DLONG_FMTd"x\n",
 	(void *) tp, LEFT(tp), BOTTOM(tp), (dlong) tp->ti_body);
     printf("BL=%p LB=%p RT=%p TR=%p\n",
         (void *) BL(tp), (void *) LB(tp), (void *) RT(tp), (void *) TR(tp));

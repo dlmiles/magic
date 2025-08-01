@@ -426,7 +426,7 @@ void rtrPinShow(pin)
 
     area = pin->gcr_ch->gcr_area;
     (void) sprintf(mesg,
-	"ChanType=%d grid=(%d,%d) point=(%d,%d) Net=%"DLONG_PREFIX", linked=%p",
+	"ChanType=%d grid=(%d,%d) point=(%d,%d) Net=%"DLONG_FMTd", linked=%p",
 		pin->gcr_ch->gcr_type,
 		pin->gcr_x, pin->gcr_y,
 		pin->gcr_point.p_x, pin->gcr_point.p_y,

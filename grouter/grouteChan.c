@@ -362,7 +362,7 @@ glChanCheckFunc(tile, ch)
 	if (tile->ti_client != (ClientData) ch)
 	{
 	    TITORECT(tile, &r);
-	    (void) sprintf(mesg, "Tile client 0x%"DLONG_PREFIX"x doesn't match chan %p",
+	    (void) sprintf(mesg, "Tile client 0x%"DLONG_FMTd"x doesn't match chan %p",
 		    (dlong) tile->ti_client, (void *) ch);
 	    DBWFeedbackAdd(&r, mesg, EditCellUse->cu_def,
 		    1, STYLE_MEDIUMHIGHLIGHTS);
@@ -462,7 +462,7 @@ glChanShowFunc(tile)
 
     TITORECT(tile, &r);
     ShowRect(EditCellUse->cu_def, &r, STYLE_PALEHIGHLIGHTS);
-    (void) sprintf(mesg, "tile ch=%"DLONG_PREFIX"x type=%d",
+    (void) sprintf(mesg, "tile ch=%"DLONG_FMTd"x type=%d",
 		(dlong) tile->ti_client, TiGetType(tile));
     TxMore(mesg);
     ShowRect(EditCellUse->cu_def, &r, STYLE_ERASEHIGHLIGHTS);

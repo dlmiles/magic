@@ -746,7 +746,7 @@ extOutputNodes(nodeList, outFile)
 
 	/* Output its area and perimeter for each resistivity class */
 	for (n = 0; n < ExtCurStyle->exts_numResistClasses; n++)
-	    fprintf(outFile, " %"DLONG_PREFIX" %d", reg->nreg_pa[n].pa_area,
+	    fprintf(outFile, " %"DLONG_FMTd" %d", reg->nreg_pa[n].pa_area,
 				reg->nreg_pa[n].pa_perim);
 	(void) putc('\n', outFile);
 

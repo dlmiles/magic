@@ -1,11 +1,21 @@
-# This is a basic workflow to help you get started with Actions
-
+#
 name: CI-solaris
 
-# Controls when the workflow will run
 on:
   push:
   workflow_dispatch:
+    inputs:
+      OS_VERSION:
+        description: VM OS Version
+        required: false
+        # https://github.com/vmactions/solaris-vm
+        # [28-Aug-2018] 11.4
+        # [28-Aug-2018] 11.4-gcc
+        default: '11.4'
+        type: string
+      MYENV:
+        required: false
+        type: string
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -17,13 +27,18 @@ jobs:
       - name: Solaris shell actions
         id: solaris
         uses: vmactions/solaris-vm@v1
+        env:
+          MYENV: ${{ inputs.MYENV }}
         with:
           envs: MYENV
+          release: ${{ inputs.OS_VERSION }}
           usesh: true
           prepare: |
             pkgutil -y -i bash gmake ggrep gsed libz_dev tcl_dev tk_dev libcairo_dev freeglut git python33 perl libreadline_dev libncurses_dev findutils binutils gcc5core gcc5g++ pkgconfig
           run: |
             set +e
+            echo MYENV=$MYENV
+            test -f /etc/os-release && cat /etc/os-release
             cat /etc/release
             uname -a
             psrinfo -vp

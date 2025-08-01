@@ -9049,13 +9049,14 @@ case $target in
 
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
-    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+    # Lower settings than _XOPEN_SOURCE=600 result in compiler error due to enforcement of c89
+    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
 
     ;;
   *-freebsd*)
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
-    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
 
     $as_echo "#define _BSD_SOURCE 1" >>confdefs.h
 
@@ -9063,7 +9064,7 @@ case $target in
   *-openbsd*)
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
-    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
 
     # _BSD_SOURCE: MAP_ANON
     $as_echo "#define _BSD_SOURCE 1" >>confdefs.h

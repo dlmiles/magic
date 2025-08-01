@@ -9047,6 +9047,22 @@ case $target in
   *solaris*)
     $as_echo "#define SYSV 1" >>confdefs.h
 
+    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
+
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+
+    ;;
+  *-freebsd*)
+    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
+
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+
+    ;;
+  *-openbsd*)
+    $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
+
+    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+
     ;;
   *irix*)
     $as_echo "#define SYSV 1" >>confdefs.h

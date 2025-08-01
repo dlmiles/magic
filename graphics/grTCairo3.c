@@ -10,7 +10,11 @@
  */
 
 /* M_PI from CYGWIN needs */
+#ifdef __sun
+#define _XOPEN_SOURCE 1
+#else
 #define _XOPEN_SOURCE 700
+#endif
 
 #include <stdio.h>
 #include <string.h>

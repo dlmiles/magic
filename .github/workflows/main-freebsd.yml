@@ -107,7 +107,7 @@ jobs:
             # Need this to provide -I/usr/local/include because tcltk/*.c accesses <X11/Xlib.h>
             # headers but is not using GR_CFLAGS
             # CPPFLAGS want this extra option for depends and compile
-            CPPFLAGS="-I/usr/local/include"
+            CPPFLAGS="$CPPFLAGS -I/usr/local/include"
             export CPPFLAGS
             with_x11_libsdir=$(  pkg-config --libs-only-L   x11    | sed -e 's/-L//g')
             echo with_x11_libsdir=$with_x11_libsdir
@@ -131,7 +131,10 @@ jobs:
             echo LIBS=$LIBS
             ./configure --x-libraries=${with_x11_libsdir} --x-includes=${with_x11_incsdir} --with-tcl=${with_tcl_libsdir}/tcl8.6 --with-tk=${with_tk_libsdir}/tk8.6 --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CFLAGS
+            unset CXXFLAGS
             unset CPPFLAGS
+            unset LDFLAGS
+            unset LIBS
 
             echo "===== defs.mak ====="
             cat defs.mak

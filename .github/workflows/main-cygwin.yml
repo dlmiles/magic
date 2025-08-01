@@ -83,6 +83,7 @@ jobs:
           [ -d /usr/share/pkgconfig ] && dirs="$dirs /usr/share/pkgconfig"
           find $dirs -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
           find $dirs -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+          find $dirs -type f \( -name "libX11*" -or -name "libXi*" -or -name "libXmu*" -or -name "libXext*" -or -name "libICE*" \) -print
           find $dirs -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
           find $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
           find $dirs -type f \( -name "tclsh" -or -name "tclsh[89]*" -or -name "wish" -or -name "wish[89]*" \) -print

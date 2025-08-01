@@ -28,7 +28,7 @@
 #define VERSATEC		/* Add this for HP plotter support */
 
 /* system V machines lack vfont.h, so include the defs below. */
-#if  !defined(SYSV) && !defined(__FreeBSD__) && !defined(__NetBSD__) && !defined(CYGWIN) && !defined(__APPLE__) && !defined(__DragonFly__) && !defined(__OpenBSD__) && !defined(EMSCRIPTEN)
+#ifdef HAVE_VFONT_H
 #include <vfont.h>
 #else
 struct header {
@@ -45,7 +45,7 @@ struct dispatch {
         char up,down,left,right;
         short width;
 };
-#endif	/* SYSV */
+#endif	/* HAVE_VFONT_H */
 
 /* The structure below is used for raster output, e.g. to a Versatec
  * printer.  It defines a rectangular raster area in which to fill

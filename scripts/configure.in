@@ -154,6 +154,11 @@ AC_CHECK_FUNCS(setrlimit)
 dnl Check for vfork
 AC_CHECK_FUNC(vfork)
 
+dnl Check for sigaction
+AC_CHECK_FUNC(sigaction, [
+	AC_DEFINE(HAVE_SIGACTION, 1, [])
+])
+
 dnl Check for <sys/mman.h>
 AC_CHECK_HEADERS(sys/mman.h)
 

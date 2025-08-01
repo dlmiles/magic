@@ -86,6 +86,7 @@ jobs:
             [ -d /usr/bin ]   && dirs="$dirs /usr/bin"
             gfind $dirs -type f \( -name "tkConfig.sh" -or -name "tclConfig.sh" \) -print
             gfind $dirs -type f \( -name "lib*cairo*" -or -name "lib*tk*" -or -name "lib*tcl*" \) -print
+            gfind $dirs -type f \( -name "libX11*" -or -name "libXi*" -or -name "libXmu*" -or -name "libXext*" -or -name "libICE*" \) -print
             gfind $dirs -type f \( -name "tcl.h" -or -iname "Xlib*.h" -or -name "cairo.h" \) -print
             gfind $dirs -type f \( -name "tcl*.pc" -or -name "tk*.pc" -or -name "*cairo*.pc" -or -name "freeglut*.pc" \) -print
             gfind $dirs -type f \( -name "tclsh" -or -name "tclsh[89]*" -or -name "wish" -or -name "wish[89]*" \) -print
@@ -113,10 +114,13 @@ jobs:
             # Need -lpthread on the linker argument
             LIBS="$LIBS -lpthread"
             export LIBS
+            CFLAGS="$CFLAGS -std=c17 -g"
+            CFLAGS="$CFLAGS -Wno-deprecated-non-prototype"
             echo CFLAGS=$CFLAGS
             echo CXXFLAGS=$CXXFLAGS
             echo CPPFLAGS=$CPPFLAGS
             echo LDFLAGS=$LDFLAGS
+            LIBS="$LIBS -L/usr/X11R6/lib"
             echo LIBS=$LIBS
             ./configure --x-libraries=/usr/X11R6/lib --x-includes=/usr/X11R6/include --with-tcl=/usr/local/lib/tcl/tcl8.6 --with-tk=/usr/local/lib/tcl/tk8.6 --with-opengl=/usr/X11R6/include --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
             unset CPPFLAGS

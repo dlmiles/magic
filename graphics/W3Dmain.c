@@ -231,12 +231,12 @@ w3dFillDiagonal(x1, y1, x2, y2, ztop, zbot)
 }
 
 void
-w3dFillOps(trans, tile, cliprect, ztop, zbot)
-    Transform *trans;
-    Tile *tile;
-    Rect *cliprect;
-    float ztop;
-    float zbot;
+w3dFillOps(
+    const Transform *trans,
+    Tile *tile,
+    Rect *cliprect,
+    float ztop,
+    float zbot)
 {
     LinkedRect *tilesegs, *segptr;
     Rect r, r2;
@@ -409,10 +409,10 @@ w3dRenderVolume(tile, trans, cliprect)
 }
 
 void
-w3dRenderCIF(tile, layer, trans)
-    Tile *tile;
-    CIFLayer *layer;
-    Transform *trans;
+w3dRenderCIF(
+    Tile *tile,
+    CIFLayer *layer,
+    const Transform *trans)
 {
     float zbot, ztop;
     float ftop, fthk;

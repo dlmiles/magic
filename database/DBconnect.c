@@ -70,9 +70,9 @@ Stack *dbConnectStack = (Stack *)NULL;
  */
 
 TileType
-DBTransformDiagonal(oldtype, trans)
-    TileType oldtype;
-    Transform *trans;
+DBTransformDiagonal(
+    TileType oldtype,
+    const Transform *trans)
 {
     TileType dinfo;
     int o1, o2, o3, dir, side;

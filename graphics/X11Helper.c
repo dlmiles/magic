@@ -303,7 +303,7 @@ MapWindow(int signo)
 void
 sigSetAction(int signo, RETSIGTYPE (*handler)(int))
 {
-#if defined(SYSV) || defined(CYGWIN)
+#ifdef HAVE_SIGACTION
   struct sigaction sa;
 
   sa.sa_handler = handler;

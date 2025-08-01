@@ -74,11 +74,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 /* specially imported */
 extern bool DBWriteBackup();
 
-/* macs support BSD4.2 signals, so turn off the SYSV flag for this module */
-#ifdef __APPLE__
-#undef SYSV
-#endif
-
 void sigSetAction(int, RETSIGTYPE (*)(int));
 
 /* becomes true when we get an interrupt */
@@ -666,7 +661,11 @@ SigInit(batchmode)
 #endif
     }
 
-#if !defined(SYSV) && !defined(CYGWIN) && !defined(EMSCRIPTEN)
+#ifdef HAVE_SIGACTION
+    sigset_t sigset;
+    sigemptyset(&sigset);
+    sigprocmask(SIG_SETMASK, &sigset, NULL);
+#else
     sigsetmask(0);
 #endif
 }
@@ -674,7 +673,7 @@ SigInit(batchmode)
 void
 sigSetAction(int signo, RETSIGTYPE (*handler)(int))
 {
-#if defined(SYSV) || defined(CYGWIN) || defined(__NetBSD__) || defined(EMSCRIPTEN)
+#ifdef HAVE_SIGACTION
     struct sigaction sa;
 
     sa.sa_handler = handler;

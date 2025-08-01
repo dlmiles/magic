@@ -5575,6 +5575,15 @@ if test "x$ac_cv_func_vfork" = xyes; then :
 fi
 
 
+ac_fn_c_check_func "$LINENO" "sigaction" "ac_cv_func_sigaction"
+if test "x$ac_cv_func_sigaction" = xyes; then :
+
+	$as_echo "#define HAVE_SIGACTION 1" >>confdefs.h
+
+
+fi
+
+
 for ac_header in sys/mman.h
 do :
   ac_fn_c_check_header_mongrel "$LINENO" "sys/mman.h" "ac_cv_header_sys_mman_h" "$ac_includes_default"

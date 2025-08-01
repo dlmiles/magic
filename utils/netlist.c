@@ -365,7 +365,7 @@ NLSort(netList, netHeap)
 
 #if defined(__APPLE__)
 /* MacOS provides get_etext(void) function */
-#include <mach-o/getsect.h>	/* get_etext() */
+#include <mach-o/getsect.h>	/* unsigned long get_etext(void) */
 #elif defined(EMSCRIPTEN)
 static const void *
 get_etext(void)
@@ -404,7 +404,7 @@ NLNetName(net)
 	return "(NULL)";
 
     /* Handle case of small integers, for debugging the channel router */
-    const void *etext_value = get_etext();
+    const void *etext_value = (const void *) (pointertype) get_etext();
     if (etext_value && net <= (const NLNet *)etext_value)
     {
 	(void) sprintf(tempId, "#%"DLONG_FMTd, (dlong) net);

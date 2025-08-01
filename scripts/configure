@@ -9092,7 +9092,7 @@ case $target in
     $as_echo "#define _POSIX_C_SOURCE 200809L" >>confdefs.h
 
     # _XOPEN_SOURCE >= 500: random() srandom() truncate()
-    $as_echo "#define _XOPEN_SOURCE 500" >>confdefs.h
+    $as_echo "#define _XOPEN_SOURCE 600" >>confdefs.h
 
     ;;
   *darwin*)

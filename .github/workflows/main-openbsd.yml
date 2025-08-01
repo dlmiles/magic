@@ -129,6 +129,10 @@ jobs:
             unset LDFLAGS
             unset LIBS
 
+            echo "===== config.log ====="
+            cat scripts/config.log
+            echo "===== config.log ====="
+
             echo "===== defs.mak ====="
             cat defs.mak
             echo "===== defs.mak ====="

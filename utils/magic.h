@@ -213,9 +213,6 @@ extern char AbortMessage[];
 
 /* System V is missing some BSDisms. */
 #ifdef SYSV
-# ifndef bcmp
-#  define bcmp(a, b, c)		memcmp(b, a, c)
-# endif
 #endif
 
 /* Some machines need vfprintf().  (A temporary MIPS bug?) (see txOutput.c) */

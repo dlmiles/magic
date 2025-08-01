@@ -1760,7 +1760,7 @@ glLogPath(inPt, cost)
 {
     extern Rect glInitRect;
 
-    if (bcmp((char *)&inPt->gl_range, (char *)&glInitRect, sizeof (Rect)) == 0)
+    if (memcmp((char *)&glInitRect, (char *)&inPt->gl_range, sizeof (Rect)) == 0)
     {
 	fprintf(glLogFile, "TOP\t%d\t%d,%d\t%d\t%d\n",
 		glNumTries,

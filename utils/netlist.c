@@ -363,31 +363,44 @@ NLSort(netList, netHeap)
  * ----------------------------------------------------------------------------
  */
 
+#if defined(__APPLE__)
+/* MacOS provides get_etext(void) function */
+#include <mach-o/getsect.h>	/* get_etext() */
+#else
+static const void *
+get_etext(void)
+{
+#if defined(EMSCRIPTEN)
+    /* unknown, WASM is more like a Harvard machine than a Von Neumann machine */
+    /* WASM employs code verification and security that keeps code and data isolated by default */
+    return NULL;
+#elif defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
+    extern char etext;
+#elif defined(linux) && defined(__clang__)
+    extern char etext;
+#elif defined(CYGWIN)
+    extern char etext;
+#elif defined(linux
+    extern int etext asm("etext");
+#else
+    extern int etext;
+#endif
+    return (const void *) &etext;
+}
+#endif
+
 char *
 NLNetName(net)
     NLNet *net;
 {
     static char tempId[100];
-#if defined(EMSCRIPTEN)
-    int etext;
-#elif defined(linux) && defined(__GLIBC__) && defined(__GLIBC_MINOR__) && (__GLIBC__ >= 2) && (__GLIBC_MINOR__ >= 29)
-    extern char etext;
-#elif defined(linux) && defined(__clang__)
-    extern char etext;
-#elif defined(linux) || defined(CYGWIN)
-    extern int etext asm("etext");
-#elif defined(__APPLE__)
-    int etext;
-#else
-    extern int etext;
-#endif
     NLTerm *term;
 
     if (net == (NLNet *) NULL)
 	return "(NULL)";
 
     /* Handle case of small integers, for debugging the channel router */
-    if (net <= (NLNet *)(&etext))
+    if (net <= (const NLNet *)get_etext())
     {
 	(void) sprintf(tempId, "#%"DLONG_PREFIX"d", (dlong) net);
 	return tempId;

@@ -142,6 +142,8 @@ AC_TYPE_SIGNAL
 
 AC_FUNC_ALLOCA
 
+AC_FUNC_VPRINTF
+
 dnl Need either setenv or putenv
 AC_CHECK_FUNCS(setenv putenv)
 

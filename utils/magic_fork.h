@@ -24,14 +24,14 @@
 #define FORK_f(pid) do { pid = fork(); if (pid > 0) ForkChildAdd (pid); } while (0)
 #define FORK_vf(pid) do { pid = vfork(); if (pid > 0) ForkChildAdd (pid); } while (0)
 
-#ifdef HAVE_WORKING_VFORK
+//#ifdef HAVE_WORKING_VFORK
 
-#define FORK(pid) FORK_vf(pid)
+//#define FORK(pid) FORK_vf(pid)
 
-#else
+//#else
 
 #define FORK(pid) FORK_f(pid)
 
-#endif
+//#endif
 
 #endif /* _MAGIC__UTILS__MAGIC_FORK_H */

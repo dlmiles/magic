@@ -133,7 +133,10 @@ jobs:
           echo LIBS=$LIBS
           ./configure ${with_x11_libsdir:+--x-libraries=}${with_x11_libsdir} ${with_x11_incsdir:+--x-includes=}${with_x11_incsdir} --with-tcl=${with_tcl_libsdir} --with-tk=${with_tk_libsdir} --with-cairo=/usr/local/include 2>&1 | tee CONFIGURE.LOG
           unset CFLAGS
+          unset CXXFLAGS
           unset CPPFLAGS
+          unset LDFLAGS
+          unset LIBS
 
           echo "===== defs.mak ====="
           cat defs.mak

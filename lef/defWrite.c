@@ -36,7 +36,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "drc/drc.h"		/* for querying width, spacing rules */
 
 /* C99 compat */
-#include "utils/signals.h"
 #include "textio/textio.h"
 
 /*----------------------------------------------------------------------*/

@@ -20,7 +20,6 @@
 #include "graphics/graphicsInt.h"
 #include "dbwind/dbwind.h"
 #include "textio/textio.h"
-#include "utils/signals.h"
 #include "utils/utils.h"
 #include "utils/hash.h"
 #include "graphics/grTOGLInt.h"

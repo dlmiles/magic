@@ -35,7 +35,6 @@
 #include "debug/debug.h"
 #include "extract/extract.h"
 #include "extract/extractInt.h"
-#include "utils/signals.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/styles.h"

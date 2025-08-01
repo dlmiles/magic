@@ -34,7 +34,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "windows/windows.h"
 #include "utils/main.h"
 #include "dbwind/dbwind.h"
-#include "utils/signals.h"
 #include "netmenu/netmenu.h"
 #include "gcr/gcr.h"
 #include "router/router.h"

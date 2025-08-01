@@ -32,7 +32,6 @@ static char sccsid[] = "@(#)groutePoint.c	4.9 MAGIC (Berkeley) 12/6/85";
 #include "windows/windows.h"
 #include "utils/main.h"
 #include "dbwind/dbwind.h"
-#include "utils/signals.h"
 #include "router/router.h"
 #include "grouter/grouter.h"
 #include "textio/textio.h"

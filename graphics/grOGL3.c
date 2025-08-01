@@ -31,7 +31,6 @@
 #include "windows/windows.h"
 #include "graphics/graphicsInt.h"
 #include "textio/textio.h"
-#include "utils/signals.h"
 #include "utils/utils.h"
 #include "utils/hash.h"
 #include "dbwind/dbwind.h"

@@ -30,7 +30,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header:";
 #include "utils/hash.h"
 #include "utils/heap.h"
 #include "database/database.h"
-#include "utils/signals.h"
 #include "textio/textio.h"
 #include "utils/list.h"
 #include "debug/debug.h"

@@ -95,7 +95,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "tiles/tile.h"
 #include "utils/hash.h"
 #include "database/database.h"
-#include "utils/signals.h"
 #include "textio/textio.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"

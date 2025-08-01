@@ -19,7 +19,6 @@ static char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magic-8.0/
 #include "dbwind/dbwind.h"
 #include "dbwind/dbwtech.h"
 #include "drc/drc.h"
-#include "utils/signals.h"
 #include "utils/stack.h"
 #include "utils/maxrect.h"
 

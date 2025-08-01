@@ -45,7 +45,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/runstats.h"
 #include "textio/textio.h"
 #include "graphics/graphics.h"
-#include "utils/signals.h"
 #include "utils/utils.h"
 #include "textio/txcommands.h"
 

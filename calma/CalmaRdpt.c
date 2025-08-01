@@ -42,7 +42,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "cif/cif.h"
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"
-#include "utils/signals.h"
 #include "windows/windows.h"
 #include "dbwind/dbwind.h"
 #include "utils/styles.h"

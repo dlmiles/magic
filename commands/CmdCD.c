@@ -48,7 +48,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/styles.h"
 #include "router/rtrDcmpose.h"
 #include "select/select.h"
-#include "utils/signals.h"
 #include "utils/malloc.h"
 #include "cif/CIFint.h"
 #include "cif/CIFread.h"

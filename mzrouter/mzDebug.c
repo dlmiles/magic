@@ -25,7 +25,6 @@ static char rcsid[] __attribute__ ((unused)) = "$$";
 #include <stdint.h>
 
 #include "utils/magic.h"
-#include "utils/signals.h"
 #include "textio/textio.h"
 #include "utils/hash.h"
 #include "utils/geometry.h"

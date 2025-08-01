@@ -50,7 +50,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 #include "utils/netlist.h"
 #include "netmenu/netmenu.h"
 #include "select/select.h"
-#include "utils/signals.h"
 #include "sim/sim.h"
 
 /* C99 compat */

@@ -49,7 +49,6 @@ static const char rcsid[] __attribute__ ((unused)) = "$Header: /usr/cvsroot/magi
 
 /* C99 compat */
 #include "utils/signals.h"
-#include "utils/signals.h"
 #include "drc/drc.h"
 #include "lef/lef.h"
 

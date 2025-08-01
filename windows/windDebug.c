@@ -108,8 +108,8 @@ windDump()
 	rc = rc->w_nextClient)
     {
 	TxPrintf("'%10s'  %lx %lx %lx %lx\n", rc->w_clientName,
-	    (intmax_t) rc->w_create, (intmax_t) rc->w_delete,
-	    (intmax_t) rc->w_redisplay, (intmax_t) rc->w_command);
+	    (pointertype) rc->w_create, (pointertype) rc->w_delete,
+	    (pointertype) rc->w_redisplay, (pointertype) rc->w_command);
     }
 
     TxPrintf("\n");

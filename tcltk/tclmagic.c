@@ -561,7 +561,7 @@ process_rlimit_nofile_ensure(rlim_t nofile)
 	err = setrlimit(RLIMIT_NOFILE, &rlim);
     }
     if (err != 0)
-	TxPrintf("WARNING: process_rlimit_nofile_ensure(%lu) = %d (%d) [rlim_cur=%lu rlim_max=%lu]\n", nofile, err, errno, rlim_cur, rlim.rlim_max);
+	TxPrintf("WARNING: process_rlimit_nofile_ensure(%llu) = %d (%d) [rlim_cur=%llu rlim_max=%llu]\n", nofile, err, errno, rlim_cur, rlim.rlim_max);
     return err;
 }
 #endif /* HAVE_SETRLIMIT */
@@ -579,7 +579,7 @@ process_rlimit_startup_check(void)
 	return err;
     if (rlim.rlim_cur > FD_SETSIZE)
     {
-	TxPrintf("WARNING: RLIMIT_NOFILE is above %d and Tcl_Version<9 this may cause runtime issues [rlim_cur=%lu]\n", FD_SETSIZE, rlim.rlim_cur);
+	TxPrintf("WARNING: RLIMIT_NOFILE is above %d and Tcl_Version<9 this may cause runtime issues [rlim_cur=%llu]\n", FD_SETSIZE, rlim.rlim_cur);
 	return -1;
     }
     return 0;

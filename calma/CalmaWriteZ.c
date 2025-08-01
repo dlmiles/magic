@@ -1102,8 +1102,8 @@ calmaProcessDefZ(
 				"  Using magic's internal definition\n");
 
 		    /* Additional information as to why data did not match */
-		    TxError("Size of data requested: %"DLONG_FMTd, defsize);
-		    TxError("Length of data read: %"DLONG_FMTd, numbytes);
+		    TxError("Size of data requested: %lu", defsize);
+		    TxError("Length of data read: %lu", numbytes);
 		    isReadOnly = FALSE;
 		}
 		freeMagic(buffer);

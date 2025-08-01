@@ -702,7 +702,7 @@ windFilesCmd(w, cmd)
 		case S_IFSOCK: {type = "socket"; break;}
 		default: {type = "unknown"; break;}
 	    }
-	    TxError("file descriptor %d: open  (type: '%s', inode number %ld)\n",
+	    TxError("file descriptor %d: open  (type: '%s', inode number %llu)\n",
 		fd, type, buf.st_ino);
 	    open++;
 	}

@@ -3820,7 +3820,7 @@ nodeVisitDebug(
 
     hierName = (HierName *) node->efnode_name->efnn_hier;
     nsn = nodeSpiceName(hierName, NULL);
-    TxError("** %s (%lx)\n", nsn, (intmax_t) node);
+    TxError("** %s (%lx)\n", nsn, (pointertype) node);
 
     printf("\t client.name=%s, client.m_w=%p\n",
     ((nodeClient *)node->efnode_client)->spiceNodeName,

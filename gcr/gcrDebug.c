@@ -457,32 +457,32 @@ gcrDumpPins(ch)
     for(i=0; i<=ch->gcr_width; i++)
     {
 	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
-	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
+	i, (pointertype) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(pointertype) pinArray[i].gcr_pNext, (pointertype) pinArray[i].gcr_pPrev, (pointertype) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_rPins;
     TxPrintf("RIGHT PINS\n");
     for(i=0; i<=ch->gcr_width; i++)
     {
 	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
-	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
+	i, (pointertype) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(pointertype) pinArray[i].gcr_pNext, (pointertype) pinArray[i].gcr_pPrev, (pointertype) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_bPins;
     TxPrintf("BOTTOM PINS\n");
     for(i=0; i<=ch->gcr_length; i++)
     {
 	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
-	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
+	i, (pointertype) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(pointertype) pinArray[i].gcr_pNext, (pointertype) pinArray[i].gcr_pPrev, (pointertype) pinArray[i].gcr_pId);
     }
     pinArray=ch->gcr_tPins;
     TxPrintf("TOP PINS\n");
     for(i=0; i<=ch->gcr_length; i++)
     {
 	TxPrintf("Location [%d]=%ld:  x=%d, y=%d, pNext=%ld, pPrev=%ld, id=%ld\n",
-	i, (intmax_t) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
-	(intmax_t) pinArray[i].gcr_pNext, (intmax_t) pinArray[i].gcr_pPrev, (intmax_t) pinArray[i].gcr_pId);
+	i, (pointertype) &pinArray[i], pinArray[i].gcr_x, pinArray[i].gcr_y,
+	(pointertype) pinArray[i].gcr_pNext, (pointertype) pinArray[i].gcr_pPrev, (pointertype) pinArray[i].gcr_pId);
     }
 }
 
@@ -510,8 +510,8 @@ gcrDumpPinList(pin, dir)
     if (pin)
     {
 	TxPrintf("Location (%d, %d)=%lx:  pNext=%ld, pPrev=%ld, id=%ld\n",
-		pin->gcr_x, pin->gcr_y, (intmax_t) pin,
-		(intmax_t) pin->gcr_pNext, (intmax_t) pin->gcr_pPrev, (intmax_t) pin->gcr_pId);
+		pin->gcr_x, pin->gcr_y, (pointertype) pin,
+		(pointertype) pin->gcr_pNext, (pointertype) pin->gcr_pPrev, (pointertype) pin->gcr_pId);
 	if (dir) gcrDumpPinList(pin->gcr_pNext, dir);
 	else gcrDumpPinList(pin->gcr_pPrev, dir);
     }

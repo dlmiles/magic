@@ -52,6 +52,15 @@ MAGIC_BUILDDIR="${MAGIC_BUILDDIR:-@abs_top_builddir@}"
 MAGIC_SRCDIR="${MAGIC_SRCDIR:-@abs_top_srcdir@}"
 SHDLIB_EXT="${SHDLIB_EXT:-@SHDLIB_EXT@}"
 
+# Canonicalize the build/source tops to absolute paths.  magic_stage builds the
+# CAD_DIR symlinks out of these; a *relative* value (e.g. an inherited
+# MAGIC_BUILDDIR=build-tmp) would make every staged link resolve relative to
+# CAD_DIR itself and dangle -- so absolutize any existing relative directory.
+# The baked defaults are already absolute; this only matters for env overrides.
+_magic_abspath() { if [ -d "$1" ]; then ( cd "$1" && pwd ); else printf '%s\n' "$1"; fi; }
+MAGIC_BUILDDIR="$(_magic_abspath "$MAGIC_BUILDDIR")"
+MAGIC_SRCDIR="$(_magic_abspath "$MAGIC_SRCDIR")"
+
 CAD_ROOT="${CAD_ROOT:-${MAGIC_BUILDDIR}/CAD_DIR}"
 export CAD_ROOT
 MAGIC_SYS="${CAD_ROOT}/magic/sys"

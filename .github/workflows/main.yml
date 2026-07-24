@@ -53,3 +53,30 @@ jobs:
           ./configure --without-tcl --without-opengl
           make prepare
           make -j$(nproc)
+
+  smoketest_linux:
+    # Out-of-tree Tcl build in ./build-tmp, then run the headless (-dnull) smoke
+    # tests against it via the generated run_magicnull.sh.  This exercises the
+    # relocatable/out-of-tree build path (which the in-tree jobs above do not)
+    # and confirms the binary actually boots and runs a real extract/export/DRC
+    # workflow -- see scripts/smoketest/README.md.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get Dependencies
+        # tcl/tk + cairo for the build.  No texlive: the smoke build does not
+        # need the docs (they are best-effort and fall back to pre-built PS).
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+      - name: Build out-of-tree (build-tmp)
+        run: |
+          mkdir build-tmp
+          cd build-tmp
+          ../configure
+          make prepare
+          make -j$(nproc)
+      - name: Smoke test — startup + features
+        run: scripts/smoketest/run.sh startup
+      - name: Smoke test — extract/export/DRC workflow
+        run: scripts/smoketest/run.sh workflow

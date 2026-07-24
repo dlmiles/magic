@@ -151,3 +151,7 @@ doc/latexfiles/*.log
 
 # Out-of-tree build directory (generated; was accidentally committed in e7fd0e90)
 /build-alt/
+# Out-of-tree build dir used by the CI smoke tests (scripts/smoketest) and handy
+# for local out-of-tree builds; the trailing glob also covers scratch dirs like
+# build-tmp2.  Disposable, recreated by "mkdir build-tmp && cd build-tmp && ../configure".
+/build-tmp*/

@@ -22,3 +22,26 @@ jobs:
           ./configure
           make prepare
           make -j$(nproc)
+
+  smoketest_linux_arm:
+    # ARM64 counterpart of smoketest_linux (see .github/workflows/main.yml):
+    # out-of-tree Tcl build in ./build-tmp, then the headless (-dnull) smoke
+    # tests via run_magicnull.sh.  See scripts/smoketest/README.md.
+    runs-on: ubuntu-24.04-arm
+    steps:
+      - uses: actions/checkout@v7
+      - name: Get Dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+      - name: Build out-of-tree (build-tmp)
+        run: |
+          mkdir build-tmp
+          cd build-tmp
+          ../configure
+          make prepare
+          make -j$(nproc)
+      - name: Smoke test — startup + features
+        run: scripts/smoketest/run.sh startup
+      - name: Smoke test — extract/export/DRC workflow
+        run: scripts/smoketest/run.sh workflow

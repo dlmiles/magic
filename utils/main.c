@@ -160,6 +160,7 @@ global char *MainMouseFile = NULL;
 /* information about the color display. */
 global char *MainDisplayType = NULL;
 global char *MainMonType = NULL;
+global int MainTimeoutSecs = 0;		/* -timeout <secs> watchdog; 0 = disabled */
 
 static bool MagicIsInitialized = FALSE;
 
@@ -334,6 +335,26 @@ mainDoArgs(argc, argv)
 		    RuntimeFlags |= MAIN_DEBUG;
 		    break;
 
+		/*
+		 * -timeout <secs>: arm a self-terminate watchdog (see
+		 * mainInitFinal).  A CI/batch safety net so a GUI that stalls
+		 * waiting for input cannot hang forever.
+		 */
+		case 't':
+		    if (strcmp(argv[0], "-timeout") != 0)
+		    {
+			TxError("Unknown option: '%s'\n", *argv);
+			return 1;
+		    }
+		    /* Truncate to "-t" so ArgStr() takes the *next* argv as the
+		     * value instead of the rest of "-timeout" (cf. "-rcfile"). */
+		    argv[0][2] = '\0';
+		    if ((cp = mainArg(&argc, &argv, "timeout seconds")) == NULL)
+			return 1;
+		    MainTimeoutSecs = atoi(cp);
+		    if (MainTimeoutSecs < 0) MainTimeoutSecs = 0;
+		    break;
+
 #ifdef MAGIC_WRAPPER
 		/*
 		 * "-w" for wrapper * implies -nowindow (no initial window)
@@ -371,7 +392,8 @@ mainDoArgs(argc, argv)
 		    TxError("Unknown option: '%s'\n", *argv);
 		    TxError("Usage:  magic [-g gPort] [-d devType] [-m monType] "
 				"[-i tabletPort] [-D] [-F objFile saveFile]\n"
-				"[-T technology] [-rcfile startupFile | -norcfile]"
+				"[-T technology] [-timeout secs] "
+				"[-rcfile startupFile | -norcfile]"
 #ifdef MAGIC_WRAPPER
 				"[-noconsole] [-nowindow] [-wrapper] "
 #endif
@@ -1235,6 +1257,45 @@ mainInitFinal()
      */
     UndoFlush();
     TxClearPoint();
+
+    /* Arm the -timeout watchdog, if requested.  We deliberately do NOT use
+     * SIGALRM: magic already owns it (utils/signals.c re-arms ITIMER_REAL on
+     * every WindUpdate for its interrupt handling), so an alarm() here would be
+     * clobbered by the first window update.  Instead we schedule a Tcl "after"
+     * timer -- it fires whenever the Tk event loop is being serviced, e.g. the
+     * GUI sitting idle waiting for input, which is exactly the CI hang we want
+     * to break.  The message names the -timeout value so the cause of the exit
+     * is unambiguous; exit 124 matches the timeout(1) utility's convention.
+     */
+#ifdef MAGIC_WRAPPER
+    if (MainTimeoutSecs > 0)
+    {
+	char tclcmd[512];
+
+	(void) snprintf(tclcmd, sizeof(tclcmd),
+	    "proc _magic_watchdog_timeout {secs} {\n"
+	    "    puts stderr \"magic: -timeout $secs second watchdog expired;"
+	    " terminating (exit 124).\"\n"
+	    "    flush stderr\n"
+	    "    exit 124\n"
+	    "}\n"
+	    "after %d {_magic_watchdog_timeout %d}\n",
+	    MainTimeoutSecs * 1000, MainTimeoutSecs);
+
+	if (Tcl_Eval(magicinterp, tclcmd) != TCL_OK)
+	{
+	    TxError("Failed to arm -timeout watchdog: %s\n",
+		    Tcl_GetStringResult(magicinterp));
+	    Tcl_ResetResult(magicinterp);
+	}
+	else
+	    TxPrintf("Watchdog armed: magic self-terminates after %d second%s.\n",
+		    MainTimeoutSecs, (MainTimeoutSecs == 1) ? "" : "s");
+    }
+#else
+    if (MainTimeoutSecs > 0)
+	TxError("Warning: -timeout requires the Tcl build; option ignored.\n");
+#endif /* MAGIC_WRAPPER */
 
     return 0;
 }

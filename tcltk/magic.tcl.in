@@ -189,6 +189,7 @@ for {set i 0} {$i < $argc} {incr i 1} {
       ^-g -
       ^-m -
       ^-i -
+      ^-timeout$ -
       ^-T {
          lappend argafter $x
          incr i 1

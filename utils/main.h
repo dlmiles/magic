@@ -37,6 +37,7 @@ extern char	*MainMouseFile;		/* The filename of the mouse */
 extern char	*MainGraphicsFile;	/* The filename of the display */
 extern char	*MainDisplayType;
 extern char	*MainMonType;
+extern int	MainTimeoutSecs;	/* -timeout <secs> watchdog (0 = off) */
 
 extern FILE	*mouseStream;		/* the mouse file */
 extern FILE	*graphicsStream;	/* the graphics file */

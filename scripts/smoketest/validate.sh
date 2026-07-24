@@ -41,12 +41,25 @@ fi
 case "$mode" in
     startup)  sentinel='SMOKE-STARTUP-OK'  ;;
     workflow) sentinel='SMOKE-WORKFLOW-OK' ;;
+    gui)      sentinel='SMOKE-GUI-OK'      ;;
     *) echo "validate: unknown mode '$mode'" >&2; exit 2 ;;
 esac
 if grep -q "$sentinel" "$log"; then
     ok "reached sentinel $sentinel"
 else
     fail "did not reach sentinel $sentinel"
+fi
+
+# 3b. GUI mode: magic must have really talked to the X server, not failed to
+#     open the display nor fallen back to the null graphics device.
+if [ "$mode" = "gui" ]; then
+    x_bad='could ?n.?t connect to display|can.?t open display|cannot open display|unable to open display|Using NULL graphics|no graphics device'
+    if grep -Eiq "$x_bad" "$log"; then
+        fail "X11 display/graphics failure in log:"
+        grep -Ein "$x_bad" "$log" | sed 's/^/        /' >&2
+    else
+        ok "connected to the X11 display (no display/graphics failure)"
+    fi
 fi
 
 # 4. Workflow mode: the generated artifacts must exist, be non-empty, and carry

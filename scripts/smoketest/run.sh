@@ -23,6 +23,7 @@
 #   SMOKE_MAG       input layout .mag for the workflow/gui modes     (default: npm/examples/min.mag)
 #   SMOKE_WORKDIR   scratch + output dir                            (default: fresh mktemp dir)
 #   DISPLAY         (gui mode) headless X display from x11-start.sh (required for gui)
+#   SMOKE_MAGIC_TIMEOUT (gui) magic's own -timeout watchdog seconds (default: 60; 0 = off)
 #
 # Exits 0 only if the smoke script reached its success sentinel, the launcher
 # exited cleanly, and validate.sh passed.
@@ -112,7 +113,14 @@ set +e
 if [ "$mode" = "gui" ]; then
     # -d X11 selects X11 graphics; -noconsole keeps the Tk console from
     # capturing stdin so the piped script drives the interpreter directly.
-    "${run_pfx[@]}" "$launcher" -d X11 -noconsole < "$script" > "$log" 2>&1
+    gui_opts=(-d X11 -noconsole)
+    # magic's own -timeout watchdog: a softer, self-explaining backstop that
+    # fires (printing a cause message, exiting 124) before the external
+    # `timeout` above SIGKILLs a stalled GUI.  Keep it below SMOKE_TIMEOUT; 0
+    # disables it.
+    magic_to="${SMOKE_MAGIC_TIMEOUT:-60}"
+    if [ "$magic_to" -gt 0 ] 2>/dev/null; then gui_opts+=(-timeout "$magic_to"); fi
+    "${run_pfx[@]}" "$launcher" "${gui_opts[@]}" < "$script" > "$log" 2>&1
 else
     "${run_pfx[@]}" "$launcher" < "$script" > "$log" 2>&1
 fi

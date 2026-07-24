@@ -61,6 +61,7 @@ has what it needs.
 | `SMOKE_TECH`     | `scmos`                  | technology to load                       |
 | `SMOKE_MAG`      | `npm/examples/min.mag`   | input layout for the workflow mode       |
 | `SMOKE_WORKDIR`  | fresh `mktemp` dir       | scratch + output directory (kept for inspection if set) |
+| `SMOKE_MAGIC_TIMEOUT` | `60`                | (gui) magic's own `-timeout` watchdog, in seconds; `0` disables it |
 
 ## Why a separate validator
 
@@ -71,6 +72,11 @@ tests do not trust the exit code alone.  Instead:
 1. `_prelude.tcl` gives the Tcl scripts `require`/`expect_true` helpers that
    call Tcl `[exit 1]` (which *does* propagate) the moment an assertion fails,
    and each script ends with a unique `SMOKE-*-OK` sentinel.
+   For the `gui` mode there is a second line of defence against a *hang* (a GUI
+   stalled waiting for input): the driver passes magic's own `-timeout <secs>`
+   option (`SMOKE_MAGIC_TIMEOUT`, default 60), which arms a Tcl `after` watchdog
+   inside magic that prints a cause message and exits 124 if it fires — a softer,
+   self-explaining backstop below the external `timeout` that otherwise SIGKILLs.
 2. `validate.sh` independently re-checks the run: launcher exit status, absence
    of fatal markers in the log, the sentinel was reached, and (workflow) that
    every expected artifact exists, is non-empty, and carries a format signature

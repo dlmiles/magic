@@ -502,11 +502,17 @@ def run_test(path, verbose=False):
 
     try:
         if mode == "x11":
-            ctx["win"] = sess.find_window(timeout=min(timeout, 40))
-            if not ctx["win"]:
-                raise TestError("no magic layout window appeared")
-            if verbose:
-                prog(f"layout window {ctx['win']}")
+            if shutil.which("xdotool"):
+                ctx["win"] = sess.find_window(timeout=min(timeout, 40))
+                if not ctx["win"]:
+                    raise TestError("no magic layout window appeared")
+                if verbose:
+                    prog(f"layout window {ctx['win']}")
+            else:
+                # No xdotool (e.g. macOS/XQuartz): can't find or drive the window,
+                # but the scripted send/expect part still exercises -d X11.
+                prog("xdotool not found -- skipping window confirmation")
+                ctx["win"] = ""
 
         for i, step in enumerate(spec.get("steps", []) or []):
             label = step.get("name", f"step{i+1}")

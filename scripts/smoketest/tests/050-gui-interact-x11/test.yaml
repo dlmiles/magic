@@ -1,0 +1,35 @@
+name: gui-interact-x11
+description: >
+  Drive the live GUI with xdotool interleaved with scripted send/expect: move
+  the pointer into the drawing area, set the box corners with mouse buttons
+  (real X11 events reaching magic), confirm magic stays responsive, then quit.
+mode: x11
+tech: scmos
+timeout: 90
+steps:
+  - name: load-tech
+    send: "tech load {tech}"
+  - name: pointer-into-canvas
+    xdotool: [mousemove, --window, "{win}", "480", "440"]
+  - name: box-lower-left
+    xdotool: [click, --window, "{win}", "1"]
+  - name: pointer-move
+    xdotool: [mousemove, --window, "{win}", "600", "320"]
+  - name: box-upper-right
+    xdotool: [click, --window, "{win}", "3"]
+  - sleep: 0.5
+  # Prove the GUI is still live and scripting still works after the X events.
+  - name: still-responsive
+    send: 'puts "GUI-LIVE=[tech name]/[llength [info commands paint]]"'
+    expect: "GUI-LIVE={tech}/1"
+  - name: quit
+    send: "quit -noprompt"
+expect_exit: 0
+
+# Follow-up (documented in README, not yet a stable step): drive File -> Quit
+# purely by xdotool and answer the confirmation.  The confirmation is a standard
+# tk_dialog with buttons {"no"(default), "yes"} (see TxDialog in
+# tcltk/tclmagic.c), so Return picks "no"; selecting "yes" needs Tab+space or a
+# coordinate click on the right-hand button.  The File menubutton sits at ~ (20,
+# 17) inside the layout window.  Reliable detection/timing of that modal dialog
+# on a headless WM still needs tuning, so it is kept out of the gated catalog.

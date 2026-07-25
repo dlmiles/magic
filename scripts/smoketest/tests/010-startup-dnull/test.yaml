@@ -1,0 +1,18 @@
+name: startup-dnull
+description: magic boots headless (-dnull), loads scmos, core commands exist.
+mode: dnull
+tech: scmos
+steps:
+  - name: banner
+    expect: "Using NULL graphics device"
+  - name: tech-load
+    send: "tech load {tech}"
+  - name: tech-name
+    send: 'puts "TECHNAME=[tech name]"'
+    expect: "TECHNAME={tech}"
+  - name: have-commands
+    send: 'puts "HAVE=[expr {[llength [info commands extract]]+[llength [info commands gds]]+[llength [info commands drc]]}]"'
+    expect: "HAVE=3"
+  - name: quit
+    send: "quit -noprompt"
+expect_exit: 0

@@ -1,0 +1,34 @@
+name: workflow-x11
+description: the same extract/export/DRC workflow as 020, but through the real
+  X11 GUI; outputs must be functionally identical.
+mode: x11
+tech: scmos
+inputs:
+  - npm/examples/min.mag
+steps:
+  - send: "tech load {tech}"
+  - name: load
+    send: "load {work}/{cell}"
+    expect: "Cell {cell} read"
+  - send: "extract path {work}"
+  - name: extract
+    send: "extract all"
+    expect: "Extracting {cell}"
+  - send: "ext2spice {work}/{cell}"
+  - send: "gds write {work}/{cell}.gds"
+  - send: "cif write {work}/{cell}"
+  - send: "drc catchup"
+  - name: drc
+    send: "drc count total"
+    expect: "Total DRC errors found"
+  - name: outputs
+    assert:
+      nonempty: "{work}/{cell}.ext"
+      contains: { file: "{work}/{cell}.spice", pattern: "SPICE" }
+      min_lines: { file: "{work}/{cell}.ext", n: 5 }
+  - name: gds-is-gdsii
+    validate:
+      run: ["od", "-An", "-tx1", "-N4", "{work}/{cell}.gds"]
+      stdout_matches: "00 06 00 02"
+  - send: "quit -noprompt"
+expect_exit: 0

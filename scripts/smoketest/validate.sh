@@ -85,19 +85,21 @@ if [ "$mode" = "workflow" ]; then
         local n; n=$(grep -c '' "$1" 2>/dev/null || echo 0)
         if [ "$n" -ge "$2" ]; then ok "$3 ($n lines)"; else fail "$3: only $n lines (< $2) in $1"; fi
     }
-    # Diagnostics for cross-run / cross-platform comparison: size, line count, a
-    # stable checksum, and the first + last 64 bytes in hex.  Any stray CR/LF
-    # (0d/0a) shows here, and the cksum lets a change between CI runs be spotted
-    # at a glance (POSIX cksum -- same algorithm on Linux and macOS).
-    dump_file() {   # dump_file <path> <name>
-        local f="$1" name="$2" sz lines crc
+    # Per-artifact line for cross-run / cross-platform comparison: size, line
+    # count, and a stable CRC32 in hex (POSIX cksum -- same algorithm on Linux
+    # and macOS).  With a second arg of 1 it also dumps the first + last 64 bytes
+    # in hex (used only on failure, where any stray CR/LF 0d/0a shows directly).
+    dump_file() {   # dump_file <path> <name> [with_hex 0|1]
+        local f="$1" name="$2" hx="${3:-0}" sz lines crc
         if [ ! -f "$f" ]; then echo "  DUMP $name: (missing $f)"; return; fi
         sz=$(wc -c < "$f" | tr -d ' ')
         lines=$(wc -l < "$f" | tr -d ' ')
-        crc=$(cksum < "$f" | awk '{print $1}')
-        echo "  DUMP $name: ${sz} bytes, ${lines} lines, cksum(crc32)=${crc}"
-        echo "    head[64]: $(od -An -tx1 -N64 "$f" | tr '\n' ' ' | tr -s ' ')"
-        echo "    tail[64]: $(tail -c 64 "$f" | od -An -tx1 | tr '\n' ' ' | tr -s ' ')"
+        crc=$(cksum < "$f" | awk '{printf "%08X", $1}')
+        echo "  DUMP $name: ${sz} bytes, ${lines} lines, CRC32=${crc}"
+        if [ "$hx" = "1" ]; then
+            echo "    head[64]: $(od -An -tx1 -N64 "$f" | tr '\n' ' ' | tr -s ' ')"
+            echo "    tail[64]: $(tail -c 64 "$f" | od -An -tx1 | tr '\n' ' ' | tr -s ' ')"
+        fi
     }
 
     if check_file "$d/$cell.ext"   ".ext";   then
@@ -125,12 +127,13 @@ if [ "$mode" = "workflow" ]; then
         check_minlines "$d/$cell.cif" 8                                  "  .cif line count"
     fi
 
-    # Dump every artifact (size / lines / cksum / head+tail hex) so a difference
-    # between CI runs or platforms is visible in the log.
-    for a in ext spice gds cif; do dump_file "$d/$cell.$a" ".$a"; done
-
     # The DRC pass must have reported a total (value itself is layout-dependent).
     check_grep "$log" 'Total DRC errors found:' "  drc reported a total"
+
+    # One line per artifact (size / lines / CRC32) so a change between CI runs is
+    # visible; add the first+last 64 bytes in hex only when something failed.
+    _hex=0; [ "$fails" -gt 0 ] && _hex=1
+    for a in ext spice gds cif; do dump_file "$d/$cell.$a" ".$a" "$_hex"; done
 fi
 
 echo "smoketest[$mode]: $fails failure(s)"

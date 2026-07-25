@@ -27,6 +27,7 @@ phase.  Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
 | 040 | x11 | the 020 workflow through the real GUI; outputs functionally identical |
 | 050 | x11 | drives the GUI with xdotool mouse events interleaved with send/expect |
 | 060 | dnull | send, then `close_stdin` (EOF) + `wait` for magic to exit; changes the timeout on the fly |
+| 070 | dnull | `exec` external commands against the live process via `{pid}`; `{{…}}` escaping |
 
 ## test.yaml format
 
@@ -46,8 +47,19 @@ nothing carries between tests.  Each step may combine:
 - `set_timeout_ms:` N — change the inherited blocking timeout from here on
 - `sleep:` seconds
 - `xdotool:` `[args...]` (x11) — `{win}` is the layout window id
+- `exec:` `[argv...]` / `"cmd"` / `{run, exit, stdout_matches, stdout_contains}` — run any
+  command (e.g. against the live process via `{pid}`); fails on non-zero exit unless told otherwise
 - `assert:` `{ exists|nonempty|absent, contains: {file, pattern}, min_lines: {file, n} }`
 - `validate:` `{ run: [argv...], exit, stdout_matches, stdout_contains }` — an external checker
+
+### Placeholders & escaping
+
+Strings take `{work}` `{src}` `{testdir}` `{cwd}` `{tech}` `{cell}` `{display}`
+`{win}` `{pid}`/`{MAGICPID}` (the live magic pid), and `{default}` in `cwd:`.
+Only identifier-shaped `{name}` tokens are substituted, so Tcl braces and regex
+quantifiers (`{4}`, `{$x}`, `{a b}`) pass through untouched.  Write `{{name}}`
+for a literal `{name}`; an unknown `{identifier}` is left as-is and warned once
+on stderr (so typos surface).
 
 Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
 started) and PASS/FAIL reports the total session duration.

@@ -198,6 +198,17 @@ jobs:
         # runs, on npm/examples/min.mag, with the output artifacts validated.
         run: scripts/smoketest/run.sh workflow
 
+      - name: Run magic YAML test catalog
+        # One portable catalog: -dnull tests run headless; x11 tests self-skip
+        # without a display; the Linux-only ones (050 xdotool, 070 /proc) self-skip
+        # via `if: linux`.  PyYAML is installed best-effort if missing.
+        run: |
+          python3 -c 'import yaml' 2>/dev/null \
+            || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
+            || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
+            || pip3 install --quiet pyyaml || true
+          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
+
       - name: Summary
         if: always()
         run: |
@@ -461,6 +472,17 @@ jobs:
         # The same extract -> ext2spice -> gds -> cif -> drc pipeline the Linux CI
         # runs, on npm/examples/min.mag, with the output artifacts validated.
         run: scripts/smoketest/run.sh workflow
+
+      - name: Run magic YAML test catalog
+        # One portable catalog: -dnull tests run headless; x11 tests self-skip
+        # without a display; the Linux-only ones (050 xdotool, 070 /proc) self-skip
+        # via `if: linux`.  PyYAML is installed best-effort if missing.
+        run: |
+          python3 -c 'import yaml' 2>/dev/null \
+            || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
+            || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
+            || pip3 install --quiet pyyaml || true
+          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
 
       - name: Summary
         if: always()

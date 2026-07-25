@@ -128,6 +128,15 @@ is found the report prints the active `core_pattern` so you can see why (e.g. it
 was piped to systemd-coredump/apport).  A test that *expects* a particular
 signal death can set `expect_exit:` to the negative signal code (e.g. `-11`).
 
+Core selection is disciplined: because a test's `cwd` is reused between runs,
+only a core whose mtime is **>= the process start time** counts as this crash
+(older ones are flagged `[stale: pre-start]`), and among those the one carrying
+the pid in its name (`core.<exe>.<pid>`) is preferred.  For the selected core a
+**non-interactive all-thread backtrace** is dumped with `gdb` (Linux) or `lldb`
+(macOS) — e.g. `gdb -batch -ex 'thread apply all bt'` — so a crash is actionable
+straight from the CI log.  Install gdb/lldb for it (the debugger is only invoked
+when a core file actually exists).
+
 ## Adding a test
 
 Create `NNN-slug/test.yaml` with the next free number.  Put any input layouts

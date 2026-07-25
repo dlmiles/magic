@@ -53,5 +53,8 @@ jobs:
       - name: Start headless X server (Xvfb + openbox)
         # x11-start.sh writes DISPLAY to $GITHUB_ENV itself (see main.yml).
         run: scripts/smoketest/x11-start.sh
-      - name: Smoke test — X11 GUI startup (run_magic.sh -d X11)
-        run: scripts/smoketest/run.sh gui
+      # Same startup + workflow scripts through the real GUI (see main.yml).
+      - name: Smoke test — startup + features (X11 GUI)
+        run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh startup
+      - name: Smoke test — extract/export/DRC workflow (X11 GUI)
+        run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh workflow

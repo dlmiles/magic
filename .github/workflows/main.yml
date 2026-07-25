@@ -91,5 +91,12 @@ jobs:
         # x11-start.sh writes DISPLAY to $GITHUB_ENV itself, so the GUI step
         # below inherits it (diagnostics go to stderr / the step log).
         run: scripts/smoketest/x11-start.sh
-      - name: Smoke test — X11 GUI startup (run_magic.sh -d X11)
-        run: scripts/smoketest/run.sh gui
+      # Re-run the *same* startup + workflow smoke scripts, but through the real
+      # GUI (run_magic.sh -d X11 -noconsole) on the headless Xvfb, so the X11
+      # graphics path is exercised with identical inputs.  SMOKE_DEVICE=x11
+      # selects the GUI launcher; magic's own -timeout watchdog (120s, allowing
+      # for X latency) guards against a stalled GUI.
+      - name: Smoke test — startup + features (X11 GUI)
+        run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh startup
+      - name: Smoke test — extract/export/DRC workflow (X11 GUI)
+        run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh workflow

@@ -6,24 +6,28 @@
 # It feeds a smoke Tcl script (prefixed with _prelude.tcl) into a build-tree
 # launcher, captures the combined stdout+stderr to a log, checks the launcher's
 # exit status, then hands the log (and, where relevant, the output directory) to
-# validate.sh.  The launcher depends on the mode:
-#   startup/workflow -- run_magicnull.sh (magicdnull, null graphics: no X, no wish)
-#   gui              -- run_magic.sh -d X11 -noconsole (real X11 graphics on a
-#                       headless Xvfb+openbox; -noconsole so stdin is scriptable)
+# validate.sh.  The launcher depends on the graphics device (SMOKE_DEVICE):
+#   dnull -- run_magicnull.sh (magicdnull, null graphics: no X, no wish)
+#   x11   -- run_magic.sh -d X11 -noconsole (real X11 graphics on a headless
+#            Xvfb+openbox; -noconsole so stdin stays scriptable)
+# The startup and workflow scripts run identically under either device, so the
+# GUI is exercised with the *same* scripts as the headless run.  The 'gui' mode
+# is a small X11-only boot check; 'shutdown' tears the X server down again
+# (delegates to x11-stop.sh) and needs no build.
 #
 # Usage:
 #   scripts/smoketest/run.sh <startup|workflow|gui|shutdown>
 #
-# 'shutdown' tears down the headless X server started for the GUI mode (delegates
-# to x11-stop.sh); it needs no build.
-#
 # Environment (all optional):
+#   SMOKE_DEVICE    'dnull' (default) or 'x11'; picks the launcher for
+#                   startup/workflow ('gui' is always x11, needs DISPLAY)
 #   MAGIC_BUILDDIR  out-of-tree build dir with the launchers        (default: build-tmp)
 #   SMOKE_TECH      technology to load                              (default: scmos)
 #   SMOKE_MAG       input layout .mag for the workflow/gui modes     (default: npm/examples/min.mag)
 #   SMOKE_WORKDIR   scratch + output dir                            (default: fresh mktemp dir)
-#   DISPLAY         (gui mode) headless X display from x11-start.sh (required for gui)
-#   SMOKE_MAGIC_TIMEOUT (gui) magic's own -timeout watchdog seconds (default: 60; 0 = off)
+#   DISPLAY         headless X display from x11-start.sh            (required when device=x11)
+#   SMOKE_TIMEOUT   external hard `timeout` wrapper, seconds        (default: 180)
+#   SMOKE_MAGIC_TIMEOUT  magic's own -timeout watchdog, seconds     (default: 120; 0 = off; x11 only)
 #
 # Exits 0 only if the smoke script reached its success sentinel, the launcher
 # exited cleanly, and validate.sh passed.
@@ -44,11 +48,22 @@ if [ "$mode" = "shutdown" ]; then
     exec "$here/x11-stop.sh"
 fi
 
+# Graphics device: 'dnull' (headless, run_magicnull.sh) or 'x11' (real GUI on a
+# headless Xvfb, run_magic.sh -d X11 -noconsole).  The startup/workflow scripts
+# run identically under either, so SMOKE_DEVICE lets CI exercise both from the
+# one set of scripts; 'gui' is inherently X11.
+device="${SMOKE_DEVICE:-dnull}"
+[ "$mode" = "gui" ] && device="x11"
+case "$device" in
+    dnull|x11) ;;
+    *) echo "smoketest: SMOKE_DEVICE must be 'dnull' or 'x11', not '$device'" >&2; exit 2 ;;
+esac
+
 builddir="${MAGIC_BUILDDIR:-build-tmp}"
 # Resolve builddir to an absolute path (relative names are taken from $PWD, the
 # usual CI case where build-tmp sits next to the checkout).
 builddir="$(cd "$builddir" 2>/dev/null && pwd || true)"
-if [ "$mode" = "gui" ]; then
+if [ "$device" = "x11" ]; then
     launcher="$builddir/run_magic.sh"
 else
     launcher="$builddir/run_magicnull.sh"
@@ -58,11 +73,13 @@ if [ ! -x "$launcher" ]; then
     echo "           set MAGIC_BUILDDIR to the out-of-tree build directory." >&2
     exit 1
 fi
-if [ "$mode" = "gui" ] && [ -z "${DISPLAY:-}" ]; then
-    echo "smoketest[gui]: DISPLAY is not set -- start the headless X server first:" >&2
-    echo "                eval \"\$($here/x11-start.sh)\"   # then re-run" >&2
+if [ "$device" = "x11" ] && [ -z "${DISPLAY:-}" ]; then
+    echo "smoketest[$mode]: SMOKE_DEVICE=x11 but DISPLAY is not set -- start the" >&2
+    echo "                  headless X server first: eval \"\$($here/x11-start.sh)\"" >&2
     exit 1
 fi
+# validate.sh keys its X11 checks off the resolved device.
+export SMOKE_DEVICE="$device"
 # Hand the launcher the *absolute* build dir.  magic_run_common.sh stages
 # CAD_DIR as symlinks built from $MAGIC_BUILDDIR; a relative value there makes
 # them resolve relative to CAD_DIR itself (i.e. dangling), so the launcher's
@@ -104,23 +121,23 @@ echo "smoketest[$mode]: build=$builddir tech=$tech workdir=$workdir${DISPLAY:+ d
 # surfaces as a non-zero status (124) and fails validation, rather than hanging.
 run_pfx=()
 if command -v timeout >/dev/null 2>&1; then
-    run_pfx=(timeout -k 5 "${SMOKE_TIMEOUT:-120}")
+    run_pfx=(timeout -k 5 "${SMOKE_TIMEOUT:-180}")
 fi
 
 # Run the smoke script.  Do not let a non-zero launcher status abort this script
 # before we have reported it -- capture it and continue to validation.
 set +e
-if [ "$mode" = "gui" ]; then
+if [ "$device" = "x11" ]; then
     # -d X11 selects X11 graphics; -noconsole keeps the Tk console from
     # capturing stdin so the piped script drives the interpreter directly.
-    gui_opts=(-d X11 -noconsole)
-    # magic's own -timeout watchdog: a softer, self-explaining backstop that
-    # fires (printing a cause message, exiting 124) before the external
-    # `timeout` above SIGKILLs a stalled GUI.  Keep it below SMOKE_TIMEOUT; 0
-    # disables it.
-    magic_to="${SMOKE_MAGIC_TIMEOUT:-60}"
-    if [ "$magic_to" -gt 0 ] 2>/dev/null; then gui_opts+=(-timeout "$magic_to"); fi
-    "${run_pfx[@]}" "$launcher" "${gui_opts[@]}" < "$script" > "$log" 2>&1
+    x_opts=(-d X11 -noconsole)
+    # magic's own -timeout watchdog: a self-explaining backstop that fires (cause
+    # message + exit 124) before the external `timeout` above SIGKILLs a stalled
+    # GUI.  Default 120s to tolerate X11 latency; keep it below SMOKE_TIMEOUT.
+    # 0 disables it.
+    magic_to="${SMOKE_MAGIC_TIMEOUT:-120}"
+    if [ "$magic_to" -gt 0 ] 2>/dev/null; then x_opts+=(-timeout "$magic_to"); fi
+    "${run_pfx[@]}" "$launcher" "${x_opts[@]}" < "$script" > "$log" 2>&1
 else
     "${run_pfx[@]}" "$launcher" < "$script" > "$log" 2>&1
 fi

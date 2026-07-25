@@ -86,11 +86,17 @@ jobs:
         # later interaction step).  All packaged on 24.04/26.04, so no source
         # build is needed; libXtst/libxkbcommon come in as dependencies.  The apt
         # index was already refreshed by "Get Dependencies" above.
-        run: sudo apt-get install -y xvfb openbox wmctrl xdotool
+        # python3-yaml drives the magictest.py YAML test catalog below.
+        run: sudo apt-get install -y xvfb openbox wmctrl xdotool python3-yaml
       - name: Start headless X server (Xvfb + openbox)
         # x11-start.sh writes DISPLAY to $GITHUB_ENV itself, so the GUI step
         # below inherits it (diagnostics go to stderr / the step log).
         run: scripts/smoketest/x11-start.sh
+      # Data-driven YAML test catalog (dnull + x11 tests: send/expect, asserts,
+      # external validators, and xdotool GUI events).  DISPLAY is set, so the x11
+      # tests run here too; without it they would skip rather than fail.
+      - name: Run magic YAML test catalog
+        run: python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
       # Re-run the *same* startup + workflow smoke scripts, but through the real
       # GUI (run_magic.sh -d X11 -noconsole) on the headless Xvfb, so the X11
       # graphics path is exercised with identical inputs.  SMOKE_DEVICE=x11

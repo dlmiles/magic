@@ -98,6 +98,24 @@ tests do not trust the exit code alone.  Instead:
    every expected artifact exists, is non-empty, and carries a format signature
    (SPICE header, GDSII `HEADER` record, CIF/`.ext` tokens, a DRC total).
 
+## YAML test catalog (`magictest.py`)
+
+For richer, data-driven tests there is a small orchestrator, `magictest.py`,
+that runs magic under a pseudo-terminal (so send/expect is reliable) and
+executes a YAML test: send commands, expect output, assert on produced files,
+run external validators, and — in x11 mode — drive the GUI with xdotool.  Tests
+live in a numbered catalog under `tests/`:
+
+```sh
+python3 scripts/smoketest/magictest.py run scripts/smoketest/tests     # dnull now, x11 skipped w/o DISPLAY
+eval "$(scripts/smoketest/x11-start.sh)"
+python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v  # x11 tests too
+```
+
+See `tests/README.md` for the catalog and the `test.yaml` schema.  (Requires
+PyYAML.)  This is the extensible home for new tests; the `run.sh` modes above
+remain as the quick built-in smoke.
+
 ## GUI interaction demo (`gui-interact.sh`)
 
 `gui-interact.sh <a|b|c|all>` demonstrates three ways to drive the X11 GUI, to
@@ -131,3 +149,5 @@ is an error — use `quit -noprompt` or `exit 0`.)
 - `validate.sh` — checks the log and artifacts; the sole arbiter of pass/fail.
 - `x11-start.sh` / `x11-stop.sh` — bring up / tear down the headless Xvfb+openbox.
 - `gui-interact.sh` — the opt-in 3-mode GUI interaction demo (above).
+- `magictest.py` — YAML-driven test orchestrator (send/expect/assert/validate/xdotool).
+- `tests/` — the numbered YAML test catalog (see `tests/README.md`).

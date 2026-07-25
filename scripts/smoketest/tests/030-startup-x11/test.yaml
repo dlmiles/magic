@@ -1,0 +1,14 @@
+name: startup-x11
+description: magic boots under -d X11 on a headless display; a layout window
+  appears (checked by the orchestrator) and commands run.
+mode: x11
+tech: scmos
+steps:
+  - name: tech-load
+    send: "tech load {tech}"
+  - name: tech-name
+    send: 'puts "TECHNAME=[tech name]"'
+    expect: "TECHNAME={tech}"
+  - name: quit
+    send: "quit -noprompt"
+expect_exit: 0

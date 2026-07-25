@@ -1,6 +1,14 @@
 #!/bin/sh
 set -x
 
+# Source tree root (this script lives in scripts/).  Invoke the top ./configure
+# wrapper by absolute path -- it does --srcdir=<srcroot> and runs config.status
+# in the *current* directory -- so `configure_mac` works both in-tree (run from
+# the source root) and out-of-tree (mkdir build-tmp && cd build-tmp &&
+# ../scripts/configure_mac), exactly like ../configure does on Linux.
+srcroot=$(cd "$(dirname "$0")/.." && pwd)
+echo "srcroot=$srcroot"
+
 echo "uname_a=$(uname -a)"
 echo "uname_m=$(uname -m)" # x86_64 arm64
 
@@ -110,7 +118,7 @@ then
     CONFARGS="$CONFARGS --x-libraries=$x11_library_dir"
 fi
 
-./configure\
+"${srcroot}/configure"\
     --with-tcl="${tcl_tk_prefix_dir}"\
     --with-tk="${tcl_tk_prefix_dir}"\
     --with-cairo=$(brew --prefix cairo)/include\

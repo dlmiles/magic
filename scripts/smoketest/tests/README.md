@@ -13,9 +13,17 @@ python3 scripts/smoketest/magictest.py run scripts/smoketest/tests/020-workflow-
 python3 scripts/smoketest/magictest.py list scripts/smoketest/tests
 ```
 
-The runner exits non-zero if any test fails; x11 tests **skip** (not fail) when
-`DISPLAY` is unset, so the same catalog runs in both the headless and the GUI CI
-phase.  Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
+A failing test does **not** stop the run — every remaining test is still
+attempted — but the runner exits non-zero if any failed, so CI reports the whole
+catalog and the step still fails.  x11 tests **skip** (not fail) when `DISPLAY`
+is unset, so the same catalog runs in both the headless and the GUI CI phase.
+Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
+
+Under GitHub Actions the runner also appends a Markdown summary to
+`$GITHUB_STEP_SUMMARY` — pass/fail/skip counts plus tables of the **failed** and
+**skipped** tests (with reasons) — so they show at a glance in the job summary
+without scrolling the log.  `SMOKE_SUMMARY_LABEL` titles the section (default
+`<platform> <machine>`).
 
 ## Current tests
 

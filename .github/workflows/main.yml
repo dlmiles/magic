@@ -104,6 +104,10 @@ jobs:
       # external validators, and xdotool GUI events).  DISPLAY is set, so the x11
       # tests run here too; without it they would skip rather than fail.
       - name: Run magic YAML test catalog
+        # Runs the whole catalog even if a test fails, then exits non-zero so the
+        # step fails; SKIP/FAIL tests are summarised into $GITHUB_STEP_SUMMARY.
+        env:
+          SMOKE_SUMMARY_LABEL: Linux x86_64
         run: python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
       # Re-run the *same* startup + workflow smoke scripts, but through the real
       # GUI (run_magic.sh -d X11 -noconsole) on the headless Xvfb, so the X11

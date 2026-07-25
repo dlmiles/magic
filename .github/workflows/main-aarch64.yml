@@ -59,6 +59,10 @@ jobs:
         # x11-start.sh writes DISPLAY to $GITHUB_ENV itself (see main.yml).
         run: scripts/smoketest/x11-start.sh
       - name: Run magic YAML test catalog
+        # Runs the whole catalog even if a test fails, then exits non-zero so the
+        # step fails; SKIP/FAIL tests are summarised into $GITHUB_STEP_SUMMARY.
+        env:
+          SMOKE_SUMMARY_LABEL: Linux aarch64
         run: python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
       # Same startup + workflow scripts through the real GUI (see main.yml).
       - name: Smoke test — startup + features (X11 GUI)

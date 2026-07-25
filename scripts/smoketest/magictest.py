@@ -13,10 +13,18 @@ Usage:
     magictest.py list  <catalog-dir> [--tag T[,T]] [--filter K=V]
 
 A "catalog" is a directory of NNN-name/test.yaml tests; `run` on a directory
-executes every test.yaml under it in sorted (numbered) order and exits non-zero
-if any fails.  --tag / --filter subselect which tests run (both repeatable): a
-test matches --tag if it carries any of the named tags, and --filter K=V if its
+executes every test.yaml under it in sorted (numbered) order.  A failing test
+does NOT stop the run -- every remaining test is still attempted -- but the run
+exits non-zero if any failed, so CI reports the whole catalog yet the step still
+fails.  --tag / --filter subselect which tests run (both repeatable): a test
+matches --tag if it carries any of the named tags, and --filter K=V if its
 metadata[K] == V.
+
+Under GitHub Actions ($GITHUB_STEP_SUMMARY set) a Markdown summary of the run is
+appended to the job summary -- pass/fail/skip counts plus tables of the FAILED
+and SKIPPED tests with reasons -- so they are visible at a glance without
+scrolling the log.  Set SMOKE_SUMMARY_LABEL to title the section (default is
+"<platform> <machine>", e.g. "linux aarch64").
 
 Test YAML schema (all keys optional unless noted; per-test -- every setting
 resets to its default for each test, nothing carries between tests):
@@ -551,15 +559,19 @@ def run_test(path, verbose=False):
     # x11 environment (x11 / xquartz / openbox / ...).
     tags = {plat} | _x11_tags(os.environ.get("DISPLAY", ""))
     if not _when_ok(spec.get("if"), tags, plat):
-        print(_c("33", f"   SKIP  if:{spec.get('if')} -- env is {','.join(sorted(tags))}"))
-        return None
+        reason = f"if:{spec.get('if')} -- env is {','.join(sorted(tags))}"
+        print(_c("33", f"   SKIP  {reason}"))
+        return ("skip", name, reason)
 
     if mode == "x11" and not os.environ.get("DISPLAY"):
-        print(_c("33", "   SKIP  mode x11 but no DISPLAY (start scripts/smoketest/x11-start.sh)"))
-        return None
+        reason = "mode x11 but no DISPLAY (start scripts/smoketest/x11-start.sh)"
+        print(_c("33", f"   SKIP  {reason}"))
+        return ("skip", name, reason)
     launcher = os.path.join(builddir, "run_magic.sh" if mode == "x11" else "run_magicnull.sh")
     if not os.access(launcher, os.X_OK):
-        raise TestError(f"{launcher} not built (set builddir / MAGIC_BUILDDIR)")
+        reason = f"{launcher} not built (set builddir / MAGIC_BUILDDIR)"
+        print(_c("31", f"   FAIL  {reason}"))
+        return ("fail", name, reason)
 
     work = tempfile.mkdtemp(prefix="magictest.")
     testdir = os.path.dirname(os.path.abspath(path))
@@ -701,7 +713,7 @@ def run_test(path, verbose=False):
         if rc != want_exit:
             raise TestError(dr[1] if dr else f"magic exit {rc} != expected {want_exit} (see {logpath})")
         print(_c("32", f"   [{sess.ts()}] PASS  (session {time.time()-started:.3f}s)"))
-        return True
+        return ("pass", name, "")
     except TestError as e:
         # If magic died by a signal mid-run (e.g. expect saw it exit), surface
         # the crash + core details even though a step raised first.
@@ -711,7 +723,7 @@ def run_test(path, verbose=False):
                 prog(_c("31", line) if dr[0] else line)
         print(_c("31", f"   [{sess.ts()}] FAIL  {e}"))
         print(f"         (session {time.time()-started:.3f}s)  log: {logpath}")
-        return False
+        return ("fail", name, str(e))
     finally:
         sess.close()
 
@@ -723,6 +735,42 @@ def find_tests(target):
         found = sorted(glob.glob(os.path.join(target, "**", "test.yaml"), recursive=True))
         return found
     return []
+
+
+def _md_cell(s, limit=200):
+    """Make a string safe (and short) for a single Markdown table cell -- the
+    full reason is already in the step log, the summary just needs to scan."""
+    s = " ".join(str(s).split()).replace("|", "\\|").strip()
+    return s if len(s) <= limit else s[:limit - 1] + "…"
+
+
+def _write_step_summary(target, results, passed, failed, skipped):
+    """Append a Markdown summary of the run to $GITHUB_STEP_SUMMARY (GitHub
+    Actions renders it in the job summary), so SKIP and FAIL tests are visible
+    at a glance without scrolling the log.  A no-op off CI.  The failing tests
+    still fail the run -- this only reports; main() returns non-zero on any
+    failure, halting the workflow after the whole catalog has been attempted."""
+    path = os.environ.get("GITHUB_STEP_SUMMARY")
+    if not path:
+        return
+    fails = [r for r in results if r[0] == "fail"]
+    skips = [r for r in results if r[0] == "skip"]
+    label = os.environ.get("SMOKE_SUMMARY_LABEL") or f"{_platform_now()} {platform.machine()}"
+    icon = "❌" if failed else "✅"
+    out = [f"### {icon} magic smoke catalog — {label}", "",
+           f"**{passed} passed · {failed} failed · {skipped} skipped** "
+           f"(of {len(results)}) — `{target}`", ""]
+    for title, rows in (("❌ Failed", fails), ("⏭️ Skipped", skips)):
+        if not rows:
+            continue
+        out += [f"#### {title}", "", "| test | reason |", "|------|--------|"]
+        out += [f"| {_md_cell(r[1])} | {_md_cell(r[2])} |" for r in rows]
+        out.append("")
+    try:
+        with open(path, "a") as fh:
+            fh.write("\n".join(out) + "\n")
+    except OSError as e:
+        print(f"magictest: could not write GITHUB_STEP_SUMMARY: {e}", file=sys.stderr)
 
 
 def main(argv):
@@ -771,17 +819,13 @@ def main(argv):
             print(t + extra)
         return 0
 
-    passed = failed = skipped = 0
-    for t in tests:
-        r = run_test(t, verbose=verbose)
-        if r is True:
-            passed += 1
-        elif r is None:
-            skipped += 1
-        else:
-            failed += 1
+    results = [run_test(t, verbose=verbose) for t in tests]
+    passed = sum(1 for r in results if r[0] == "pass")
+    failed = sum(1 for r in results if r[0] == "fail")
+    skipped = sum(1 for r in results if r[0] == "skip")
     extra = f", {skipped} skipped" if skipped else ""
     print(_c("1", f"\n{passed} passed, {failed} failed{extra}  (of {len(tests)})"))
+    _write_step_summary(target, results, passed, failed, skipped)
     return 0 if failed == 0 else 1
 
 

@@ -9,11 +9,23 @@ locally.
 
 ## Modes
 
-| Mode       | Launcher                        | What it proves                          |
-|------------|---------------------------------|-----------------------------------------|
-| `startup`  | `run_magicnull.sh` (`-dnull`)   | The binary boots under Tcl, loads a technology, and the core command surface is registered (`startup.tcl`). Reads/writes nothing. |
-| `workflow` | `run_magicnull.sh` (`-dnull`)   | The extract → `ext2spice` → `gds` → `cif` → `drc` pipeline runs against the *same* `npm/examples/min.mag` the WASM CI uses, and the generated artifacts look valid (`workflow.tcl` + `validate.sh`). |
-| `gui`      | `run_magic.sh -d X11 -noconsole`| The real GUI binary connects to a headless X display, brings up its X11 graphics, and loads a tech + layout, then exits cleanly (`gui.tcl`). Needs a running Xvfb+openbox (see below). |
+| Mode       | What it proves                          |
+|------------|-----------------------------------------|
+| `startup`  | The binary boots under Tcl, loads a technology, and the core command surface is registered (`startup.tcl`). Reads/writes nothing. |
+| `workflow` | The extract → `ext2spice` → `gds` → `cif` → `drc` pipeline runs against the *same* `npm/examples/min.mag` the WASM CI uses, and the generated artifacts look functionally valid — present, non-empty, right format signature, sane line count (`workflow.tcl` + `validate.sh`). |
+| `gui`      | A small X11 boot check: the GUI binary connects to a headless X display, brings up its X11 graphics, loads a tech + layout, exits cleanly (`gui.tcl`). |
+
+### Graphics device (`SMOKE_DEVICE`)
+
+`startup` and `workflow` run **identically** under either graphics device, so the
+same scripts validate both the headless and the GUI build:
+
+- `SMOKE_DEVICE=dnull` (default) — `run_magicnull.sh` (`magicdnull`, null graphics: no X, no wish).
+- `SMOKE_DEVICE=x11` — `run_magic.sh -d X11 -noconsole` (real X11 graphics on a headless Xvfb; needs `DISPLAY`).
+
+The outputs are functionally identical between the two (they differ only in
+embedded paths/timestamps), which is why validation is loose rather than
+byte-exact.  `gui` mode is always X11.
 
 ## Running locally
 
@@ -34,9 +46,11 @@ Xvfb + a window manager.  On Debian/Ubuntu:
 ```sh
 sudo apt-get install -y xvfb openbox wmctrl xdotool
 
-eval "$(scripts/smoketest/x11-start.sh)"   # starts Xvfb+openbox, exports DISPLAY
-scripts/smoketest/run.sh gui
-scripts/smoketest/run.sh shutdown          # tear the server down again
+eval "$(scripts/smoketest/x11-start.sh)"       # starts Xvfb+openbox, exports DISPLAY
+scripts/smoketest/run.sh gui                   # quick GUI boot check
+SMOKE_DEVICE=x11 scripts/smoketest/run.sh startup    # the same scripts, but under
+SMOKE_DEVICE=x11 scripts/smoketest/run.sh workflow   #   the real X11 GUI
+scripts/smoketest/run.sh shutdown              # tear the server down again
 ```
 
 `run.sh shutdown` (a thin wrapper over `x11-stop.sh`) stops the Xvfb+openbox for
@@ -57,11 +71,13 @@ has what it needs.
 
 | Variable         | Default                  | Meaning                                  |
 |------------------|--------------------------|------------------------------------------|
-| `MAGIC_BUILDDIR` | `build-tmp`              | out-of-tree build dir with `run_magicnull.sh` |
+| `SMOKE_DEVICE`   | `dnull`                  | `dnull` or `x11`; graphics device for `startup`/`workflow` |
+| `MAGIC_BUILDDIR` | `build-tmp`              | out-of-tree build dir with the launchers |
 | `SMOKE_TECH`     | `scmos`                  | technology to load                       |
 | `SMOKE_MAG`      | `npm/examples/min.mag`   | input layout for the workflow mode       |
 | `SMOKE_WORKDIR`  | fresh `mktemp` dir       | scratch + output directory (kept for inspection if set) |
-| `SMOKE_MAGIC_TIMEOUT` | `60`                | (gui) magic's own `-timeout` watchdog, in seconds; `0` disables it |
+| `SMOKE_TIMEOUT`  | `180`                    | external hard `timeout` wrapper, seconds |
+| `SMOKE_MAGIC_TIMEOUT` | `120`               | magic's own `-timeout` watchdog (x11 runs), seconds; `0` disables it |
 
 ## Why a separate validator
 

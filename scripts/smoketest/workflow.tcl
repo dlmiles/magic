@@ -46,3 +46,8 @@ require "drc-catchup"  { drc catchup }
 require "drc-count"    { drc count total }
 
 puts "SMOKE-WORKFLOW-OK cell=$name out=$out"
+
+# Quit explicitly so the same script exits cleanly under the GUI (-d X11) too,
+# not just under -dnull (where EOF would end it) -- otherwise magic idles in its
+# event loop until the -timeout watchdog fires.
+quit -noprompt

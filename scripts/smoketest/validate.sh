@@ -50,9 +50,10 @@ else
     fail "did not reach sentinel $sentinel"
 fi
 
-# 3b. GUI mode: magic must have really talked to the X server, not failed to
-#     open the display nor fallen back to the null graphics device.
-if [ "$mode" = "gui" ]; then
+# 3b. Under X11 (gui mode, or startup/workflow with SMOKE_DEVICE=x11): magic must
+#     have really talked to the X server, not failed to open the display nor
+#     fallen back to the null graphics device.
+if [ "${SMOKE_DEVICE:-dnull}" = "x11" ]; then
     x_bad='could ?n.?t connect to display|can.?t open display|cannot open display|unable to open display|Using NULL graphics|no graphics device'
     if grep -Eiq "$x_bad" "$log"; then
         fail "X11 display/graphics failure in log:"
@@ -77,9 +78,22 @@ if [ "$mode" = "workflow" ]; then
     check_grep() {   # check_grep <path> <regex> <what>
         if grep -Eq "$2" "$1"; then ok "$3"; else fail "$3 (pattern /$2/ not found in $1)"; fi
     }
+    # Loose functional sanity: a real output has more than a couple of lines.
+    # We are not matching exact counts (they shift with paths/timestamps/tech) --
+    # just confirming the file has substantive content, and logging the count.
+    check_minlines() {   # check_minlines <path> <min> <what>
+        local n; n=$(grep -c '' "$1" 2>/dev/null || echo 0)
+        if [ "$n" -ge "$2" ]; then ok "$3 ($n lines)"; else fail "$3: only $n lines (< $2) in $1"; fi
+    }
 
-    if check_file "$d/$cell.ext"   ".ext";   then check_grep "$d/$cell.ext"   '^(node|cap|fet|device|timestamp)' "  .ext content"; fi
-    if check_file "$d/$cell.spice" ".spice"; then check_grep "$d/$cell.spice" 'SPICE'                             "  .spice header"; fi
+    if check_file "$d/$cell.ext"   ".ext";   then
+        check_grep     "$d/$cell.ext" '^(node|cap|fet|device|timestamp)' "  .ext content"
+        check_minlines "$d/$cell.ext" 5                                  "  .ext line count"
+    fi
+    if check_file "$d/$cell.spice" ".spice"; then
+        check_grep     "$d/$cell.spice" 'SPICE'                          "  .spice header"
+        check_minlines "$d/$cell.spice" 4                                "  .spice line count"
+    fi
     if check_file "$d/$cell.gds"   ".gds";   then
         # GDSII begins with an HEADER record: length 0x0006, record type 0x00,
         # data type 0x02.  Match the type/datatype byte pair at offset 2.
@@ -89,7 +103,10 @@ if [ "$mode" = "workflow" ]; then
             fail "  .gds does not start with a GDSII HEADER record"
         fi
     fi
-    if check_file "$d/$cell.cif"   ".cif";   then check_grep "$d/$cell.cif"   '(DS|9 |C[0-9]|End)'                "  .cif content"; fi
+    if check_file "$d/$cell.cif"   ".cif";   then
+        check_grep     "$d/$cell.cif" '(DS|9 |C[0-9]|End)'               "  .cif content"
+        check_minlines "$d/$cell.cif" 8                                  "  .cif line count"
+    fi
 
     # The DRC pass must have reported a total (value itself is layout-dependent).
     check_grep "$log" 'Total DRC errors found:' "  drc reported a total"

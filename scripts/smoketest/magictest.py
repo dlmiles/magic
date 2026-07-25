@@ -23,16 +23,21 @@ Test YAML schema (all keys optional unless noted):
     tech:        technology to preload substitutions with (e.g. scmos)
     timeout:     per-test wall-clock cap, seconds (default 180); also magic's
                  own -timeout watchdog for x11
+    timeout_ms:  inherited timeout for blocking steps (expect/wait), ms
+                 (default 30000); a step can change it live (set_timeout_ms)
     builddir:    out-of-tree build dir (default $MAGIC_BUILDDIR or build-tmp)
     inputs:      [paths]  -- files copied into the work dir before the run
     steps:       [ ... ]  -- see below
     expect_exit: int      -- required magic exit status (default 0)
 
 Each step is a mapping with one or more of:
-    send:    "command"            -- write a line to magic
+    send:    "command"           -- write a line to magic's stdin
+    close_stdin: true            -- close stdin (EOF); ends magic where it runs batch
     expect:  "regex"             -- read until it matches (fails on timeout)
-    expect_not: "regex"          -- fail if it appears before the next expect
-    timeout: seconds             -- override for this step's expect
+    wait:    true                -- block until magic exits (uses current timeout)
+    timeout_ms: N                -- per-step override for this expect/wait (ms)
+    timeout: seconds             -- same, in seconds (legacy)
+    set_timeout_ms: N            -- change the inherited blocking timeout from here on
     sleep:   seconds
     xdotool: [args...]           -- run xdotool (x11 only); {win} = layout window
     assert:  { exists|nonempty|absent: path,
@@ -41,6 +46,9 @@ Each step is a mapping with one or more of:
                stdout_contains: "str" }
 
 Placeholders substituted in strings: {work} {src} {tech} {cell} {display} {win}.
+
+Progress lines are prefixed with elapsed time since the session started as
+0000.000 (seconds), and PASS/FAIL prints the total session duration.
 """
 
 import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob
@@ -63,18 +71,33 @@ def _c(code, s):
 
 
 class MagicSession:
-    """Drives one magic process over a PTY, with expect + xdotool helpers."""
+    """Drives one magic process.  stdin is a pipe we can close (to send EOF
+    without disturbing output); stdout+stderr are a PTY, so magic line-buffers
+    like an interactive terminal.  Every blocking wait uses the *current*
+    timeout (milliseconds), which the YAML can change on the fly."""
 
-    def __init__(self, cmd, env, logpath, display=None):
-        self.master, slave = pty.openpty()
+    def __init__(self, cmd, env, logpath, t0, timeout_ms, display=None):
+        self.t0 = t0
+        self.timeout_ms = timeout_ms          # inherited default for blocking ops
+        self.master, slave = pty.openpty()    # magic's stdout+stderr (a tty)
+        self.stdin_r, self.stdin_w = os.pipe() # magic's stdin (closable for EOF)
         self.log = open(logpath, "wb")
-        self.buf = ""          # decoded output not yet consumed by expect
+        self.buf = ""                          # output not yet consumed by expect
         self.display = display
         self.win = ""
+        self.stdin_open = True
         self.proc = subprocess.Popen(
-            cmd, stdin=slave, stdout=slave, stderr=slave,
+            cmd, stdin=self.stdin_r, stdout=slave, stderr=slave,
             env=env, close_fds=True, preexec_fn=os.setsid)
         os.close(slave)
+        os.close(self.stdin_r)                 # the child owns the read end now
+
+    def ts(self):
+        """Seconds.milliseconds elapsed since session start, as 0000.000."""
+        return f"{time.time() - self.t0:08.3f}"
+
+    def _secs(self, timeout_ms):
+        return (self.timeout_ms if timeout_ms is None else timeout_ms) / 1000.0
 
     def _drain(self, budget=0.2):
         r, _, _ = select.select([self.master], [], [], budget)
@@ -91,11 +114,20 @@ class MagicSession:
         return True
 
     def send(self, line):
-        os.write(self.master, (line + "\n").encode())
+        if not self.stdin_open:
+            raise TestError("send after close_stdin")
+        os.write(self.stdin_w, (line + "\n").encode())
 
-    def expect(self, pattern, timeout):
+    def close_stdin(self):
+        """Send EOF to magic's stdin (where magic runs batch, this ends it)."""
+        if self.stdin_open:
+            os.close(self.stdin_w)
+            self.stdin_open = False
+
+    def expect(self, pattern, timeout_ms=None):
         rx = re.compile(pattern)
-        deadline = time.time() + timeout
+        secs = self._secs(timeout_ms)
+        deadline = time.time() + secs
         while True:
             m = rx.search(self.buf)
             if m:
@@ -103,12 +135,22 @@ class MagicSession:
                 return m
             if time.time() > deadline:
                 tail = self.buf[-400:].replace("\n", "\\n")
-                raise TestError(f"expect timeout ({timeout}s) for /{pattern}/; recent: ...{tail}")
+                raise TestError(f"expect timeout ({secs*1000:.0f}ms) for /{pattern}/; recent: ...{tail}")
             if not self._drain(0.2) and self.proc.poll() is not None:
-                # process gone: one last look then give up
                 if rx.search(self.buf):
                     return rx.search(self.buf)
                 raise TestError(f"magic exited before /{pattern}/ matched (rc={self.proc.returncode})")
+
+    def wait(self, timeout_ms=None):
+        """Wait for magic to exit (draining stdout); returns rc, or None on timeout."""
+        deadline = time.time() + self._secs(timeout_ms)
+        while time.time() < deadline:
+            if self.proc.poll() is not None:
+                while self._drain(0.02):
+                    pass
+                return self.proc.returncode
+            self._drain(0.1)
+        return None
 
     def find_window(self, timeout=30):
         deadline = time.time() + timeout
@@ -132,18 +174,12 @@ class MagicSession:
     def xdotool(self, args):
         self._xdotool_raw(args)
 
-    def wait(self, timeout):
-        try:
-            self.proc.wait(timeout=timeout)
-        except subprocess.TimeoutExpired:
-            return None
-        # drain any final output
-        for _ in range(20):
-            if not self._drain(0.05):
-                break
-        return self.proc.returncode
-
     def close(self):
+        try:
+            if self.stdin_open:
+                os.close(self.stdin_w); self.stdin_open = False
+        except Exception:
+            pass
         try:
             if self.proc.poll() is None:
                 os.killpg(os.getpgid(self.proc.pid), signal.SIGTERM)
@@ -215,7 +251,8 @@ def run_test(path, verbose=False):
     name = spec.get("name") or os.path.basename(os.path.dirname(os.path.abspath(path))) or path
     mode = spec.get("mode", "dnull")
     tech = spec.get("tech", "scmos")
-    timeout = int(spec.get("timeout", 180))
+    timeout = int(spec.get("timeout", 180))               # overall wall-clock cap (s)
+    timeout_ms = int(spec.get("timeout_ms", 30000))       # inherited per-op timeout
     builddir = os.path.abspath(spec.get("builddir") or os.environ.get("MAGIC_BUILDDIR", "build-tmp"))
 
     print(_c("1", f"── test: {name} [{mode}]") + f"  ({spec.get('description','')})")
@@ -244,24 +281,42 @@ def run_test(path, verbose=False):
         cmd += ["-d", "X11", "-noconsole", "-timeout", str(min(timeout, 120))]
 
     logpath = os.path.join(work, "magic.log")
-    sess = MagicSession(cmd, env, logpath, display=ctx["display"])
     started = time.time()
+    sess = MagicSession(cmd, env, logpath, t0=started, timeout_ms=timeout_ms,
+                        display=ctx["display"])
+
+    def prog(msg):                       # timestamped progress: "[0000.000] ..."
+        print(f"   [{sess.ts()}] {msg}")
+
+    def step_ms(step):                   # per-step timeout override: ms or (legacy) s
+        if "timeout_ms" in step:
+            return int(step["timeout_ms"])
+        if "timeout" in step:
+            return int(float(step["timeout"]) * 1000)
+        return None                      # inherit sess.timeout_ms
+
     try:
         if mode == "x11":
             ctx["win"] = sess.find_window(timeout=min(timeout, 40))
             if not ctx["win"]:
                 raise TestError("no magic layout window appeared")
             if verbose:
-                print(f"   layout window {ctx['win']}")
+                prog(f"layout window {ctx['win']}")
 
         for i, step in enumerate(spec.get("steps", []) or []):
             label = step.get("name", f"step{i+1}")
             if time.time() - started > timeout:
                 raise TestError("overall test timeout exceeded")
+            if "set_timeout_ms" in step:         # change the inherited timeout on the fly
+                sess.timeout_ms = int(step["set_timeout_ms"])
+                if verbose:
+                    prog(f"timeout_ms := {sess.timeout_ms}")
             if "send" in step:
                 sess.send(_subst(step["send"], ctx))
             if "expect" in step:
-                sess.expect(_subst(step["expect"], ctx), int(step.get("timeout", 30)))
+                sess.expect(_subst(step["expect"], ctx), step_ms(step))
+            if "close_stdin" in step:
+                sess.close_stdin()
             if "sleep" in step:
                 time.sleep(float(step["sleep"]))
             if "xdotool" in step:
@@ -269,26 +324,34 @@ def run_test(path, verbose=False):
                 # wants events aimed at magic's window (e.g. mousemove --window
                 # {win}).  A bare "key ..." goes to the focused window (dialogs).
                 sess.xdotool([str(a) for a in _subst(step["xdotool"], ctx)])
+            if "wait" in step:                   # wait for magic to exit here
+                rc = sess.wait(step_ms(step))
+                if rc is None:
+                    raise TestError(f"wait: magic did not exit within {sess._secs(step_ms(step))*1000:.0f}ms")
+                if verbose:
+                    prog(f"magic exited rc={rc}")
             if "assert" in step:
                 _do_assert(step["assert"], ctx)
             if "validate" in step:
                 out = _do_validate(step["validate"], ctx, work)
                 if verbose and out:
-                    print(f"   [{label}] validate -> {out[:80]}")
+                    prog(f"[{label}] validate -> {out[:80]}")
             if verbose:
-                print(_c("32", f"   ✓ {label}"))
+                prog(_c("32", f"✓ {label}"))
 
         want_exit = int(spec.get("expect_exit", 0))
-        rc = sess.wait(timeout=max(5, timeout - (time.time() - started)))
+        rc = sess.proc.returncode
+        if rc is None:                            # not waited yet -> wait now
+            rc = sess.wait()
         if rc is None:
             raise TestError("magic did not exit within the test timeout")
         if rc != want_exit:
             raise TestError(f"magic exit {rc} != expected {want_exit} (see {logpath})")
-        print(_c("32", f"   PASS  ({time.time()-started:.1f}s)"))
+        print(_c("32", f"   [{sess.ts()}] PASS  (session {time.time()-started:.3f}s)"))
         return True
     except TestError as e:
-        print(_c("31", f"   FAIL  {e}"))
-        print(f"         log: {logpath}")
+        print(_c("31", f"   [{sess.ts()}] FAIL  {e}"))
+        print(f"         (session {time.time()-started:.3f}s)  log: {logpath}")
         return False
     finally:
         sess.close()

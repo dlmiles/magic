@@ -5,6 +5,7 @@ mode: dnull
 tech: scmos
 tags: [dnull, exec]
 metadata: {area: process}
+if: linux                 # reads /proc/{pid}/comm (Linux-specific)
 steps:
   - send: "tech load {tech}"
   - name: ready

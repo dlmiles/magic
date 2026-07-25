@@ -35,6 +35,10 @@ resets to its default for each test, nothing carries between tests):
     inputs:      [paths]  -- files copied into the work dir before the run
     tags:        [labels] -- for --tag subselection (also metadata.tags)
     metadata:    { key: value, ... } -- catalogue store; --filter matches on it
+    if:          platform gate: an OS name (linux, macos, windows, freebsd,
+                 openbsd, netbsd, solaris, cygwin, ...), a family (unix/posix =
+                 any non-Windows), any/*, or !name; a string or list.  The test
+                 is skipped where it does not match, so one catalog is portable.
     steps:       [ ... ]  -- see below
     expect_exit: int      -- required magic exit status (default 0)
 
@@ -46,6 +50,7 @@ Each step is a mapping with one or more of:
     timeout_ms: N                -- per-step override for this expect/wait (ms)
     timeout: seconds             -- same, in seconds (legacy)
     set_timeout_ms: N            -- change the inherited blocking timeout from here on
+    if:      <platform>          -- run this step only on matching platform(s)
     sleep:   seconds
     xdotool: [args...]           -- run xdotool (x11 only); {win} = layout window
     exec:    [argv...]|"cmd"|{run:..., exit:0, stdout_matches, stdout_contains}
@@ -57,7 +62,8 @@ Each step is a mapping with one or more of:
                stdout_contains: "str" }
 
 Placeholders in strings: {work} {src} {testdir} {cwd} {tech} {cell} {display}
-{win} {pid}/{MAGICPID} (magic's process id), and {default} in `cwd:`.  Only
+{win} {pid}/{MAGICPID} (magic's process id) {platform}, and {default} in `cwd:`.
+(Set MAGICTEST_OS to force the detected platform, for testing the gating.)  Only
 identifier-shaped {name} tokens are substituted, so Tcl braces and regex
 quantifiers ({4}, {$x}, {a b}) pass through; write {{name}} for a literal
 {name}, and an unknown {identifier} is left as-is with a stderr warning.
@@ -69,7 +75,7 @@ are prefixed with elapsed time since the session started as 0000.000 (seconds),
 and PASS/FAIL prints the total session duration.
 """
 
-import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob, resource
+import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob, resource, platform
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRCROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -113,6 +119,45 @@ def _find_cores(dirs):
                 except OSError:
                     pass
     return out
+
+
+# Cross-platform gating.  A test or step may carry `if:` naming the platform(s)
+# it applies to; it is skipped elsewhere.  Tokens: an OS name (linux, macos,
+# windows, freebsd, openbsd, netbsd, solaris, cygwin, ...), a family (unix/posix
+# = any non-Windows), any/* (always), or !name to exclude.  A string or a list.
+_UNIX = {"linux", "macos", "freebsd", "openbsd", "netbsd", "dragonfly",
+         "solaris", "cygwin", "aix", "gnu", "hurd"}
+
+
+def _platform_now():
+    forced = os.environ.get("MAGICTEST_OS")   # override, for testing the gating
+    if forced:
+        return forced.strip().lower()
+    s = platform.system().lower()
+    if s.startswith("cygwin") or s.startswith("mingw") or s.startswith("msys"):
+        return "cygwin"
+    return {"darwin": "macos", "sunos": "solaris", "": "unknown"}.get(s, s)
+
+
+def _plat_ok(spec, cur):
+    if spec is None:
+        return True
+    toks = [spec] if isinstance(spec, str) else list(spec)
+    pos, neg = [], []
+    for t in toks:
+        t = str(t).strip().lower()
+        (neg if t.startswith("!") else pos).append(t.lstrip("!").strip())
+
+    def hit(tok):
+        if tok in ("unix", "posix"):
+            return cur in _UNIX
+        if tok in ("any", "all", "*"):
+            return True
+        return cur == tok
+
+    if any(hit(t) for t in neg):
+        return False
+    return True if not pos else any(hit(t) for t in pos)
 
 
 def _tags_meta(spec):
@@ -384,6 +429,11 @@ def run_test(path, verbose=False):
         if _meta: bits.append("meta=" + " ".join(f"{k}={v}" for k, v in _meta.items()))
         print("   " + "  ".join(bits))
 
+    plat = _platform_now()
+    if not _plat_ok(spec.get("if"), plat):
+        print(_c("33", f"   SKIP  if:{spec.get('if')} -- this platform is {plat}"))
+        return None
+
     if mode == "x11" and not os.environ.get("DISPLAY"):
         print(_c("33", "   SKIP  mode x11 but no DISPLAY (start scripts/smoketest/x11-start.sh)"))
         return None
@@ -402,7 +452,7 @@ def run_test(path, verbose=False):
 
     _WARNED.clear()                            # unknown-placeholder warnings are per test
     ctx = dict(work=work, src=SRCROOT, tech=tech, cell=cell or "", testdir=testdir,
-               display=os.environ.get("DISPLAY", ""), win="")
+               display=os.environ.get("DISPLAY", ""), win="", platform=plat)
 
     # magic's working directory.  The default -- and the {default} placeholder --
     # is the directory holding this test's YAML, so a test can reference fixture
@@ -460,6 +510,10 @@ def run_test(path, verbose=False):
 
         for i, step in enumerate(spec.get("steps", []) or []):
             label = step.get("name", f"step{i+1}")
+            if "if" in step and not _plat_ok(step["if"], plat):   # platform-gated step
+                if verbose:
+                    prog(f"skip {label} (if:{step['if']} != {plat})")
+                continue
             if time.time() - started > timeout:
                 raise TestError("overall test timeout exceeded")
             if "set_timeout_ms" in step:         # change the inherited timeout on the fly

@@ -49,6 +49,25 @@ may combine:
 Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
 started) and PASS/FAIL reports the total session duration.
 
+## Crash detection
+
+Core dumps are enabled for magic (`RLIMIT_CORE` is set in the child, and it runs
+with `cwd` = the per-test dir).  If magic dies by a crash signal
+(`SIGSEGV`/`SIGABRT`/`SIGBUS`/`SIGFPE`/`SIGILL`/…) the run is reported as a
+crash and **fails**, logging the signal plus any `core*` file found (path, size,
+mtime):
+
+```
+CRASH: magic CRASHED by SIGSEGV (signal 11)
+CORE: /tmp/magictest.xxxx/core.magicexec.12345  size=... bytes  mtime=...
+```
+
+For a core to be a *file* the kernel's `core_pattern` must point at one; CI does
+`sudo sysctl -w kernel.core_pattern='core.%e.%p'` before the tests.  If no file
+is found the report prints the active `core_pattern` so you can see why (e.g. it
+was piped to systemd-coredump/apport).  A test that *expects* a particular
+signal death can set `expect_exit:` to the negative signal code (e.g. `-11`).
+
 Placeholders in strings: `{work}` (per-test dir), `{src}` (repo root), `{tech}`,
 `{cell}` (first `.mag` input's basename), `{display}`, `{win}`.  Tcl's own `{...}`
 braces pass through untouched.

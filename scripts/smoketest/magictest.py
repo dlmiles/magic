@@ -53,7 +53,7 @@ are prefixed with elapsed time since the session started as 0000.000 (seconds),
 and PASS/FAIL prints the total session duration.
 """
 
-import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob
+import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob, resource
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 SRCROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
@@ -62,6 +62,10 @@ try:
     import yaml
 except ImportError:
     sys.exit("magictest: PyYAML is required (pip install pyyaml / apt install python3-yaml)")
+
+# Signals that mean magic *crashed* (as opposed to being torn down by us).
+CRASH_SIGNALS = {getattr(signal, s, None) for s in
+                 ("SIGSEGV", "SIGABRT", "SIGBUS", "SIGFPE", "SIGILL", "SIGSYS", "SIGTRAP")} - {None}
 
 
 class TestError(Exception):
@@ -72,13 +76,36 @@ def _c(code, s):
     return s if not sys.stdout.isatty() else f"\033[{code}m{s}\033[0m"
 
 
+def _core_pattern():
+    try:
+        return open("/proc/sys/kernel/core_pattern").read().strip()
+    except OSError:
+        return "?"
+
+
+def _find_cores(dirs):
+    """Return [(path, size, mtime)] for core files in dirs (core, core.*)."""
+    out = []
+    for d in dirs:
+        if not d:
+            continue
+        for pat in ("core", "core.*", "*.core"):
+            for p in sorted(glob.glob(os.path.join(d, pat))):
+                try:
+                    st = os.stat(p)
+                    out.append((p, st.st_size, st.st_mtime))
+                except OSError:
+                    pass
+    return out
+
+
 class MagicSession:
     """Drives one magic process.  stdin is a pipe we can close (to send EOF
     without disturbing output); stdout+stderr are a PTY, so magic line-buffers
     like an interactive terminal.  Every blocking wait uses the *current*
     timeout (milliseconds), which the YAML can change on the fly."""
 
-    def __init__(self, cmd, env, logpath, t0, timeout_ms, display=None):
+    def __init__(self, cmd, env, logpath, t0, timeout_ms, cwd=None, display=None):
         self.t0 = t0
         self.timeout_ms = timeout_ms          # inherited default for blocking ops
         self.master, slave = pty.openpty()    # magic's stdout+stderr (a tty)
@@ -88,9 +115,20 @@ class MagicSession:
         self.display = display
         self.win = ""
         self.stdin_open = True
+
+        def _preexec():
+            # Enable core dumps for magic so a crash leaves a core file, then
+            # start a new session so we can signal the whole group on teardown.
+            try:
+                resource.setrlimit(resource.RLIMIT_CORE,
+                                   (resource.RLIM_INFINITY, resource.RLIM_INFINITY))
+            except Exception:
+                pass
+            os.setsid()
+
         self.proc = subprocess.Popen(
             cmd, stdin=self.stdin_r, stdout=slave, stderr=slave,
-            env=env, close_fds=True, preexec_fn=os.setsid)
+            env=env, cwd=cwd, close_fds=True, preexec_fn=_preexec)
         os.close(slave)
         os.close(self.stdin_r)                 # the child owns the read end now
 
@@ -153,6 +191,30 @@ class MagicSession:
                 return self.proc.returncode
             self._drain(0.1)
         return None
+
+    def death_report(self, coredirs):
+        """If magic has exited by a signal, return (is_crash, summary, [lines]);
+        else None.  A crash (SIGSEGV/SIGABRT/...) is distinguished from a plain
+        signal, and any core file found is described (path, size, mtime)."""
+        rc = self.proc.poll()
+        if rc is None or rc >= 0:
+            return None
+        sig = -rc
+        try:
+            name = signal.Signals(sig).name
+        except ValueError:
+            name = f"signal {sig}"
+        is_crash = sig in CRASH_SIGNALS
+        summary = f"magic {'CRASHED' if is_crash else 'killed'} by {name} (signal {sig})"
+        lines = [("CRASH: " if is_crash else "KILLED: ") + summary]
+        cores = _find_cores(coredirs)
+        for p, size, mt in cores:
+            ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(mt))
+            lines.append(f"CORE: {p}  size={size} bytes  mtime={ts}")
+            summary += f"; core {p} ({size} bytes)"
+        if is_crash and not cores:
+            lines.append(f"CORE: no core file in {coredirs} (kernel.core_pattern={_core_pattern()!r})")
+        return (is_crash, summary, lines)
 
     def find_window(self, timeout=30):
         deadline = time.time() + timeout
@@ -284,8 +346,10 @@ def run_test(path, verbose=False):
 
     logpath = os.path.join(work, "magic.log")
     started = time.time()
+    # Run magic with cwd=work so a core file (a relative core_pattern) lands in
+    # the per-test dir where we look for it; core dumps are enabled in the child.
     sess = MagicSession(cmd, env, logpath, t0=started, timeout_ms=timeout_ms,
-                        display=ctx["display"])
+                        cwd=work, display=ctx["display"])
 
     def prog(msg):                       # timestamped progress: "[0000.000] ..."
         print(f"   [{sess.ts()}] {msg}")
@@ -298,6 +362,7 @@ def run_test(path, verbose=False):
               or k.startswith(("MAGIC_", "SMOKE_", "CAD_"))}
     prog("env: " + (" ".join(f"{k}={relenv[k]}" for k in sorted(relenv)) or "(none relevant)"))
     prog(f"timeout_ms={sess.timeout_ms} cap={timeout}s work={work}")
+    prog(f"coredump: RLIMIT_CORE=unlimited (in child)  core_pattern={_core_pattern()!r}")
 
     def step_ms(step):                   # per-step timeout override: ms or (legacy) s
         if "timeout_ms" in step:
@@ -356,11 +421,23 @@ def run_test(path, verbose=False):
             rc = sess.wait()
         if rc is None:
             raise TestError("magic did not exit within the test timeout")
+        # A crash (SIGSEGV/SIGABRT/...) is always reported with core details and
+        # fails, unless the test explicitly expects that signal's exit code.
+        dr = sess.death_report([work, os.getcwd()])
+        if dr:
+            for line in dr[2]:
+                prog(_c("31", line) if dr[0] else line)
         if rc != want_exit:
-            raise TestError(f"magic exit {rc} != expected {want_exit} (see {logpath})")
+            raise TestError(dr[1] if dr else f"magic exit {rc} != expected {want_exit} (see {logpath})")
         print(_c("32", f"   [{sess.ts()}] PASS  (session {time.time()-started:.3f}s)"))
         return True
     except TestError as e:
+        # If magic died by a signal mid-run (e.g. expect saw it exit), surface
+        # the crash + core details even though a step raised first.
+        dr = sess.death_report([work, os.getcwd()])
+        if dr:
+            for line in dr[2]:
+                prog(_c("31", line) if dr[0] else line)
         print(_c("31", f"   [{sess.ts()}] FAIL  {e}"))
         print(f"         (session {time.time()-started:.3f}s)  log: {logpath}")
         return False

@@ -93,6 +93,10 @@ magic/autoconf/config.h
 .vscode/
 .idea/
 
+# Python bytecode cache (scripts/smoketest/magictest.py)
+__pycache__/
+*.pyc
+
 # Magic runtime-generated files
 magic/proto.magicrc
 scmos/cif_template/objs/*

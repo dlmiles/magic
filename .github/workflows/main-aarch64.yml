@@ -41,6 +41,11 @@ jobs:
           ../configure
           make prepare
           make -j$(nproc)
+      - name: Enable core dumps (crash detection)
+        # See main.yml: make a crash leave a core file for magictest to report.
+        run: |
+          sudo sysctl -w kernel.core_pattern='core.%e.%p'
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
       - name: Smoke test — startup + features
         run: scripts/smoketest/run.sh startup
       - name: Smoke test — extract/export/DRC workflow

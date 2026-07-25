@@ -98,15 +98,36 @@ tests do not trust the exit code alone.  Instead:
    every expected artifact exists, is non-empty, and carries a format signature
    (SPICE header, GDSII `HEADER` record, CIF/`.ext` tokens, a DRC total).
 
+## GUI interaction demo (`gui-interact.sh`)
+
+`gui-interact.sh <a|b|c|all>` demonstrates three ways to drive the X11 GUI, to
+show it can be scripted, event-driven, or both:
+
+| Mode | How it's driven | Quit |
+|------|-----------------|------|
+| `a` 100% script | Tcl piped on stdin, no X events | `quit -noprompt` in the script |
+| `b` 0% script | `xdotool` only: paint with the mouse, open File→Quit | dismiss the "save?" dialog with `xdotool key Return` |
+| `c` mixed | inject Tcl, send `xdotool` events, inject more Tcl | injected `quit -noprompt` |
+
+```sh
+eval "$(scripts/smoketest/x11-start.sh)"
+scripts/smoketest/gui-interact.sh all
+```
+
+This is an **opt-in demo, not a blocking gate** (CI runs it with
+`continue-on-error`).  Mode `a` is robust anywhere; modes `b`/`c` use `xdotool`,
+whose timing — and especially mode `b`'s menubar-by-coordinate click — is
+window-manager sensitive and is meant to be tuned against the CI Xvfb+openbox.
+Every run is bounded by magic's own `-timeout` watchdog and each `xdotool` call
+by a `timeout`, so it can never hang.  (Note: magic's quit command is
+`quit -noprompt`; Tcl's bare `exit` takes an integer code, so `exit -noprompt`
+is an error — use `quit -noprompt` or `exit 0`.)
+
 ## Files
 
 - `_prelude.tcl` — shared Tcl helpers, prepended to each script by `run.sh`.
 - `startup.tcl` / `workflow.tcl` / `gui.tcl` — the smoke scripts.
 - `run.sh` — driver: assembles the script, runs it, captures the log.
 - `validate.sh` — checks the log and artifacts; the sole arbiter of pass/fail.
-- `x11-start.sh` / `x11-stop.sh` — bring up / tear down the headless Xvfb+openbox
-  used by the `gui` mode.
-
-The `gui` mode currently proves the GUI *starts* on a headless display.
-Driving actual window interaction (xdotool/wmctrl clicking, drawing, screenshot
-comparison) is a planned follow-up built on the same Xvfb+openbox setup.
+- `x11-start.sh` / `x11-stop.sh` — bring up / tear down the headless Xvfb+openbox.
+- `gui-interact.sh` — the opt-in 3-mode GUI interaction demo (above).

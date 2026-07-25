@@ -2,6 +2,8 @@ name: workflow-dnull
 description: extract / ext2spice / gds / cif / drc on min.mag; verify outputs.
 mode: dnull
 tech: scmos
+tags: [dnull, workflow]
+metadata: {area: extraction}
 inputs:
   - npm/examples/min.mag
 steps:

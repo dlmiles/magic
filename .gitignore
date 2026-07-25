@@ -97,6 +97,10 @@ magic/autoconf/config.h
 __pycache__/
 *.pyc
 
+# Core dumps left by crashing tests (magictest runs magic with cwd = the test dir)
+core.*
+*.core
+
 # Magic runtime-generated files
 magic/proto.magicrc
 scmos/cif_template/objs/*

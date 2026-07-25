@@ -3,6 +3,8 @@ description: the same extract/export/DRC workflow as 020, but through the real
   X11 GUI; outputs must be functionally identical.
 mode: x11
 tech: scmos
+tags: [x11, workflow]
+metadata: {area: extraction}
 inputs:
   - npm/examples/min.mag
 steps:

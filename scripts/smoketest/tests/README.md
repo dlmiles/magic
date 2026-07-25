@@ -31,10 +31,13 @@ phase.  Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
 ## test.yaml format
 
 See the header of `scripts/smoketest/magictest.py` for the full schema.  In
-brief: top-level `mode` (dnull|x11), `tech`, `timeout` (overall cap, s),
-`timeout_ms` (inherited per-op timeout, default 30000), `inputs` (files staged
-into the per-test work dir), `expect_exit`, and a list of `steps`.  Each step
-may combine:
+brief: top-level `mode` (dnull|x11), `tech`, `cwd` (magic's working directory;
+default is the test's own directory = the `{default}` placeholder — override
+with `{work}`/`{testdir}`/`{src}` or an absolute path), `timeout` (overall cap,
+s), `timeout_ms` (inherited per-op timeout, default 30000), `inputs` (files
+staged into the per-test work dir), `tags`/`metadata` (see below), `expect_exit`,
+and a list of `steps`.  Every setting resets to its default for each test —
+nothing carries between tests.  Each step may combine:
 
 - `send:` a command line to magic's stdin
 - `close_stdin: true` — send EOF (ends magic where it runs batch, e.g. -dnull)
@@ -48,6 +51,29 @@ may combine:
 
 Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
 started) and PASS/FAIL reports the total session duration.
+
+## Tags & metadata (cataloguing / filtering)
+
+A test can carry labels and a key/value store, used to subselect which tests run:
+
+```yaml
+tags: [x11, gui, slow]        # or nested as metadata.tags
+metadata:
+  area: extraction
+  owner: dmiles
+```
+
+```sh
+magictest.py run  tests --tag x11              # only tests tagged x11 (any of them)
+magictest.py run  tests --tag dnull,smoke      # tagged dnull OR smoke
+magictest.py run  tests --filter area=gui      # metadata area == gui
+magictest.py list tests --tag x11              # list with tags/metadata shown
+```
+
+`--tag` and `--filter` are repeatable; a test must match every `--filter` and at
+least one requested tag.  Each test's launch banner also prints its tags/metadata,
+its working directory (flagged when non-default), the full launch command, and
+the relevant environment.
 
 ## Crash detection
 

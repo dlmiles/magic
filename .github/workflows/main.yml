@@ -88,9 +88,9 @@ jobs:
         # index was already refreshed by "Get Dependencies" above.
         # python3-yaml drives the magictest.py YAML test catalog below.
         run: sudo apt-get install -y xvfb openbox wmctrl xdotool python3-yaml
-      - name: Start headless X server (Xvfb + openbox)
-        # x11-start.sh writes DISPLAY to $GITHUB_ENV itself, so the GUI step
-        # below inherits it (diagnostics go to stderr / the step log).
+      - name: Start headless Xvfb server (Xvfb + openbox)
+        # x11-start.sh writes DISPLAY to $GITHUB_ENV itself, so the GUI steps
+        # below inherit it (diagnostics go to stderr / the step log).
         run: scripts/smoketest/x11-start.sh
       # Data-driven YAML test catalog (dnull + x11 tests: send/expect, asserts,
       # external validators, and xdotool GUI events).  DISPLAY is set, so the x11
@@ -114,3 +114,9 @@ jobs:
       - name: GUI interaction demo (opt-in, non-blocking)
         continue-on-error: true
         run: scripts/smoketest/gui-interact.sh all
+      - name: Stop headless Xvfb server (Xvfb + openbox)
+        # Always tear down the X server (DISPLAY is inherited from the start
+        # step); if: always() so it runs even if a test above failed.  The
+        # runner is ephemeral, but this keeps the pair symmetric and local.
+        if: always()
+        run: scripts/smoketest/x11-stop.sh

@@ -1,0 +1,24 @@
+name: exec-pid-dnull
+description: run external commands against the live magic process via {pid}, and
+  demonstrate {{...}} placeholder escaping.
+mode: dnull
+tech: scmos
+tags: [dnull, exec]
+metadata: {area: process}
+steps:
+  - send: "tech load {tech}"
+  - name: ready
+    send: 'puts "READY=[tech name]"'
+    expect: "READY={tech}"
+  - name: pid-is-magic
+    # the launcher exec's magic in place, so {pid} is magic's own pid
+    exec:
+      run: ["cat", "/proc/{pid}/comm"]
+      stdout_matches: "magic"
+  - name: pid-alive
+    exec: ["sh", "-c", "kill -0 {pid}"]     # exit 0 => the process exists
+  - name: literal-brace
+    send: 'puts "LIT={{work}}"'             # {{work}} -> literal {work}
+    expect: 'LIT=\{work\}'
+  - send: "quit -noprompt"
+expect_exit: 0

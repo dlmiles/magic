@@ -48,14 +48,20 @@ Each step is a mapping with one or more of:
     set_timeout_ms: N            -- change the inherited blocking timeout from here on
     sleep:   seconds
     xdotool: [args...]           -- run xdotool (x11 only); {win} = layout window
+    exec:    [argv...]|"cmd"|{run:..., exit:0, stdout_matches, stdout_contains}
+             -- run an arbitrary command (e.g. against the live process via
+                {pid}); fails on non-zero exit unless `exit:` says otherwise
     assert:  { exists|nonempty|absent: path,
                contains: {file, pattern}, min_lines: {file, n} }
     validate:{ run: [argv...]|"cmd", exit: 0, stdout_matches: "regex",
                stdout_contains: "str" }
 
-Placeholders in strings: {work} {src} {testdir} {tech} {cell} {display} {win}
-(and {default} in `cwd:`).  magic's cwd is logged with the launch/env, flagged
-when non-default.
+Placeholders in strings: {work} {src} {testdir} {cwd} {tech} {cell} {display}
+{win} {pid}/{MAGICPID} (magic's process id), and {default} in `cwd:`.  Only
+identifier-shaped {name} tokens are substituted, so Tcl braces and regex
+quantifiers ({4}, {$x}, {a b}) pass through; write {{name}} for a literal
+{name}, and an unknown {identifier} is left as-is with a stderr warning.
+magic's cwd is logged with the launch/env, flagged when non-default.
 
 At the start of each test the full launch command line and the relevant
 environment (MAGIC_*, SMOKE_*, CAD_*, DISPLAY, ...) are logged.  Progress lines
@@ -293,18 +299,34 @@ class MagicSession:
         self.log.close()
 
 
+# Placeholders: {{name}} -> literal {name} (escape); {name} -> ctx[name] when
+# known.  Only identifier-shaped names are treated as placeholders, so Tcl braces
+# and regex quantifiers ({4}, {2,3}, {$x}, {a b}) pass straight through.  An
+# unknown {identifier} is left as-is and warned once (per name) to stderr.
+_PH_RE = re.compile(r"\{\{(\w+)\}\}|\{([A-Za-z_]\w*)\}")
+_WARNED = set()
+
+
 def _subst(val, ctx):
-    # Targeted replacement of {work},{src},{tech},{cell},{display},{win} only --
-    # NOT str.format, so Tcl's own braces (expr {...}, list {...}) pass through.
-    if isinstance(val, str):
-        for k, v in ctx.items():
-            val = val.replace("{" + k + "}", str(v))
-        return val
     if isinstance(val, list):
         return [_subst(v, ctx) for v in val]
     if isinstance(val, dict):
         return {k: _subst(v, ctx) for k, v in val.items()}
-    return val
+    if not isinstance(val, str):
+        return val
+
+    def repl(m):
+        if m.group(1) is not None:                 # {{name}} -> literal {name}
+            return "{" + m.group(1) + "}"
+        name = m.group(2)
+        if name in ctx:
+            return str(ctx[name])
+        if name not in _WARNED:                    # unknown -> pass through, warn once
+            _WARNED.add(name)
+            sys.stderr.write(f"magictest: warning: unknown placeholder '{{{name}}}' left as-is\n")
+        return m.group(0)
+
+    return _PH_RE.sub(repl, val)
 
 
 def _do_assert(spec, ctx):
@@ -378,6 +400,7 @@ def run_test(path, verbose=False):
         if inp.endswith(".mag") and cell is None:
             cell = os.path.basename(inp)[:-4]
 
+    _WARNED.clear()                            # unknown-placeholder warnings are per test
     ctx = dict(work=work, src=SRCROOT, tech=tech, cell=cell or "", testdir=testdir,
                display=os.environ.get("DISPLAY", ""), win="")
 
@@ -388,6 +411,7 @@ def run_test(path, verbose=False):
     # test starts from the default (this is read fresh from every test's YAML).
     cwd_raw = str(spec.get("cwd", "{default}")).replace("{default}", testdir)
     cwd = os.path.abspath(_subst(cwd_raw, ctx))
+    ctx["cwd"] = cwd
 
     env = dict(os.environ, MAGIC_BUILDDIR=builddir)
     cmd = [launcher]
@@ -400,6 +424,9 @@ def run_test(path, verbose=False):
     # core into magic's cwd (searched below alongside the work dir).
     sess = MagicSession(cmd, env, logpath, t0=started, timeout_ms=timeout_ms,
                         cwd=cwd, display=ctx["display"])
+    # The launcher exec's magic in place, so the child pid IS magic's pid --
+    # available as {pid}/{MAGICPID} so an exec step can target the live process.
+    ctx["pid"] = ctx["MAGICPID"] = str(sess.proc.pid)
 
     def prog(msg):                       # timestamped progress: "[0000.000] ..."
         print(f"   [{sess.ts()}] {msg}")
@@ -458,6 +485,16 @@ def run_test(path, verbose=False):
                     raise TestError(f"wait: magic did not exit within {sess._secs(step_ms(step))*1000:.0f}ms")
                 if verbose:
                     prog(f"magic exited rc={rc}")
+            if "exec" in step:               # run an arbitrary external command
+                xspec = step["exec"]
+                if isinstance(xspec, (str, list)):
+                    xspec = {"run": xspec}
+                shown = _subst(xspec["run"], ctx)         # resolved form, for the log
+                shown = shlex.split(shown) if isinstance(shown, str) else [str(a) for a in shown]
+                prog("exec: " + " ".join(shlex.quote(a) for a in shown))
+                out = _do_validate(xspec, ctx, cwd)       # substitutes + runs (in cwd)
+                if verbose and out:
+                    prog(f"[{label}] exec -> {out[:80]}")
             if "assert" in step:
                 _do_assert(step["assert"], ctx)
             if "validate" in step:

@@ -25,9 +25,9 @@ phase.  Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
 | 020 | dnull | extract → ext2spice → gds → cif → drc on min.mag; asserts + a GDSII validator |
 | 030 | x11 | boots under -d X11 on a headless Xvfb; a layout window appears |
 | 040 | x11 | the 020 workflow through the real GUI; outputs functionally identical |
-| 050 | x11 | drives the GUI with xdotool mouse events interleaved with send/expect |
+| 050 | x11 | drives the GUI with xdotool mouse events interleaved with send/expect (`if: linux`) |
 | 060 | dnull | send, then `close_stdin` (EOF) + `wait` for magic to exit; changes the timeout on the fly |
-| 070 | dnull | `exec` external commands against the live process via `{pid}`; `{{…}}` escaping |
+| 070 | dnull | `exec` external commands against the live process via `{pid}`; `{{…}}` escaping (`if: linux`) |
 
 ## test.yaml format
 
@@ -63,6 +63,28 @@ on stderr (so typos surface).
 
 Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
 started) and PASS/FAIL reports the total session duration.
+
+## Cross-platform gating (`if:`)
+
+One catalog is meant to run on any platform (`unix` = linux/macos/\*bsd/solaris/
+cygwin…, plus windows).  A test — or an individual step — carries `if:` naming
+the platform(s) it applies to and is **skipped** elsewhere:
+
+```yaml
+if: linux                 # only Linux (test-level)
+if: [linux, macos]        # either
+if: unix                  # any non-Windows
+if: "!windows"            # everywhere except Windows
+steps:
+  - if: linux             # a single step, gated
+    exec: ["cat", "/proc/{pid}/comm"]
+```
+
+Tokens: an OS name (`linux macos windows freebsd openbsd netbsd solaris cygwin`
+…), a family (`unix`/`posix`), `any`/`*`, or `!name`; a string or list.  The
+detected platform is the `{platform}` placeholder; set `MAGICTEST_OS` to force
+it (for testing).  So on macOS the x11 tests run against XQuartz while the
+Linux-only ones (050 xdotool, 070 `/proc`) skip automatically.
 
 ## Tags & metadata (cataloguing / filtering)
 
@@ -105,10 +127,6 @@ For a core to be a *file* the kernel's `core_pattern` must point at one; CI does
 is found the report prints the active `core_pattern` so you can see why (e.g. it
 was piped to systemd-coredump/apport).  A test that *expects* a particular
 signal death can set `expect_exit:` to the negative signal code (e.g. `-11`).
-
-Placeholders in strings: `{work}` (per-test dir), `{src}` (repo root), `{tech}`,
-`{cell}` (first `.mag` input's basename), `{display}`, `{win}`.  Tcl's own `{...}`
-braces pass through untouched.
 
 ## Adding a test
 

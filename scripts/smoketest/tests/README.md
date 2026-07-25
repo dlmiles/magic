@@ -64,27 +64,37 @@ on stderr (so typos surface).
 Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
 started) and PASS/FAIL reports the total session duration.
 
-## Cross-platform gating (`if:`)
+## Environment gating (`if:`)
 
-One catalog is meant to run on any platform (`unix` = linux/macos/\*bsd/solaris/
-cygwin…, plus windows).  A test — or an individual step — carries `if:` naming
-the platform(s) it applies to and is **skipped** elsewhere:
+One catalog is meant to run anywhere.  A test — or an individual step — carries
+`if:` naming the environment(s) it applies to and is **skipped** elsewhere.
+Tokens cover both the OS and the running X11 stack:
+
+- OS: `linux macos windows freebsd openbsd netbsd solaris cygwin …`, the family
+  `unix`/`posix` (any non-Windows), `any`/`*`.
+- X11 (detected at run time from the live display): `x11` (a display exists),
+  `xquartz` (the macOS X server, via its Apple-WM extension), and the
+  window-manager name from `wmctrl` (e.g. `openbox`).
+- `!name` to exclude.  A string or a list.
 
 ```yaml
-if: linux                 # only Linux (test-level)
+if: linux                 # test-level: only Linux
 if: [linux, macos]        # either
 if: unix                  # any non-Windows
 if: "!windows"            # everywhere except Windows
 steps:
-  - if: linux             # a single step, gated
+  - if: linux             # a step, gated by OS
     exec: ["cat", "/proc/{pid}/comm"]
+  - if: openbox           # a step, gated by the X11 WM
+    echo: "X11 with openbox"
+  - if: xquartz
+    echo: "X11 with XQuartz"
 ```
 
-Tokens: an OS name (`linux macos windows freebsd openbsd netbsd solaris cygwin`
-…), a family (`unix`/`posix`), `any`/`*`, or `!name`; a string or list.  The
-detected platform is the `{platform}` placeholder; set `MAGICTEST_OS` to force
-it (for testing).  So on macOS the x11 tests run against XQuartz while the
-Linux-only ones (050 xdotool, 070 `/proc`) skip automatically.
+The detected platform is the `{platform}` placeholder; set `MAGICTEST_OS` to
+force it (for testing).  So on macOS the x11 tests run against XQuartz (and
+`if: xquartz` steps fire) while the Linux-only ones (050 xdotool, 070 `/proc`,
+`if: openbox` steps) skip automatically.
 
 ## Tags & metadata (cataloguing / filtering)
 

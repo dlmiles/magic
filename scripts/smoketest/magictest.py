@@ -35,10 +35,12 @@ resets to its default for each test, nothing carries between tests):
     inputs:      [paths]  -- files copied into the work dir before the run
     tags:        [labels] -- for --tag subselection (also metadata.tags)
     metadata:    { key: value, ... } -- catalogue store; --filter matches on it
-    if:          platform gate: an OS name (linux, macos, windows, freebsd,
+    if:          environment gate: an OS name (linux, macos, windows, freebsd,
                  openbsd, netbsd, solaris, cygwin, ...), a family (unix/posix =
-                 any non-Windows), any/*, or !name; a string or list.  The test
-                 is skipped where it does not match, so one catalog is portable.
+                 any non-Windows), an x11 tag detected at run time (x11,
+                 xquartz, openbox and other WM names), any/*, or !name; a string
+                 or list.  The test is skipped where it does not match, so one
+                 catalog is portable.
     steps:       [ ... ]  -- see below
     expect_exit: int      -- required magic exit status (default 0)
 
@@ -50,7 +52,8 @@ Each step is a mapping with one or more of:
     timeout_ms: N                -- per-step override for this expect/wait (ms)
     timeout: seconds             -- same, in seconds (legacy)
     set_timeout_ms: N            -- change the inherited blocking timeout from here on
-    if:      <platform>          -- run this step only on matching platform(s)
+    if:      <env>               -- run this step only in matching env (OS/x11 tag)
+    echo:    "message"           -- print a message (with placeholders)
     sleep:   seconds
     xdotool: [args...]           -- run xdotool (x11 only); {win} = layout window
     exec:    [argv...]|"cmd"|{run:..., exit:0, stdout_matches, stdout_contains}
@@ -177,7 +180,60 @@ def _platform_now():
     return {"darwin": "macos", "sunos": "solaris", "": "unknown"}.get(s, s)
 
 
-def _plat_ok(spec, cur):
+def _tool(name):
+    """Find a tool on PATH, or in the usual X11 bin dirs (macOS keeps them out
+    of the default PATH)."""
+    p = shutil.which(name)
+    if p:
+        return p
+    for d in ("/opt/X11/bin", "/usr/X11/bin", "/usr/X11R6/bin"):
+        c = os.path.join(d, name)
+        if os.access(c, os.X_OK):
+            return c
+    return None
+
+
+_X11TAGS_CACHE = {}
+
+
+def _x11_tags(display):
+    """Identity tags for the running X environment, so `if:` can gate on the
+    server/WM: 'x11' (a display exists), 'xquartz' (macOS X server, via the
+    Apple-WM extension), and the window-manager name from wmctrl (e.g.
+    'openbox').  Empty when there is no display.  Cached per display."""
+    if not display:
+        return set()
+    if display in _X11TAGS_CACHE:
+        return _X11TAGS_CACHE[display]
+    tags = {"x11"}
+    env = {**os.environ, "DISPLAY": display}
+    xdpy = _tool("xdpyinfo")
+    if xdpy:
+        try:
+            out = subprocess.run([xdpy], capture_output=True, text=True,
+                                 timeout=10, env=env).stdout.lower()
+            if "apple-wm" in out or "xquartz" in out:
+                tags.add("xquartz")
+        except Exception:
+            pass
+    wmc = _tool("wmctrl")
+    if wmc:
+        try:
+            out = subprocess.run([wmc, "-m"], capture_output=True, text=True,
+                                 timeout=8, env=env).stdout
+            m = re.search(r"(?im)^Name:\s*(\S+)", out)
+            if m:
+                tags.add(m.group(1).lower())     # e.g. 'openbox'
+        except Exception:
+            pass
+    _X11TAGS_CACHE[display] = tags
+    return tags
+
+
+def _when_ok(spec, tags, plat):
+    """Match an `if:` clause against the run's tag set (the platform plus the
+    x11 env tags).  Tokens: an OS/family (unix/posix), an env tag (x11, xquartz,
+    openbox, ...), any/*, or !name; a string or list."""
     if spec is None:
         return True
     toks = [spec] if isinstance(spec, str) else list(spec)
@@ -188,10 +244,10 @@ def _plat_ok(spec, cur):
 
     def hit(tok):
         if tok in ("unix", "posix"):
-            return cur in _UNIX
+            return plat in _UNIX
         if tok in ("any", "all", "*"):
             return True
-        return cur == tok
+        return tok in tags
 
     if any(hit(t) for t in neg):
         return False
@@ -491,8 +547,11 @@ def run_test(path, verbose=False):
         print("   " + "  ".join(bits))
 
     plat = _platform_now()
-    if not _plat_ok(spec.get("if"), plat):
-        print(_c("33", f"   SKIP  if:{spec.get('if')} -- this platform is {plat}"))
+    # Tag set an `if:` clause matches against: the platform plus the running
+    # x11 environment (x11 / xquartz / openbox / ...).
+    tags = {plat} | _x11_tags(os.environ.get("DISPLAY", ""))
+    if not _when_ok(spec.get("if"), tags, plat):
+        print(_c("33", f"   SKIP  if:{spec.get('if')} -- env is {','.join(sorted(tags))}"))
         return None
 
     if mode == "x11" and not os.environ.get("DISPLAY"):
@@ -577,10 +636,12 @@ def run_test(path, verbose=False):
 
         for i, step in enumerate(spec.get("steps", []) or []):
             label = step.get("name", f"step{i+1}")
-            if "if" in step and not _plat_ok(step["if"], plat):   # platform-gated step
+            if "if" in step and not _when_ok(step["if"], tags, plat):   # env-gated step
                 if verbose:
-                    prog(f"skip {label} (if:{step['if']} != {plat})")
+                    prog(f"skip {label} (if:{step['if']} not in {','.join(sorted(tags))})")
                 continue
+            if "echo" in step:
+                prog(str(_subst(step["echo"], ctx)))
             if time.time() - started > timeout:
                 raise TestError("overall test timeout exceeded")
             if "set_timeout_ms" in step:         # change the inherited timeout on the fly

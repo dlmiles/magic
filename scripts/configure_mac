@@ -94,6 +94,19 @@ done
 # Restores the original script default when the above detection fails
 tcl_tk_prefix_dir=${tcl_tk_prefix_dir:-$brew_prefix_tcl_tk}
 
+# CI may pin a specific Homebrew tcl-tk package via $TCL_TK_PKG (e.g. tcl-tk@9,
+# or tcl-tk for the unversioned formula -- see main-macos.yml); honor it,
+# overriding the auto-detection above, when its prefix resolves to a directory.
+if [ -n "${TCL_TK_PKG:-}" ]
+then
+    _pinned=$(brew --prefix "$TCL_TK_PKG" 2>/dev/null)
+    if [ -n "$_pinned" ] && [ -d "$_pinned" ]
+    then
+        echo "Using CI-pinned tcl-tk package $TCL_TK_PKG -> $_pinned"
+        tcl_tk_prefix_dir="$_pinned"
+    fi
+fi
+
 if [ -n "$x11_include_dir" ]
 then
     # On some versions of MacOSX (example macosx12 / XCode 14.2) the tcl-tk

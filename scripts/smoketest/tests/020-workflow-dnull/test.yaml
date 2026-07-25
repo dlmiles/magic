@@ -30,6 +30,6 @@ steps:
   - name: gds-is-gdsii
     validate:
       run: ["od", "-An", "-tx1", "-N4", "{work}/{cell}.gds"]
-      stdout_matches: "00 06 00 02"
+      stdout_matches: "00 +06 +00 +02"   # ' +' tolerates BSD od's double-spacing (macOS)
   - send: "quit -noprompt"
 expect_exit: 0

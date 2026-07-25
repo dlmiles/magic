@@ -3,6 +3,8 @@ description: magic boots under -d X11 on a headless display; a layout window
   appears (checked by the orchestrator) and commands run.
 mode: x11
 tech: scmos
+tags: [x11, smoke]
+metadata: {area: startup}
 steps:
   - name: tech-load
     send: "tech load {tech}"

@@ -5,6 +5,8 @@ description: >
   (real X11 events reaching magic), confirm magic stays responsive, then quit.
 mode: x11
 tech: scmos
+tags: [x11, gui, interaction]
+metadata: {area: gui}
 timeout: 90
 steps:
   - name: load-tech

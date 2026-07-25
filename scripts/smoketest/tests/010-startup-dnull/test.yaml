@@ -2,6 +2,9 @@ name: startup-dnull
 description: magic boots headless (-dnull), loads scmos, core commands exist.
 mode: dnull
 tech: scmos
+metadata:
+  area: startup
+  tags: [dnull, smoke]
 steps:
   - name: banner
     expect: "Using NULL graphics device"

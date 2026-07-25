@@ -9,24 +9,32 @@ a pseudo-terminal so it line-buffers like an interactive session, which is what
 makes send/expect reliable.
 
 Usage:
-    magictest.py run   <test.yaml | catalog-dir> [-v]
-    magictest.py list  <catalog-dir>
+    magictest.py run   <test.yaml | catalog-dir> [-v] [--tag T[,T]] [--filter K=V]
+    magictest.py list  <catalog-dir> [--tag T[,T]] [--filter K=V]
 
 A "catalog" is a directory of NNN-name/test.yaml tests; `run` on a directory
 executes every test.yaml under it in sorted (numbered) order and exits non-zero
-if any fails.
+if any fails.  --tag / --filter subselect which tests run (both repeatable): a
+test matches --tag if it carries any of the named tags, and --filter K=V if its
+metadata[K] == V.
 
-Test YAML schema (all keys optional unless noted):
+Test YAML schema (all keys optional unless noted; per-test -- every setting
+resets to its default for each test, nothing carries between tests):
     name:        short name (defaults to the file/dir name)
     description: free text
     mode:        dnull (default) | x11        -- graphics device
     tech:        technology to preload substitutions with (e.g. scmos)
+    cwd:         magic's working directory; default is the test's own directory
+                 (= the {default} placeholder).  Accepts placeholders ({work},
+                 {testdir}, {src}); `cwd: {default}` resets it to the default.
     timeout:     per-test wall-clock cap, seconds (default 180); also magic's
                  own -timeout watchdog for x11
     timeout_ms:  inherited timeout for blocking steps (expect/wait), ms
                  (default 30000); a step can change it live (set_timeout_ms)
     builddir:    out-of-tree build dir (default $MAGIC_BUILDDIR or build-tmp)
     inputs:      [paths]  -- files copied into the work dir before the run
+    tags:        [labels] -- for --tag subselection (also metadata.tags)
+    metadata:    { key: value, ... } -- catalogue store; --filter matches on it
     steps:       [ ... ]  -- see below
     expect_exit: int      -- required magic exit status (default 0)
 
@@ -45,7 +53,9 @@ Each step is a mapping with one or more of:
     validate:{ run: [argv...]|"cmd", exit: 0, stdout_matches: "regex",
                stdout_contains: "str" }
 
-Placeholders substituted in strings: {work} {src} {tech} {cell} {display} {win}.
+Placeholders in strings: {work} {src} {testdir} {tech} {cell} {display} {win}
+(and {default} in `cwd:`).  magic's cwd is logged with the launch/env, flagged
+when non-default.
 
 At the start of each test the full launch command line and the relevant
 environment (MAGIC_*, SMOKE_*, CAD_*, DISPLAY, ...) are logged.  Progress lines
@@ -97,6 +107,31 @@ def _find_cores(dirs):
                 except OSError:
                     pass
     return out
+
+
+def _tags_meta(spec):
+    """(sorted tag list, metadata dict) for a test spec.  Tags come from the
+    top-level `tags:` and/or `metadata.tags`; metadata is the `metadata:` dict
+    minus its `tags` key -- a plain key/value store for cataloguing."""
+    md = dict(spec.get("metadata") or {})
+    tags = set(spec.get("tags") or []) | set(md.pop("tags", []) or [])
+    return (sorted(str(t) for t in tags), md)
+
+
+def _selected(path, want_tags, want_meta):
+    """True if the test at path matches the tag/metadata filters (used to
+    subselect which tests to run)."""
+    try:
+        spec = yaml.safe_load(open(path)) or {}
+    except Exception:
+        return not (want_tags or want_meta)
+    tags, md = _tags_meta(spec)
+    if want_tags and not (set(tags) & want_tags):
+        return False
+    for k, v in want_meta:
+        if str(md.get(k)) != v:
+            return False
+    return True
 
 
 class MagicSession:
@@ -320,6 +355,12 @@ def run_test(path, verbose=False):
     builddir = os.path.abspath(spec.get("builddir") or os.environ.get("MAGIC_BUILDDIR", "build-tmp"))
 
     print(_c("1", f"── test: {name} [{mode}]") + f"  ({spec.get('description','')})")
+    _tags, _meta = _tags_meta(spec)
+    if _tags or _meta:
+        bits = []
+        if _tags: bits.append("tags=" + ",".join(_tags))
+        if _meta: bits.append("meta=" + " ".join(f"{k}={v}" for k, v in _meta.items()))
+        print("   " + "  ".join(bits))
 
     if mode == "x11" and not os.environ.get("DISPLAY"):
         print(_c("33", "   SKIP  mode x11 but no DISPLAY (start scripts/smoketest/x11-start.sh)"))
@@ -329,6 +370,7 @@ def run_test(path, verbose=False):
         raise TestError(f"{launcher} not built (set builddir / MAGIC_BUILDDIR)")
 
     work = tempfile.mkdtemp(prefix="magictest.")
+    testdir = os.path.dirname(os.path.abspath(path))
     cell = None
     for inp in spec.get("inputs", []) or []:
         srcp = inp if os.path.isabs(inp) else os.path.join(SRCROOT, inp)
@@ -336,8 +378,16 @@ def run_test(path, verbose=False):
         if inp.endswith(".mag") and cell is None:
             cell = os.path.basename(inp)[:-4]
 
-    ctx = dict(work=work, src=SRCROOT, tech=tech, cell=cell or "",
+    ctx = dict(work=work, src=SRCROOT, tech=tech, cell=cell or "", testdir=testdir,
                display=os.environ.get("DISPLAY", ""), win="")
+
+    # magic's working directory.  The default -- and the {default} placeholder --
+    # is the directory holding this test's YAML, so a test can reference fixture
+    # files next to it.  Override per-test with `cwd:` (placeholders incl. {work},
+    # {testdir}, {src}); `cwd: {default}` resets it.  Reset happens per test: each
+    # test starts from the default (this is read fresh from every test's YAML).
+    cwd_raw = str(spec.get("cwd", "{default}")).replace("{default}", testdir)
+    cwd = os.path.abspath(_subst(cwd_raw, ctx))
 
     env = dict(os.environ, MAGIC_BUILDDIR=builddir)
     cmd = [launcher]
@@ -346,10 +396,10 @@ def run_test(path, verbose=False):
 
     logpath = os.path.join(work, "magic.log")
     started = time.time()
-    # Run magic with cwd=work so a core file (a relative core_pattern) lands in
-    # the per-test dir where we look for it; core dumps are enabled in the child.
+    # Core dumps are enabled in the child; a relative core_pattern writes the
+    # core into magic's cwd (searched below alongside the work dir).
     sess = MagicSession(cmd, env, logpath, t0=started, timeout_ms=timeout_ms,
-                        cwd=work, display=ctx["display"])
+                        cwd=cwd, display=ctx["display"])
 
     def prog(msg):                       # timestamped progress: "[0000.000] ..."
         print(f"   [{sess.ts()}] {msg}")
@@ -361,6 +411,8 @@ def run_test(path, verbose=False):
               if k in ("DISPLAY", "CAD_ROOT", "WISH", "TCLSH", "TMPDIR")
               or k.startswith(("MAGIC_", "SMOKE_", "CAD_"))}
     prog("env: " + (" ".join(f"{k}={relenv[k]}" for k in sorted(relenv)) or "(none relevant)"))
+    # cwd is part of the test environment -- log it, and flag a non-default one.
+    prog(f"cwd: {cwd}" + ("" if cwd == testdir else "  (non-default; default is the test dir)"))
     prog(f"timeout_ms={sess.timeout_ms} cap={timeout}s work={work}")
     prog(f"coredump: RLIMIT_CORE=unlimited (in child)  core_pattern={_core_pattern()!r}")
 
@@ -423,7 +475,7 @@ def run_test(path, verbose=False):
             raise TestError("magic did not exit within the test timeout")
         # A crash (SIGSEGV/SIGABRT/...) is always reported with core details and
         # fails, unless the test explicitly expects that signal's exit code.
-        dr = sess.death_report([work, os.getcwd()])
+        dr = sess.death_report([cwd, work])
         if dr:
             for line in dr[2]:
                 prog(_c("31", line) if dr[0] else line)
@@ -434,7 +486,7 @@ def run_test(path, verbose=False):
     except TestError as e:
         # If magic died by a signal mid-run (e.g. expect saw it exit), surface
         # the crash + core details even though a step raised first.
-        dr = sess.death_report([work, os.getcwd()])
+        dr = sess.death_report([cwd, work])
         if dr:
             for line in dr[2]:
                 prog(_c("31", line) if dr[0] else line)
@@ -458,14 +510,48 @@ def main(argv):
     if len(argv) < 3 or argv[1] not in ("run", "list"):
         sys.exit(__doc__)
     action, target = argv[1], argv[2]
-    verbose = "-v" in argv[3:]
+
+    # Parse: -v, --tag T[,T...] (repeatable), --filter KEY=VALUE (repeatable).
+    verbose = False
+    want_tags, want_meta = set(), []
+    it = iter(argv[3:])
+    for a in it:
+        if a == "-v":
+            verbose = True
+        elif a == "--tag":
+            want_tags |= set(next(it, "").split(","))
+        elif a.startswith("--tag="):
+            want_tags |= set(a[len("--tag="):].split(","))
+        elif a == "--filter":
+            k, _, v = next(it, "").partition("=")
+            if k: want_meta.append((k, v))
+        elif a.startswith("--filter="):
+            k, _, v = a[len("--filter="):].partition("=")
+            if k: want_meta.append((k, v))
+    want_tags.discard("")
+
     tests = find_tests(target)
     if not tests:
         sys.exit(f"magictest: no tests found at {target}")
+    total_found = len(tests)
+    if want_tags or want_meta:
+        tests = [t for t in tests if _selected(t, want_tags, want_meta)]
+        sel = []
+        if want_tags: sel.append("tags=" + ",".join(sorted(want_tags)))
+        if want_meta: sel.append("filter=" + ",".join(f"{k}={v}" for k, v in want_meta))
+        print(_c("1", f"filter {'; '.join(sel)} -> {len(tests)}/{total_found} tests"))
+        if not tests:
+            print("(no tests matched)")
+            return 0
+
     if action == "list":
         for t in tests:
-            print(t)
+            tags, md = _tags_meta(yaml.safe_load(open(t)) or {})
+            extra = ("  tags=" + ",".join(tags) if tags else "") + \
+                    ("  " + " ".join(f"{k}={v}" for k, v in md.items()) if md else "")
+            print(t + extra)
         return 0
+
     passed = failed = skipped = 0
     for t in tests:
         r = run_test(t, verbose=verbose)

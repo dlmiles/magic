@@ -3,6 +3,8 @@ description: send commands, then close stdin (EOF) and wait for magic to exit on
   its own; also changes the inherited blocking timeout on the fly.
 mode: dnull
 tech: scmos
+tags: [dnull, stdin]
+metadata: {area: io}
 timeout_ms: 20000
 steps:
   - send: "tech load {tech}"

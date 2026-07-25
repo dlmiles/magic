@@ -85,6 +85,20 @@ if [ "$mode" = "workflow" ]; then
         local n; n=$(grep -c '' "$1" 2>/dev/null || echo 0)
         if [ "$n" -ge "$2" ]; then ok "$3 ($n lines)"; else fail "$3: only $n lines (< $2) in $1"; fi
     }
+    # Diagnostics for cross-run / cross-platform comparison: size, line count, a
+    # stable checksum, and the first + last 64 bytes in hex.  Any stray CR/LF
+    # (0d/0a) shows here, and the cksum lets a change between CI runs be spotted
+    # at a glance (POSIX cksum -- same algorithm on Linux and macOS).
+    dump_file() {   # dump_file <path> <name>
+        local f="$1" name="$2" sz lines crc
+        if [ ! -f "$f" ]; then echo "  DUMP $name: (missing $f)"; return; fi
+        sz=$(wc -c < "$f" | tr -d ' ')
+        lines=$(wc -l < "$f" | tr -d ' ')
+        crc=$(cksum < "$f" | awk '{print $1}')
+        echo "  DUMP $name: ${sz} bytes, ${lines} lines, cksum(crc32)=${crc}"
+        echo "    head[64]: $(od -An -tx1 -N64 "$f" | tr '\n' ' ' | tr -s ' ')"
+        echo "    tail[64]: $(tail -c 64 "$f" | od -An -tx1 | tr '\n' ' ' | tr -s ' ')"
+    }
 
     if check_file "$d/$cell.ext"   ".ext";   then
         check_grep     "$d/$cell.ext" '^(node|cap|fet|device|timestamp)' "  .ext content"
@@ -95,18 +109,25 @@ if [ "$mode" = "workflow" ]; then
         check_minlines "$d/$cell.spice" 4                                "  .spice line count"
     fi
     if check_file "$d/$cell.gds"   ".gds";   then
-        # GDSII begins with an HEADER record: length 0x0006, record type 0x00,
-        # data type 0x02.  Match the type/datatype byte pair at offset 2.
-        if od -An -tx1 -N4 "$d/$cell.gds" | grep -Eq '00 06 00 02'; then
+        # GDSII begins with a HEADER record: length 0x0006, record type 0x00,
+        # data type 0x02.  Normalize od's output to bare hex first -- GNU and BSD
+        # (macOS) od space/group -tx1 differently, so grepping "00 06 00 02"
+        # verbatim fails on macOS even when the bytes are correct.
+        hdr=$(od -An -tx1 -N4 "$d/$cell.gds" 2>/dev/null | tr -dc '0-9a-fA-F')
+        if [ "$hdr" = "00060002" ]; then
             ok "  .gds GDSII header"
         else
-            fail "  .gds does not start with a GDSII HEADER record"
+            fail "  .gds header is '$hdr', not 00060002 (GDSII HEADER record)"
         fi
     fi
     if check_file "$d/$cell.cif"   ".cif";   then
         check_grep     "$d/$cell.cif" '(DS|9 |C[0-9]|End)'               "  .cif content"
         check_minlines "$d/$cell.cif" 8                                  "  .cif line count"
     fi
+
+    # Dump every artifact (size / lines / cksum / head+tail hex) so a difference
+    # between CI runs or platforms is visible in the log.
+    for a in ext spice gds cif; do dump_file "$d/$cell.$a" ".$a"; done
 
     # The DRC pass must have reported a total (value itself is layout-dependent).
     check_grep "$log" 'Total DRC errors found:' "  drc reported a total"

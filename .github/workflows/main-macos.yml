@@ -188,6 +188,11 @@ jobs:
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
 
+      - name: Smoke test — startup + features (-dnull)
+        # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
+        # boot magicdnull headless, load a tech, assert the command surface.
+        run: scripts/smoketest/run.sh startup
+
       - name: Summary
         if: always()
         run: |
@@ -441,6 +446,11 @@ jobs:
           xdpyinfo 2>&1 | egrep -i \
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+
+      - name: Smoke test — startup + features (-dnull)
+        # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
+        # boot magicdnull headless, load a tech, assert the command surface.
+        run: scripts/smoketest/run.sh startup
 
       - name: Summary
         if: always()

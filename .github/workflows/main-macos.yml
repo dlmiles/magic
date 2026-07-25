@@ -185,13 +185,43 @@ jobs:
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
-      - name: Check X11 environment (XQuartz)
-        # Report the vital statistics of the display so we can confirm it is up
-        # and ready before the GUI smoke.  Non-fatal (set +e): if no X server is
-        # reachable, the x11 smoke tests below just skip (DISPLAY unset).
+      - name: Check X11 environment (start XQuartz if needed)
+        # If no X server is running, start XQuartz on :0 with local, no-auth
+        # security (AF_UNIX socket only, no MIT-MAGIC-COOKIE), confirm it with
+        # xdpyinfo, and hand DISPLAY to the GUI smoke below.  Non-fatal (set +e):
+        # if XQuartz does not come up, DISPLAY stays unset and the x11 tests skip.
         run: |
           set +e
           export PATH="/opt/X11/bin:$PATH"
+
+          if [ -z "${DISPLAY:-}" ]; then
+            echo "No X server running -- starting XQuartz"
+            # Read at startup: disable auth + TCP so a local AF_UNIX client
+            # connects with no cookie.
+            defaults write org.xquartz.X11 no_auth      -bool true
+            defaults write org.xquartz.X11 nolisten_tcp -bool true
+            open -a XQuartz
+            up=0
+            for i in $(seq 1 30); do
+              export DISPLAY=:0
+              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              d=$(launchctl getenv DISPLAY 2>/dev/null)
+              if [ -n "$d" ]; then
+                export DISPLAY="$d"
+                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              fi
+              sleep 1
+            done
+            if [ "$up" = "1" ]; then
+              echo "XQuartz is up on DISPLAY=$DISPLAY"
+              xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
+              echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
+            else
+              echo "XQuartz did not come up within 30s -- x11 tests will skip"
+              unset DISPLAY
+            fi
+          fi
+
           echo "DISPLAY=${DISPLAY:-<unset>}"
           echo "XAUTHORITY=${XAUTHORITY:-<unset>}"
           echo "=== xauth list ==="
@@ -470,13 +500,43 @@ jobs:
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
-      - name: Check X11 environment (XQuartz)
-        # Report the vital statistics of the display so we can confirm it is up
-        # and ready before the GUI smoke.  Non-fatal (set +e): if no X server is
-        # reachable, the x11 smoke tests below just skip (DISPLAY unset).
+      - name: Check X11 environment (start XQuartz if needed)
+        # If no X server is running, start XQuartz on :0 with local, no-auth
+        # security (AF_UNIX socket only, no MIT-MAGIC-COOKIE), confirm it with
+        # xdpyinfo, and hand DISPLAY to the GUI smoke below.  Non-fatal (set +e):
+        # if XQuartz does not come up, DISPLAY stays unset and the x11 tests skip.
         run: |
           set +e
           export PATH="/opt/X11/bin:$PATH"
+
+          if [ -z "${DISPLAY:-}" ]; then
+            echo "No X server running -- starting XQuartz"
+            # Read at startup: disable auth + TCP so a local AF_UNIX client
+            # connects with no cookie.
+            defaults write org.xquartz.X11 no_auth      -bool true
+            defaults write org.xquartz.X11 nolisten_tcp -bool true
+            open -a XQuartz
+            up=0
+            for i in $(seq 1 30); do
+              export DISPLAY=:0
+              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              d=$(launchctl getenv DISPLAY 2>/dev/null)
+              if [ -n "$d" ]; then
+                export DISPLAY="$d"
+                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              fi
+              sleep 1
+            done
+            if [ "$up" = "1" ]; then
+              echo "XQuartz is up on DISPLAY=$DISPLAY"
+              xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
+              echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
+            else
+              echo "XQuartz did not come up within 30s -- x11 tests will skip"
+              unset DISPLAY
+            fi
+          fi
+
           echo "DISPLAY=${DISPLAY:-<unset>}"
           echo "XAUTHORITY=${XAUTHORITY:-<unset>}"
           echo "=== xauth list ==="

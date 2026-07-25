@@ -193,6 +193,11 @@ jobs:
         # boot magicdnull headless, load a tech, assert the command surface.
         run: scripts/smoketest/run.sh startup
 
+      - name: Smoke test — extract/export/DRC workflow (-dnull)
+        # The same extract -> ext2spice -> gds -> cif -> drc pipeline the Linux CI
+        # runs, on npm/examples/min.mag, with the output artifacts validated.
+        run: scripts/smoketest/run.sh workflow
+
       - name: Summary
         if: always()
         run: |
@@ -451,6 +456,11 @@ jobs:
         # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
         # boot magicdnull headless, load a tech, assert the command surface.
         run: scripts/smoketest/run.sh startup
+
+      - name: Smoke test — extract/export/DRC workflow (-dnull)
+        # The same extract -> ext2spice -> gds -> cif -> drc pipeline the Linux CI
+        # runs, on npm/examples/min.mag, with the output artifacts validated.
+        run: scripts/smoketest/run.sh workflow
 
       - name: Summary
         if: always()

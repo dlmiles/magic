@@ -7,6 +7,11 @@ on:
   push:
   pull_request:
   workflow_dispatch:
+    inputs:
+      tcl_version:
+        description: 'Homebrew tcl-tk version suffix: 8 (default) or 9; leave empty for the unversioned tcl-tk formula.'
+        type: string
+        default: '8'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -22,8 +27,18 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk@8 tcsh gnu-sed
-          _package_list="cairo tcl-tk@8 tcsh gnu-sed"
+          # tcl-tk brew package: default @8 (also on push/PR); a manual run may
+          # select a version (8/9) via the tcl_version input, or clear it to use
+          # the unversioned tcl-tk formula.  Exported for configure_mac (Build).
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TCLVER="${{ github.event.inputs.tcl_version }}"
+          else
+            TCLVER="8"
+          fi
+          if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
+          echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
+          brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
+          _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -51,8 +66,8 @@ jobs:
             brew info cairo    > $TMPFILE && head -n1 $TMPFILE
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
+            brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""
@@ -297,8 +312,18 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          brew install cairo tcl-tk@8 tcsh gnu-sed
-          _package_list="cairo tcl-tk@8 tcsh gnu-sed"
+          # tcl-tk brew package: default @8 (also on push/PR); a manual run may
+          # select a version (8/9) via the tcl_version input, or clear it to use
+          # the unversioned tcl-tk formula.  Exported for configure_mac (Build).
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            TCLVER="${{ github.event.inputs.tcl_version }}"
+          else
+            TCLVER="8"
+          fi
+          if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
+          echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
+          brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
+          _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -326,8 +351,8 @@ jobs:
             brew info cairo    > $TMPFILE && head -n1 $TMPFILE
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk   > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk@8 > $TMPFILE && head -n1 $TMPFILE
+            brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
+            brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""

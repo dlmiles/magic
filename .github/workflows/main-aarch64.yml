@@ -50,7 +50,7 @@ jobs:
         # (all packaged; libXtst/libxkbcommon come in as deps).  Index already
         # refreshed by "Get Dependencies" above.
         run: sudo apt-get install -y xvfb openbox wmctrl xdotool python3-yaml
-      - name: Start headless X server (Xvfb + openbox)
+      - name: Start headless Xvfb server (Xvfb + openbox)
         # x11-start.sh writes DISPLAY to $GITHUB_ENV itself (see main.yml).
         run: scripts/smoketest/x11-start.sh
       - name: Run magic YAML test catalog
@@ -64,3 +64,6 @@ jobs:
       - name: GUI interaction demo (opt-in, non-blocking)
         continue-on-error: true
         run: scripts/smoketest/gui-interact.sh all
+      - name: Stop headless Xvfb server (Xvfb + openbox)
+        if: always()
+        run: scripts/smoketest/x11-stop.sh

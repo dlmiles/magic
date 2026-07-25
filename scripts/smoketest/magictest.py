@@ -47,8 +47,10 @@ Each step is a mapping with one or more of:
 
 Placeholders substituted in strings: {work} {src} {tech} {cell} {display} {win}.
 
-Progress lines are prefixed with elapsed time since the session started as
-0000.000 (seconds), and PASS/FAIL prints the total session duration.
+At the start of each test the full launch command line and the relevant
+environment (MAGIC_*, SMOKE_*, CAD_*, DISPLAY, ...) are logged.  Progress lines
+are prefixed with elapsed time since the session started as 0000.000 (seconds),
+and PASS/FAIL prints the total session duration.
 """
 
 import os, sys, re, pty, time, shlex, select, signal, subprocess, tempfile, shutil, glob
@@ -287,6 +289,15 @@ def run_test(path, verbose=False):
 
     def prog(msg):                       # timestamped progress: "[0000.000] ..."
         print(f"   [{sess.ts()}] {msg}")
+
+    # Show exactly how magic is being launched and the env that shapes it (the
+    # launcher exec's magicexec/magicdnull with these args + a staged CAD_ROOT).
+    prog("launch: " + " ".join(shlex.quote(c) for c in cmd))
+    relenv = {k: v for k, v in env.items()
+              if k in ("DISPLAY", "CAD_ROOT", "WISH", "TCLSH", "TMPDIR")
+              or k.startswith(("MAGIC_", "SMOKE_", "CAD_"))}
+    prog("env: " + (" ".join(f"{k}={relenv[k]}" for k in sorted(relenv)) or "(none relevant)"))
+    prog(f"timeout_ms={sess.timeout_ms} cap={timeout}s work={work}")
 
     def step_ms(step):                   # per-step timeout override: ms or (legacy) s
         if "timeout_ms" in step:

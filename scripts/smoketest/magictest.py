@@ -110,10 +110,34 @@ def _c(code, s):
 
 
 def _core_pattern():
+    """Where the OS writes cores.  Linux: /proc/sys/kernel/core_pattern.
+    macOS/BSD: `sysctl kern.corefile` (default /cores/core.%P)."""
     try:
         return open("/proc/sys/kernel/core_pattern").read().strip()
     except OSError:
-        return "?"
+        pass
+    try:
+        r = subprocess.run(["sysctl", "-n", "kern.corefile"],
+                           capture_output=True, text=True, timeout=5)
+        if r.returncode == 0 and r.stdout.strip():
+            return r.stdout.strip()
+    except Exception:
+        pass
+    return "?"
+
+
+def _core_search_dirs():
+    """Directories the OS may write a core to, beyond magic's own cwd: the
+    macOS default /cores, plus the directory of an absolute core_pattern."""
+    dirs = []
+    if _platform_now() == "macos":
+        dirs.append("/cores")                     # kern.corefile default: /cores/core.%P
+    cp = _core_pattern()
+    if cp.startswith("/") and "|" not in cp:      # an absolute path, not a pipe
+        d = os.path.dirname(cp)
+        if d and d not in dirs:
+            dirs.append(d)
+    return dirs
 
 
 def _find_cores(dirs):
@@ -168,6 +192,40 @@ def _backtrace(core, exe=None, timeout=90):
         return (tool, out or f"({tool} produced no output)")
     except Exception as e:
         return (tool, f"({tool} failed: {e})")
+
+
+def _dump_logs(dirs, prog, max_lines=400):
+    """On failure, print every *.log found under dirs inline, framed by
+    '=== BEGIN <path> ===' / '=== END <path> ===' markers, so the log content
+    (e.g. magic.log) is visible directly in the CI output instead of just a path
+    to a file the CI run has thrown away.  Large logs show their tail."""
+    seen = set()
+    found = False
+    for d in dirs:
+        if not d:
+            continue
+        for p in sorted(glob.glob(os.path.join(d, "**", "*.log"), recursive=True)):
+            rp = os.path.realpath(p)
+            if rp in seen or not os.path.isfile(p):
+                continue
+            seen.add(rp)
+            found = True
+            try:
+                data = open(p, "rb").read()
+            except OSError as e:
+                prog(f"=== BEGIN {p} (unreadable: {e}) ===")
+                continue
+            lines = data.decode("utf-8", "replace").splitlines()
+            note = ""
+            if len(lines) > max_lines:
+                note = f"  (tail {max_lines} of {len(lines)} lines)"
+                lines = lines[-max_lines:]
+            prog(f"=== BEGIN {p}  ({len(data)} bytes){note} ===")
+            for ln in lines:
+                print(ln)
+            prog(f"=== END {p} ===")
+    if not found:
+        prog(f"(no *.log files found under {dirs})")
 
 
 # Cross-platform gating.  A test or step may carry `if:` naming the platform(s)
@@ -623,7 +681,9 @@ def run_test(path, verbose=False):
     # cwd is part of the test environment -- log it, and flag a non-default one.
     prog(f"cwd: {cwd}" + ("" if cwd == testdir else "  (non-default; default is the test dir)"))
     prog(f"timeout_ms={sess.timeout_ms} cap={timeout}s work={work}")
-    prog(f"coredump: RLIMIT_CORE=unlimited (in child)  core_pattern={_core_pattern()!r}")
+    coredirs = [cwd, work] + _core_search_dirs()
+    prog(f"coredump: RLIMIT_CORE=unlimited (in child)  core_pattern={_core_pattern()!r}  "
+         f"search={coredirs}")
 
     def step_ms(step):                   # per-step timeout override: ms or (legacy) s
         if "timeout_ms" in step:
@@ -706,7 +766,7 @@ def run_test(path, verbose=False):
             raise TestError("magic did not exit within the test timeout")
         # A crash (SIGSEGV/SIGABRT/...) is always reported with core details and
         # fails, unless the test explicitly expects that signal's exit code.
-        dr = sess.death_report([cwd, work])
+        dr = sess.death_report(coredirs)
         if dr:
             for line in dr[2]:
                 prog(_c("31", line) if dr[0] else line)
@@ -717,12 +777,13 @@ def run_test(path, verbose=False):
     except TestError as e:
         # If magic died by a signal mid-run (e.g. expect saw it exit), surface
         # the crash + core details even though a step raised first.
-        dr = sess.death_report([cwd, work])
+        dr = sess.death_report(coredirs)
         if dr:
             for line in dr[2]:
                 prog(_c("31", line) if dr[0] else line)
         print(_c("31", f"   [{sess.ts()}] FAIL  {e}"))
         print(f"         (session {time.time()-started:.3f}s)  log: {logpath}")
+        _dump_logs([work, cwd], prog)
         return ("fail", name, str(e))
     finally:
         sess.close()

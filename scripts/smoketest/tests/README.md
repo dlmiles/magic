@@ -140,20 +140,30 @@ CRASH: magic CRASHED by SIGSEGV (signal 11)
 CORE: /tmp/magictest.xxxx/core.magicexec.12345  size=... bytes  mtime=...
 ```
 
-For a core to be a *file* the kernel's `core_pattern` must point at one; CI does
-`sudo sysctl -w kernel.core_pattern='core.%e.%p'` before the tests.  If no file
-is found the report prints the active `core_pattern` so you can see why (e.g. it
-was piped to systemd-coredump/apport).  A test that *expects* a particular
-signal death can set `expect_exit:` to the negative signal code (e.g. `-11`).
+For a core to be a *file* the kernel must write one where we look.  **Linux:**
+CI does `sudo sysctl -w kernel.core_pattern='core.%e.%p'` (else runners pipe it
+to systemd-coredump/apport).  **macOS:** cores go to `/cores/core.<pid>`
+(`kern.corefile`); CI makes `/cores` writable and confirms `kern.coredump=1`.
+Both search magic's `cwd`, the work dir, `/cores`, and any absolute
+`core_pattern` directory.  If no file is found the report prints the active
+`core_pattern` (`sysctl kern.corefile` on macOS) and the dirs searched, so you
+can see why.  A test that *expects* a particular signal death can set
+`expect_exit:` to the negative signal code (e.g. `-11`).
 
 Core selection is disciplined: because a test's `cwd` is reused between runs,
 only a core whose mtime is **>= the process start time** counts as this crash
 (older ones are flagged `[stale: pre-start]`), and among those the one carrying
-the pid in its name (`core.<exe>.<pid>`) is preferred.  For the selected core a
-**non-interactive all-thread backtrace** is dumped with `gdb` (Linux) or `lldb`
-(macOS) — e.g. `gdb -batch -ex 'thread apply all bt'` — so a crash is actionable
-straight from the CI log.  Install gdb/lldb for it (the debugger is only invoked
-when a core file actually exists).
+the pid in its name (`core.<exe>.<pid>`, or macOS `core.<pid>`) is preferred.
+For the selected core a **non-interactive all-thread backtrace** is dumped with
+`gdb` (Linux) or `lldb` (macOS) — e.g. `gdb -batch -ex 'thread apply all bt'` —
+so a crash is actionable straight from the CI log.  Install gdb/lldb for it (the
+debugger is only invoked when a core file actually exists).
+
+On **any** failure (crash or a plain assertion/expect miss) the runner also
+dumps every `*.log` under the work dir inline, framed by `=== BEGIN <path> ===`
+/ `=== END <path> ===` markers (large logs show their tail), so magic's own
+output is visible directly in the CI log rather than left in a file the run has
+discarded.
 
 ## Adding a test
 

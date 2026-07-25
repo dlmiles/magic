@@ -236,6 +236,17 @@ jobs:
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
 
+      - name: Enable core dumps (crash detection)
+        # macOS writes cores to /cores/core.<pid> (kern.corefile) when the
+        # per-process core limit allows it -- magictest sets RLIMIT_CORE in the
+        # child.  Make /cores writable by the runner and confirm kern.coredump
+        # is on, so a crash leaves a core magictest can backtrace with lldb.
+        run: |
+          sudo sysctl -w kern.coredump=1 || true
+          sudo chmod 1777 /cores 2>/dev/null || sudo mkdir -m 1777 -p /cores || true
+          ls -ld /cores || true
+          sysctl kern.corefile kern.coredump 2>/dev/null || true
+
       - name: Smoke test — startup + features (-dnull)
         # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
         # boot magicdnull headless, load a tech, assert the command surface.
@@ -553,6 +564,17 @@ jobs:
           xdpyinfo 2>&1 | egrep -i \
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+
+      - name: Enable core dumps (crash detection)
+        # macOS writes cores to /cores/core.<pid> (kern.corefile) when the
+        # per-process core limit allows it -- magictest sets RLIMIT_CORE in the
+        # child.  Make /cores writable by the runner and confirm kern.coredump
+        # is on, so a crash leaves a core magictest can backtrace with lldb.
+        run: |
+          sudo sysctl -w kern.coredump=1 || true
+          sudo chmod 1777 /cores 2>/dev/null || sudo mkdir -m 1777 -p /cores || true
+          ls -ld /cores || true
+          sysctl kern.corefile kern.coredump 2>/dev/null || true
 
       - name: Smoke test — startup + features (-dnull)
         # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):

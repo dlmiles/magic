@@ -33,7 +33,7 @@ jobs:
       - name: Get Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y tcl-dev tk-dev libcairo-dev
+          sudo apt-get install -y tcl-dev tk-dev libcairo-dev gdb
       - name: Build out-of-tree (build-tmp)
         run: |
           mkdir build-tmp

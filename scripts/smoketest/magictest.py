@@ -121,6 +121,44 @@ def _find_cores(dirs):
     return out
 
 
+def _exe_for_core(core, dirs):
+    """Best-effort executable path for a core named core.<exe>.<pid>, so the
+    debugger has the symbols; None lets it auto-detect from the core."""
+    m = re.match(r"core\.([A-Za-z0-9_.+-]+)\.\d+$", os.path.basename(core))
+    if not m:
+        return None
+    exe = m.group(1)
+    builddir = os.path.abspath(os.environ.get("MAGIC_BUILDDIR", "build-tmp"))
+    for d in list(dirs) + [os.path.join(builddir, "tcltk"), os.path.join(builddir, "magic")]:
+        cand = os.path.join(d or ".", exe)
+        if os.path.isfile(cand):
+            return cand
+    return None
+
+
+def _backtrace(core, exe=None, timeout=90):
+    """Dump every thread's backtrace from a core, non-interactively, with gdb
+    (Linux) or lldb (macOS).  Returns (tool, text), or (None, reason)."""
+    if shutil.which("gdb"):
+        cmd = ["gdb", "-batch", "-nx",
+               "-ex", "set pagination off", "-ex", "set width 0",
+               "-ex", "thread apply all bt", "-ex", "quit"]
+        cmd += ([exe, core] if exe else ["-c", core])
+        tool = "gdb"
+    elif shutil.which("lldb"):
+        cmd = ["lldb", "--batch", "-o", "thread backtrace all", "-o", "quit"]
+        cmd += ([exe, "--core", core] if exe else ["--core", core])
+        tool = "lldb"
+    else:
+        return (None, "no debugger (install gdb or lldb) for a backtrace")
+    try:
+        r = subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+        out = (r.stdout + ("\n" + r.stderr if r.returncode and r.stderr else "")).strip()
+        return (tool, out or f"({tool} produced no output)")
+    except Exception as e:
+        return (tool, f"({tool} failed: {e})")
+
+
 # Cross-platform gating.  A test or step may carry `if:` naming the platform(s)
 # it applies to; it is skipped elsewhere.  Tokens: an OS name (linux, macos,
 # windows, freebsd, openbsd, netbsd, solaris, cygwin, ...), a family (unix/posix
@@ -281,7 +319,9 @@ class MagicSession:
     def death_report(self, coredirs):
         """If magic has exited by a signal, return (is_crash, summary, [lines]);
         else None.  A crash (SIGSEGV/SIGABRT/...) is distinguished from a plain
-        signal, and any core file found is described (path, size, mtime)."""
+        signal.  Core files are listed; the one that belongs to THIS run (mtime
+        >= process start, and preferring the pid in its name) is selected and a
+        non-interactive all-thread backtrace is dumped for it."""
         rc = self.proc.poll()
         if rc is None or rc >= 0:
             return None
@@ -293,13 +333,34 @@ class MagicSession:
         is_crash = sig in CRASH_SIGNALS
         summary = f"magic {'CRASHED' if is_crash else 'killed'} by {name} (signal {sig})"
         lines = [("CRASH: " if is_crash else "KILLED: ") + summary]
+
+        pid = str(self.proc.pid)
         cores = _find_cores(coredirs)
+        # A core is ours only if written at/after the process started (self.t0);
+        # cwd is reused between runs, so an older core must not be mistaken for
+        # this crash.  Allow a small tolerance for coarse mtime granularity.
+        fresh = [c for c in cores if c[2] >= self.t0 - 2.0]
+        pidmatch = [c for c in fresh if pid in os.path.basename(c[0])]
+        chosen = (max(pidmatch, key=lambda c: c[2]) if pidmatch else
+                  max(fresh, key=lambda c: c[2]) if fresh else None)
+
         for p, size, mt in cores:
             ts = time.strftime("%Y-%m-%dT%H:%M:%S", time.localtime(mt))
-            lines.append(f"CORE: {p}  size={size} bytes  mtime={ts}")
-            summary += f"; core {p} ({size} bytes)"
-        if is_crash and not cores:
-            lines.append(f"CORE: no core file in {coredirs} (kernel.core_pattern={_core_pattern()!r})")
+            tag = (" [selected]" if chosen and p == chosen[0]
+                   else "" if mt >= self.t0 - 2.0 else " [stale: pre-start]")
+            lines.append(f"CORE: {p}  size={size} bytes  mtime={ts}{tag}")
+        if chosen:
+            summary += f"; core {chosen[0]} ({chosen[1]} bytes)"
+        elif is_crash and not cores:
+            lines.append(f"CORE: none found in {coredirs} (core_pattern={_core_pattern()!r})")
+        elif is_crash and fresh == []:
+            lines.append("CORE: only stale cores (none written since the process started)")
+
+        # Only when a core for this run exists: dump every thread's backtrace.
+        if chosen:
+            tool, bt = _backtrace(chosen[0], _exe_for_core(chosen[0], coredirs))
+            lines.append(f"BACKTRACE ({tool or 'n/a'}):")
+            lines += ["  " + ln for ln in bt.splitlines()]
         return (is_crash, summary, lines)
 
     def find_window(self, timeout=30):

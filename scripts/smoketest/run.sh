@@ -137,9 +137,9 @@ if [ "$device" = "x11" ]; then
     # 0 disables it.
     magic_to="${SMOKE_MAGIC_TIMEOUT:-120}"
     if [ "$magic_to" -gt 0 ] 2>/dev/null; then x_opts+=(-timeout "$magic_to"); fi
-    "${run_pfx[@]}" "$launcher" "${x_opts[@]}" < "$script" > "$log" 2>&1
+    "${run_pfx[@]+"${run_pfx[@]}"}" "$launcher" "${x_opts[@]}" < "$script" > "$log" 2>&1
 else
-    "${run_pfx[@]}" "$launcher" < "$script" > "$log" 2>&1
+    "${run_pfx[@]+"${run_pfx[@]}"}" "$launcher" < "$script" > "$log" 2>&1
 fi
 rc=$?
 set -e

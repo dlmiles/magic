@@ -100,3 +100,11 @@ jobs:
         run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh startup
       - name: Smoke test — extract/export/DRC workflow (X11 GUI)
         run: SMOKE_DEVICE=x11 scripts/smoketest/run.sh workflow
+      # Opt-in, non-blocking demo of driving the GUI three ways: 100% scripted,
+      # 0% scripted (pure xdotool: paint + File->Quit + dismiss the dialog), and
+      # mixed.  continue-on-error because the pure-xdotool paths are WM-timing
+      # sensitive -- a hiccup on the headless WM must not fail the build; the log
+      # shows what each mode did.  magic's own -timeout keeps it from hanging.
+      - name: GUI interaction demo (opt-in, non-blocking)
+        continue-on-error: true
+        run: scripts/smoketest/gui-interact.sh all

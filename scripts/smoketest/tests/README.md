@@ -26,19 +26,28 @@ phase.  Set `MAGIC_BUILDDIR` to the out-of-tree build (default `build-tmp`).
 | 030 | x11 | boots under -d X11 on a headless Xvfb; a layout window appears |
 | 040 | x11 | the 020 workflow through the real GUI; outputs functionally identical |
 | 050 | x11 | drives the GUI with xdotool mouse events interleaved with send/expect |
+| 060 | dnull | send, then `close_stdin` (EOF) + `wait` for magic to exit; changes the timeout on the fly |
 
 ## test.yaml format
 
 See the header of `scripts/smoketest/magictest.py` for the full schema.  In
-brief: top-level `mode` (dnull|x11), `tech`, `timeout`, `inputs` (files staged
+brief: top-level `mode` (dnull|x11), `tech`, `timeout` (overall cap, s),
+`timeout_ms` (inherited per-op timeout, default 30000), `inputs` (files staged
 into the per-test work dir), `expect_exit`, and a list of `steps`.  Each step
 may combine:
 
-- `send:` a command line to magic, `expect:` a regex to wait for (`timeout:` per step)
+- `send:` a command line to magic's stdin
+- `close_stdin: true` — send EOF (ends magic where it runs batch, e.g. -dnull)
+- `expect:` a regex to wait for; `timeout_ms:` (or legacy `timeout:` in s) overrides for this step
+- `wait: true` — block until magic exits (uses the current timeout)
+- `set_timeout_ms:` N — change the inherited blocking timeout from here on
 - `sleep:` seconds
 - `xdotool:` `[args...]` (x11) — `{win}` is the layout window id
 - `assert:` `{ exists|nonempty|absent, contains: {file, pattern}, min_lines: {file, n} }`
 - `validate:` `{ run: [argv...], exit, stdout_matches, stdout_contains }` — an external checker
+
+Progress lines carry a `0000.000` elapsed-time prefix (seconds since the session
+started) and PASS/FAIL reports the total session duration.
 
 Placeholders in strings: `{work}` (per-test dir), `{src}` (repo root), `{tech}`,
 `{cell}` (first `.mag` input's basename), `{display}`, `{win}`.  Tcl's own `{...}`

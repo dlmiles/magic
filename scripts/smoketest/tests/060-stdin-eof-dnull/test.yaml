@@ -1,0 +1,18 @@
+name: stdin-eof-dnull
+description: send commands, then close stdin (EOF) and wait for magic to exit on
+  its own; also changes the inherited blocking timeout on the fly.
+mode: dnull
+tech: scmos
+timeout_ms: 20000
+steps:
+  - send: "tech load {tech}"
+  - name: ready
+    send: 'puts "READY=[tech name]"'
+    expect: "READY={tech}"
+  - name: tighten-timeout
+    set_timeout_ms: 5000
+  - name: eof
+    close_stdin: true
+  - name: wait-exit
+    wait: true
+expect_exit: 0

@@ -170,6 +170,24 @@ jobs:
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
+      - name: Check X11 environment (XQuartz)
+        # Report the vital statistics of the display so we can confirm it is up
+        # and ready before the GUI smoke.  Non-fatal (set +e): if no X server is
+        # reachable, the x11 smoke tests below just skip (DISPLAY unset).
+        run: |
+          set +e
+          export PATH="/opt/X11/bin:$PATH"
+          echo "DISPLAY=${DISPLAY:-<unset>}"
+          echo "XAUTHORITY=${XAUTHORITY:-<unset>}"
+          echo "=== xauth list ==="
+          xauth list 2>&1 | head
+          echo "=== xset q (server modes / settings) ==="
+          xset q 2>&1 | head -40
+          echo "=== xdpyinfo (vendor / version / screen / dimensions / dpi) ==="
+          xdpyinfo 2>&1 | egrep -i \
+            'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
+            | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+
       - name: Summary
         if: always()
         run: |
@@ -405,6 +423,24 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Check X11 environment (XQuartz)
+        # Report the vital statistics of the display so we can confirm it is up
+        # and ready before the GUI smoke.  Non-fatal (set +e): if no X server is
+        # reachable, the x11 smoke tests below just skip (DISPLAY unset).
+        run: |
+          set +e
+          export PATH="/opt/X11/bin:$PATH"
+          echo "DISPLAY=${DISPLAY:-<unset>}"
+          echo "XAUTHORITY=${XAUTHORITY:-<unset>}"
+          echo "=== xauth list ==="
+          xauth list 2>&1 | head
+          echo "=== xset q (server modes / settings) ==="
+          xset q 2>&1 | head -40
+          echo "=== xdpyinfo (vendor / version / screen / dimensions / dpi) ==="
+          xdpyinfo 2>&1 | egrep -i \
+            'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
+            | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
 
       - name: Summary
         if: always()

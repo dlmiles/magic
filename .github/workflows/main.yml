@@ -76,6 +76,14 @@ jobs:
           ../configure
           make prepare
           make -j$(nproc)
+      - name: Enable core dumps (crash detection)
+        # Runners pipe cores to a handler by default; repoint core_pattern to a
+        # relative file so a crash leaves "core.<exe>.<pid>".  magictest.py
+        # enables RLIMIT_CORE in magic and runs it with cwd = the per-test dir,
+        # so the core lands there and is reported (path/size/mtime) as a failure.
+        run: |
+          sudo sysctl -w kernel.core_pattern='core.%e.%p'
+          echo "core_pattern=$(cat /proc/sys/kernel/core_pattern)"
       - name: Smoke test — startup + features
         run: scripts/smoketest/run.sh startup
       - name: Smoke test — extract/export/DRC workflow

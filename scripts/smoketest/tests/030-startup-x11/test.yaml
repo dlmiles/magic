@@ -6,6 +6,11 @@ tech: scmos
 tags: [x11, smoke]
 metadata: {area: startup}
 steps:
+  # Note the X11 server/WM identity (gated on the detected environment).
+  - if: openbox
+    echo: "X11 with openbox (Linux headless Xvfb)"
+  - if: xquartz
+    echo: "X11 with XQuartz (macOS)"
   - name: tech-load
     send: "tech load {tech}"
   - name: tech-name

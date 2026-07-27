@@ -473,7 +473,16 @@ jobs:
               *)
                 echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
             esac
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
@@ -677,7 +686,16 @@ jobs:
             # :0" (a self-inflicted failure, not the real signal).  So bring a
             # fresh XQuartz back up before continuing.
             echo "--- restarting XQuartz for the subsequent x11 tests ---"
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
             if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi
@@ -1273,7 +1291,16 @@ jobs:
               *)
                 echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
             esac
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
@@ -1477,7 +1504,16 @@ jobs:
             # :0" (a self-inflicted failure, not the real signal).  So bring a
             # fresh XQuartz back up before continuing.
             echo "--- restarting XQuartz for the subsequent x11 tests ---"
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
             if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi
@@ -2073,7 +2109,16 @@ jobs:
               *)
                 echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
             esac
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
@@ -2277,7 +2322,16 @@ jobs:
             # :0" (a self-inflicted failure, not the real signal).  So bring a
             # fresh XQuartz back up before continuing.
             echo "--- restarting XQuartz for the subsequent x11 tests ---"
-            open -a XQuartz
+            # `open -a XQuartz` resolves by NAME via LaunchServices, which can
+            # fail ("Unable to find application named 'XQuartz'") right after a
+            # fresh cask install even when the app IS on disk -- so launch by
+            # explicit path first, then by name, then the Xquartz server binary.
+            if   [ -d /Applications/Utilities/XQuartz.app ]; then open /Applications/Utilities/XQuartz.app
+            elif [ -d /Applications/XQuartz.app ];           then open /Applications/XQuartz.app
+            elif open -a XQuartz 2>/dev/null;                then :
+            elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
+            else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
+            fi
             for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
             if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi

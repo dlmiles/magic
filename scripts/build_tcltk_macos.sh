@@ -103,7 +103,7 @@ if [ "$DRYRUN" = "1" ]; then
         echo "  curl -fsSL $TCL_TARBALL_URL"
         echo "  curl -fsSL $TK_TARBALL_URL"
     fi
-    echo "  (tcl) ./configure --prefix=$PREFIX --enable-shared --enable-threads --disable-corefoundation && make && make install"
+    echo "  (tcl) ./configure --prefix=$PREFIX --enable-shared --disable-corefoundation && make && make install"
     echo "  (tk)  ./configure --prefix=$PREFIX --with-tcl=$PREFIX/lib --enable-aqua=no --with-x \\"
     echo "           --x-includes=$X11/include --x-libraries=$X11/lib --enable-shared --disable-corefoundation && make && make install"
     echo "TCLTK_PREFIX=$PREFIX"
@@ -139,7 +139,10 @@ log "configure + build Tcl -> $PREFIX"
     # Cocoa/Aqua apps; under an X11 Tk driven headlessly it can go inert -- the
     # Tk event loop then services no events at all (magicexec booted but processed
     # no piped stdin and its own -timeout watchdog never fired on macOS Intel).
-    ./configure --prefix="$PREFIX" --enable-shared --enable-threads \
+    # No --enable-threads: Tcl 9 made threading mandatory and REMOVED that option
+    # (it warns "unrecognized"); Tcl 8.6 is threaded by default too.  So the build
+    # is always threaded -- ::tcl::pkgconfig get threaded == 1.
+    ./configure --prefix="$PREFIX" --enable-shared \
         --disable-corefoundation
     make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 2)"
     make install

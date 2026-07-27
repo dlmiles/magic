@@ -173,10 +173,24 @@ proc magic::print_version_verbose {} {
    puts stdout "Magic MAGIC_VERSION revision MAGIC_REVISION (commit MAGIC_COMMIT)"
    puts stdout [format "Platform: %s %s %s (%s)" $::tcl_platform(os) \
 	 $::tcl_platform(osVersion) $::tcl_platform(machine) $::tcl_platform(platform)]
-   set threaded [expr {[info exists ::tcl_platform(threaded)] ? \
-	 $::tcl_platform(threaded) : 0}]
+   # Tcl 9 made threading mandatory and dropped tcl_platform(threaded), so read it
+   # from pkgconfig (reliable on 8.6 and 9.x; == 1 when the build is threaded).
+   set threaded [expr {![catch {::tcl::pkgconfig get threaded} _t] ? $_t : \
+	 ([info exists ::tcl_platform(threaded)] ? $::tcl_platform(threaded) : "?")}]
    puts stdout [format "Tcl:      %s  threaded=%s  pointerSize=%s  byteOrder=%s" \
 	 [info patchlevel] $threaded $::tcl_platform(pointerSize) $::tcl_platform(byteOrder)]
+   # Tcl standard-library base: [info library] = $tcl_library, the directory
+   # init.tcl loads from.  $env(TCL_LIBRARY) overrides where Tcl looks for it.
+   set tcllib [info library]
+   if {[info exists env(TCL_LIBRARY)]} {
+      puts stdout [format "  tcl_library: %s  \[effective; \$TCL_LIBRARY=%s\]" \
+	    $tcllib $env(TCL_LIBRARY)]
+   } else {
+      puts stdout [format "  tcl_library: %s  \[default; \$TCL_LIBRARY unset\]" $tcllib]
+   }
+   set initf [file join $tcllib init.tcl]
+   puts stdout [format "  init.tcl:    %s  \[%s\]" $initf \
+	 [expr {[file exists $initf] ? "found" : "MISSING"}]]
 
    # Tk only when it is actually present (not under -dnull).  package present
    # raises if Tk was never loaded; catch => omit the line.  This never opens a
@@ -185,6 +199,8 @@ proc magic::print_version_verbose {} {
       set wsys "unknown"
       catch {set wsys [tk windowingsystem]}	;# aqua | x11 | win32
       puts stdout [format "Tk:       %s  windowingsystem=%s" $tkver $wsys]
+      catch {puts stdout [format "  tk_library:  %s  \[%s\]" $::tk_library \
+	 [expr {[info exists env(TK_LIBRARY)] ? "\$TK_LIBRARY override" : "default"}]]}
       catch {
 	 set srv [winfo server .]			;# X server identity (x11)
 	 if {$srv ne ""} {puts stdout [format "Display:  %s" $srv]}

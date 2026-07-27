@@ -44,6 +44,16 @@ jobs:
       - name: Get Dependencies
         shell: bash # default shell has unwanted broken pipe indication
         run: |
+          # --- Homebrew state BEFORE we install anything (the GHA runner image
+          # ships many formulae pre-installed, sometimes including tcl-tk) ---
+          echo "=== Homebrew $(brew --version 2>/dev/null | head -1) -- pre-existing packages ==="
+          echo "--- brew list --versions (all pre-installed formulae) ---"
+          brew list --versions 2>/dev/null | sort
+          echo "--- is tcl-tk already on the runner image? ---"
+          for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+            v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
+          done
+
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
@@ -70,9 +80,25 @@ jobs:
             _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           else
             echo "tcl_source=$SRC -- NOT installing Homebrew tcl-tk; magic uses its private X11 Tcl/Tk"
+            # Remove any tcl-tk the runner image pre-installed, so configure_mac
+            # cannot even detect it (proves the private /opt/magic build is used).
+            # CI-only cleanup -- configure_mac itself never uninstalls anything.
+            # Best-effort: never fail the build if a dependent blocks removal.
+            for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+              if brew list --versions "$p" >/dev/null 2>&1; then
+                echo "uninstalling pre-existing $p (from-source mode)"
+                brew uninstall --ignore-dependencies "$p" 2>&1 | tail -3 \
+                  || echo "  (could not uninstall $p; magic links /opt/magic regardless)"
+              fi
+            done
             brew install cairo tcsh gnu-sed
             _package_list="cairo tcsh gnu-sed"
           fi
+          # coreutils provides gdate (GNU date) for reproducible build dates on
+          # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
+          # Wanted in both homebrew and from-source modes.
+          brew install coreutils
+          _package_list="$_package_list coreutils"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -100,7 +126,7 @@ jobs:
             brew info cairo    > $TMPFILE && head -n1 $TMPFILE
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
             [ -n "${TCL_TK_PKG:-}" ] && brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
@@ -570,6 +596,16 @@ jobs:
       - name: Get Dependencies
         shell: bash # default shell has unwanted broken pipe indication
         run: |
+          # --- Homebrew state BEFORE we install anything (the GHA runner image
+          # ships many formulae pre-installed, sometimes including tcl-tk) ---
+          echo "=== Homebrew $(brew --version 2>/dev/null | head -1) -- pre-existing packages ==="
+          echo "--- brew list --versions (all pre-installed formulae) ---"
+          brew list --versions 2>/dev/null | sort
+          echo "--- is tcl-tk already on the runner image? ---"
+          for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+            v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
+          done
+
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
@@ -596,9 +632,25 @@ jobs:
             _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           else
             echo "tcl_source=$SRC -- NOT installing Homebrew tcl-tk; magic uses its private X11 Tcl/Tk"
+            # Remove any tcl-tk the runner image pre-installed, so configure_mac
+            # cannot even detect it (proves the private /opt/magic build is used).
+            # CI-only cleanup -- configure_mac itself never uninstalls anything.
+            # Best-effort: never fail the build if a dependent blocks removal.
+            for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+              if brew list --versions "$p" >/dev/null 2>&1; then
+                echo "uninstalling pre-existing $p (from-source mode)"
+                brew uninstall --ignore-dependencies "$p" 2>&1 | tail -3 \
+                  || echo "  (could not uninstall $p; magic links /opt/magic regardless)"
+              fi
+            done
             brew install cairo tcsh gnu-sed
             _package_list="cairo tcsh gnu-sed"
           fi
+          # coreutils provides gdate (GNU date) for reproducible build dates on
+          # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
+          # Wanted in both homebrew and from-source modes.
+          brew install coreutils
+          _package_list="$_package_list coreutils"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -626,7 +678,7 @@ jobs:
             brew info cairo    > $TMPFILE && head -n1 $TMPFILE
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
-            brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
             [ -n "${TCL_TK_PKG:-}" ] && brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE

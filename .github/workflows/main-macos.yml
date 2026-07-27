@@ -37,12 +37,9 @@ jobs:
     # afterward (this is the normal Intel runner anyway).
     runs-on: macos-15-intel
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
-    # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
-    env:
-      SMOKE_SUMMARY_LABEL: macOS 15 Intel (x86_64) XQuartz 2.8.5 [TEMP diag]
-      # TEMP diag: pin XQuartz 2.8.5 here to test the version hypothesis on the
-      # one failing combo (macos-15-intel).  arm64 stays on latest (2.8.6).
-      XQUARTZ_VERSION: "2.8.5"
+    # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
+    # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
+    # hard-code per job.  macOS <= 15 auto-pins XQuartz 2.8.5; >= 16 uses latest.
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -60,13 +57,35 @@ jobs:
             v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
           done
 
-          # XQuartz: if $XQUARTZ_VERSION is set, pin that exact release by
-          # installing its .pkg straight from the XQuartz GitHub release (the
-          # cask only ever gives latest).  Otherwise install the latest cask.
-          # We pin 2.8.5 on macos-15-intel to test whether the deterministic
-          # XAllocColor hang there is XQuartz-version related: 2.8.6 FAILS on
-          # 15-Intel yet WORKS on 15-arm64 and 26-Intel, and 2.8.5 (known good
-          # on 14-arm64) has never been run on 15-Intel.
+          # --- Detect OS/arch FIRST -- this drives the XQuartz version policy ---
+          # sw_vers is the source of truth for the macOS version (14, 15, 26,
+          # ...) -- the runner label can drift, so never hard-code it.
+          MACOS_VER="$(sw_vers -productVersion 2>/dev/null || echo unknown)"
+          MACOS_MAJOR="${MACOS_VER%%.*}"
+          case "$(uname -m)" in
+            arm64)  ARCH_LABEL="arm64" ;;
+            x86_64) ARCH_LABEL="Intel (x86_64)" ;;
+            *)      ARCH_LABEL="$(uname -m)" ;;
+          esac
+
+          # XQuartz version policy, keyed on the DETECTED macOS major version:
+          # macOS <= 15 is pinned to a known-good 2.8.5 -- the latest 2.8.6
+          # deterministically hangs the XAllocColor round-trip on 15/Intel (it
+          # works on 15-arm64 and 26-Intel).  macOS >= 16 (26, ...) takes the
+          # latest cask.  A non-empty $XQUARTZ_VERSION in the job env, if present,
+          # still overrides this policy.
+          XQ_PIN_MAX_MAJOR=15
+          XQ_PIN_VERSION="2.8.5"
+          if [ -z "${XQUARTZ_VERSION:-}" ] && [ "${MACOS_MAJOR:-0}" -le "$XQ_PIN_MAX_MAJOR" ] 2>/dev/null; then
+            XQUARTZ_VERSION="$XQ_PIN_VERSION"
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR <= $XQ_PIN_MAX_MAJOR -> pin $XQUARTZ_VERSION ==="
+          else
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR -> latest cask (${XQUARTZ_VERSION:-none pinned}) ==="
+          fi
+
+          # Install XQuartz.  A pinned $XQUARTZ_VERSION is fetched as its exact
+          # .pkg from the XQuartz GitHub release (the cask only offers latest);
+          # otherwise install the latest cask.
           if [ -n "${XQUARTZ_VERSION:-}" ]; then
             echo "=== pinning XQuartz $XQUARTZ_VERSION from GitHub release .pkg ==="
             xq_url="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-${XQUARTZ_VERSION}/XQuartz-${XQUARTZ_VERSION}.pkg"
@@ -76,6 +95,25 @@ jobs:
             brew install --cask xquartz
           fi
           PACKAGE_LIST="xquartz"
+
+          # --- Export detected facts for later steps.  Everything written to
+          # $GITHUB_ENV is visible to SUBSEQUENT steps (the smoke + diagnosis
+          # steps that emit $GITHUB_STEP_SUMMARY), so the summary title
+          # self-labels from what actually ran.  Read the ACTUAL installed
+          # XQuartz version from the pkgutil receipt so the label always shows a
+          # real number (even when the latest cask was used). ---
+          XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          {
+            echo "MACOS_VER=$MACOS_VER"
+            echo "MACOS_MAJOR=$MACOS_MAJOR"
+            echo "RUNNER_ARCH_LABEL=$ARCH_LABEL"
+            echo "XQUARTZ_ACTUAL=$XQ_ACTUAL"
+            echo "SMOKE_SUMMARY_LABEL=$SMOKE_SUMMARY_LABEL"
+          } >> "$GITHUB_ENV"
+          echo "=== detected: $SMOKE_SUMMARY_LABEL (full $MACOS_VER, $(uname -m)) ==="
+
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
           # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
           # magic will link.  In github/tarball mode magic builds a PRIVATE X11
@@ -645,11 +683,9 @@ jobs:
     # Revert to macos-latest afterward.
     runs-on: macos-26
     timeout-minutes: 30 # arm64 seems SSD based (faster)
-    # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
-    env:
-      SMOKE_SUMMARY_LABEL: macOS 26 (arm64) XQuartz latest [TEMP diag]
-      # arm64 keeps the latest cask XQuartz (2.8.6); empty -> latest.
-      XQUARTZ_VERSION: ""
+    # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
+    # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
+    # hard-code per job.  macOS <= 15 auto-pins XQuartz 2.8.5; >= 16 uses latest.
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -667,13 +703,35 @@ jobs:
             v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
           done
 
-          # XQuartz: if $XQUARTZ_VERSION is set, pin that exact release by
-          # installing its .pkg straight from the XQuartz GitHub release (the
-          # cask only ever gives latest).  Otherwise install the latest cask.
-          # We pin 2.8.5 on macos-15-intel to test whether the deterministic
-          # XAllocColor hang there is XQuartz-version related: 2.8.6 FAILS on
-          # 15-Intel yet WORKS on 15-arm64 and 26-Intel, and 2.8.5 (known good
-          # on 14-arm64) has never been run on 15-Intel.
+          # --- Detect OS/arch FIRST -- this drives the XQuartz version policy ---
+          # sw_vers is the source of truth for the macOS version (14, 15, 26,
+          # ...) -- the runner label can drift, so never hard-code it.
+          MACOS_VER="$(sw_vers -productVersion 2>/dev/null || echo unknown)"
+          MACOS_MAJOR="${MACOS_VER%%.*}"
+          case "$(uname -m)" in
+            arm64)  ARCH_LABEL="arm64" ;;
+            x86_64) ARCH_LABEL="Intel (x86_64)" ;;
+            *)      ARCH_LABEL="$(uname -m)" ;;
+          esac
+
+          # XQuartz version policy, keyed on the DETECTED macOS major version:
+          # macOS <= 15 is pinned to a known-good 2.8.5 -- the latest 2.8.6
+          # deterministically hangs the XAllocColor round-trip on 15/Intel (it
+          # works on 15-arm64 and 26-Intel).  macOS >= 16 (26, ...) takes the
+          # latest cask.  A non-empty $XQUARTZ_VERSION in the job env, if present,
+          # still overrides this policy.
+          XQ_PIN_MAX_MAJOR=15
+          XQ_PIN_VERSION="2.8.5"
+          if [ -z "${XQUARTZ_VERSION:-}" ] && [ "${MACOS_MAJOR:-0}" -le "$XQ_PIN_MAX_MAJOR" ] 2>/dev/null; then
+            XQUARTZ_VERSION="$XQ_PIN_VERSION"
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR <= $XQ_PIN_MAX_MAJOR -> pin $XQUARTZ_VERSION ==="
+          else
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR -> latest cask (${XQUARTZ_VERSION:-none pinned}) ==="
+          fi
+
+          # Install XQuartz.  A pinned $XQUARTZ_VERSION is fetched as its exact
+          # .pkg from the XQuartz GitHub release (the cask only offers latest);
+          # otherwise install the latest cask.
           if [ -n "${XQUARTZ_VERSION:-}" ]; then
             echo "=== pinning XQuartz $XQUARTZ_VERSION from GitHub release .pkg ==="
             xq_url="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-${XQUARTZ_VERSION}/XQuartz-${XQUARTZ_VERSION}.pkg"
@@ -683,6 +741,25 @@ jobs:
             brew install --cask xquartz
           fi
           PACKAGE_LIST="xquartz"
+
+          # --- Export detected facts for later steps.  Everything written to
+          # $GITHUB_ENV is visible to SUBSEQUENT steps (the smoke + diagnosis
+          # steps that emit $GITHUB_STEP_SUMMARY), so the summary title
+          # self-labels from what actually ran.  Read the ACTUAL installed
+          # XQuartz version from the pkgutil receipt so the label always shows a
+          # real number (even when the latest cask was used). ---
+          XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          {
+            echo "MACOS_VER=$MACOS_VER"
+            echo "MACOS_MAJOR=$MACOS_MAJOR"
+            echo "RUNNER_ARCH_LABEL=$ARCH_LABEL"
+            echo "XQUARTZ_ACTUAL=$XQ_ACTUAL"
+            echo "SMOKE_SUMMARY_LABEL=$SMOKE_SUMMARY_LABEL"
+          } >> "$GITHUB_ENV"
+          echo "=== detected: $SMOKE_SUMMARY_LABEL (full $MACOS_VER, $(uname -m)) ==="
+
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
           # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
           # magic will link.  In github/tarball mode magic builds a PRIVATE X11

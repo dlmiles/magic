@@ -38,6 +38,16 @@ on:
           - OGL
           - all
         default: 'default'
+      xquartz_depth:
+        description: 'XQuartz root color depth, written before the server starts. "default" = leave XQuartz''s own default untouched (automated push/PR); -1 = automatic; or force 24 / 15 / 8 (8 = PseudoColor, the XAllocColor-stall probe).'
+        type: choice
+        options:
+          - default
+          - '-1'
+          - '24'
+          - '15'
+          - '8'
+        default: 'default'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -448,18 +458,21 @@ jobs:
             defaults write org.xquartz.X11 no_auth       -bool true
             defaults write org.xquartz.X11 nolisten_tcp  -bool true
             defaults write org.xquartz.X11 no_quit_alert -bool true
-            # Intel (x86_64) macOS: XQuartz 2.8.x stalls the XAllocColor round-trip
-            # during Tk's first paint on the default TrueColor visual -- and this
-            # reproduces on BOTH macOS 15 AND macOS 26 Intel (the OS bump did NOT
-            # fix it; the diagnostic caught magicexec hung on 26 too).  Force an
-            # 8-bit PseudoColor root depth so Tk allocates from a real colormap
-            # instead -- a different server path that may sidestep the stall.
-            # Read at server start, so it must precede `open -a XQuartz`.  Intel
-            # only; arm64 is unaffected.
-            if [ "$(uname -m)" = x86_64 ]; then
-              echo "Intel macOS: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
-              defaults write org.xquartz.X11 depth -int 8
-            fi
+            # XQuartz root color depth, driven by the xquartz_depth input.
+            # "default"/blank (automated push/PR) leaves XQuartz's own default
+            # untouched; -1 = automatic; or force 24 / 15 / 8.  Forcing 8-bit
+            # PseudoColor is the XAllocColor-stall probe on Intel (Tk's first
+            # paint stalls on the default TrueColor visual on macOS 15 AND 26
+            # Intel) -- now a manual knob, not baked in.  Read at server start,
+            # so it must precede `open -a XQuartz`.
+            XQ_DEPTH="${{ github.event.inputs.xquartz_depth }}"
+            case "${XQ_DEPTH:-default}" in
+              -1|24|15|8)
+                echo "Setting XQuartz depth=$XQ_DEPTH (per xquartz_depth input)"
+                defaults write org.xquartz.X11 depth -int "$XQ_DEPTH" ;;
+              *)
+                echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
+            esac
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -492,6 +505,8 @@ jobs:
               xdpyinfo 2>/dev/null \
                 | grep -iE 'depth of root window|default visual id|class:|depth:' \
                 | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
+              echo "  --- xwininfo -root ---"
+              xwininfo -root 2>/dev/null | sed 's/^/  /' || echo "  (xwininfo -root failed)"
               xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
               echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
             else
@@ -510,6 +525,8 @@ jobs:
           xdpyinfo 2>&1 | egrep -i \
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+          echo "=== xwininfo -root ==="
+          xwininfo -root 2>&1 | head -30 || echo "(xwininfo -root failed on DISPLAY='${DISPLAY}')"
 
       - name: Enable core dumps (crash detection)
         # macOS writes cores to /cores/core.<pid> (kern.corefile) when the
@@ -1241,18 +1258,21 @@ jobs:
             defaults write org.xquartz.X11 no_auth       -bool true
             defaults write org.xquartz.X11 nolisten_tcp  -bool true
             defaults write org.xquartz.X11 no_quit_alert -bool true
-            # Intel (x86_64) macOS: XQuartz 2.8.x stalls the XAllocColor round-trip
-            # during Tk's first paint on the default TrueColor visual -- and this
-            # reproduces on BOTH macOS 15 AND macOS 26 Intel (the OS bump did NOT
-            # fix it; the diagnostic caught magicexec hung on 26 too).  Force an
-            # 8-bit PseudoColor root depth so Tk allocates from a real colormap
-            # instead -- a different server path that may sidestep the stall.
-            # Read at server start, so it must precede `open -a XQuartz`.  Intel
-            # only; arm64 is unaffected.
-            if [ "$(uname -m)" = x86_64 ]; then
-              echo "Intel macOS: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
-              defaults write org.xquartz.X11 depth -int 8
-            fi
+            # XQuartz root color depth, driven by the xquartz_depth input.
+            # "default"/blank (automated push/PR) leaves XQuartz's own default
+            # untouched; -1 = automatic; or force 24 / 15 / 8.  Forcing 8-bit
+            # PseudoColor is the XAllocColor-stall probe on Intel (Tk's first
+            # paint stalls on the default TrueColor visual on macOS 15 AND 26
+            # Intel) -- now a manual knob, not baked in.  Read at server start,
+            # so it must precede `open -a XQuartz`.
+            XQ_DEPTH="${{ github.event.inputs.xquartz_depth }}"
+            case "${XQ_DEPTH:-default}" in
+              -1|24|15|8)
+                echo "Setting XQuartz depth=$XQ_DEPTH (per xquartz_depth input)"
+                defaults write org.xquartz.X11 depth -int "$XQ_DEPTH" ;;
+              *)
+                echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
+            esac
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -1285,6 +1305,8 @@ jobs:
               xdpyinfo 2>/dev/null \
                 | grep -iE 'depth of root window|default visual id|class:|depth:' \
                 | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
+              echo "  --- xwininfo -root ---"
+              xwininfo -root 2>/dev/null | sed 's/^/  /' || echo "  (xwininfo -root failed)"
               xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
               echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
             else
@@ -1303,6 +1325,8 @@ jobs:
           xdpyinfo 2>&1 | egrep -i \
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+          echo "=== xwininfo -root ==="
+          xwininfo -root 2>&1 | head -30 || echo "(xwininfo -root failed on DISPLAY='${DISPLAY}')"
 
       - name: Enable core dumps (crash detection)
         # macOS writes cores to /cores/core.<pid> (kern.corefile) when the
@@ -2034,18 +2058,21 @@ jobs:
             defaults write org.xquartz.X11 no_auth       -bool true
             defaults write org.xquartz.X11 nolisten_tcp  -bool true
             defaults write org.xquartz.X11 no_quit_alert -bool true
-            # Intel (x86_64) macOS: XQuartz 2.8.x stalls the XAllocColor round-trip
-            # during Tk's first paint on the default TrueColor visual -- and this
-            # reproduces on BOTH macOS 15 AND macOS 26 Intel (the OS bump did NOT
-            # fix it; the diagnostic caught magicexec hung on 26 too).  Force an
-            # 8-bit PseudoColor root depth so Tk allocates from a real colormap
-            # instead -- a different server path that may sidestep the stall.
-            # Read at server start, so it must precede `open -a XQuartz`.  Intel
-            # only; arm64 is unaffected.
-            if [ "$(uname -m)" = x86_64 ]; then
-              echo "Intel macOS: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
-              defaults write org.xquartz.X11 depth -int 8
-            fi
+            # XQuartz root color depth, driven by the xquartz_depth input.
+            # "default"/blank (automated push/PR) leaves XQuartz's own default
+            # untouched; -1 = automatic; or force 24 / 15 / 8.  Forcing 8-bit
+            # PseudoColor is the XAllocColor-stall probe on Intel (Tk's first
+            # paint stalls on the default TrueColor visual on macOS 15 AND 26
+            # Intel) -- now a manual knob, not baked in.  Read at server start,
+            # so it must precede `open -a XQuartz`.
+            XQ_DEPTH="${{ github.event.inputs.xquartz_depth }}"
+            case "${XQ_DEPTH:-default}" in
+              -1|24|15|8)
+                echo "Setting XQuartz depth=$XQ_DEPTH (per xquartz_depth input)"
+                defaults write org.xquartz.X11 depth -int "$XQ_DEPTH" ;;
+              *)
+                echo "XQuartz depth: unchanged (xquartz_depth=default)" ;;
+            esac
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -2078,6 +2105,8 @@ jobs:
               xdpyinfo 2>/dev/null \
                 | grep -iE 'depth of root window|default visual id|class:|depth:' \
                 | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
+              echo "  --- xwininfo -root ---"
+              xwininfo -root 2>/dev/null | sed 's/^/  /' || echo "  (xwininfo -root failed)"
               xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
               echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
             else
@@ -2096,6 +2125,8 @@ jobs:
           xdpyinfo 2>&1 | egrep -i \
             'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
             | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+          echo "=== xwininfo -root ==="
+          xwininfo -root 2>&1 | head -30 || echo "(xwininfo -root failed on DISPLAY='${DISPLAY}')"
 
       - name: Enable core dumps (crash detection)
         # macOS writes cores to /cores/core.<pid> (kern.corefile) when the

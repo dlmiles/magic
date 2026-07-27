@@ -429,6 +429,17 @@ jobs:
             defaults write org.xquartz.X11 no_auth       -bool true
             defaults write org.xquartz.X11 nolisten_tcp  -bool true
             defaults write org.xquartz.X11 no_quit_alert -bool true
+            # macOS 15 + Intel ONLY: XQuartz 2.8.x deterministically stalls the
+            # XAllocColor round-trip during Tk's first paint on the default
+            # (TrueColor) visual (Apple bug; fixed on macOS 26).  Force an 8-bit
+            # PseudoColor root depth so Tk allocates from a real colormap instead
+            # -- a different server code path that may sidestep the stall.  Read
+            # at server start, so it must precede `open -a XQuartz`.  Strictly
+            # scoped to this one failing cell (no effect on arm64 / macOS >= 16).
+            if [ "${MACOS_MAJOR:-}" = 15 ] && [ "$(uname -m)" = x86_64 ]; then
+              echo "macOS 15 Intel: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
+              defaults write org.xquartz.X11 depth -int 8
+            fi
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -454,6 +465,13 @@ jobs:
               done
               sleep 3   # extra warm-up margin before magic connects
               echo "XQuartz warm-up done (fonts served, round-trips stable)"
+              # Report the effective root depth + default visual -- confirms
+              # whether the macOS-15-Intel depth=8 pref actually took, and shows
+              # the visual class Tk's XAllocColor will run against.
+              echo "--- XQuartz root depth / default visual ---"
+              xdpyinfo 2>/dev/null \
+                | grep -iE 'depth of root window|default visual id|class:|depth:' \
+                | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
               xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
               echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
             else
@@ -1160,6 +1178,17 @@ jobs:
             defaults write org.xquartz.X11 no_auth       -bool true
             defaults write org.xquartz.X11 nolisten_tcp  -bool true
             defaults write org.xquartz.X11 no_quit_alert -bool true
+            # macOS 15 + Intel ONLY: XQuartz 2.8.x deterministically stalls the
+            # XAllocColor round-trip during Tk's first paint on the default
+            # (TrueColor) visual (Apple bug; fixed on macOS 26).  Force an 8-bit
+            # PseudoColor root depth so Tk allocates from a real colormap instead
+            # -- a different server code path that may sidestep the stall.  Read
+            # at server start, so it must precede `open -a XQuartz`.  Strictly
+            # scoped to this one failing cell (no effect on arm64 / macOS >= 16).
+            if [ "${MACOS_MAJOR:-}" = 15 ] && [ "$(uname -m)" = x86_64 ]; then
+              echo "macOS 15 Intel: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
+              defaults write org.xquartz.X11 depth -int 8
+            fi
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -1185,6 +1214,13 @@ jobs:
               done
               sleep 3   # extra warm-up margin before magic connects
               echo "XQuartz warm-up done (fonts served, round-trips stable)"
+              # Report the effective root depth + default visual -- confirms
+              # whether the macOS-15-Intel depth=8 pref actually took, and shows
+              # the visual class Tk's XAllocColor will run against.
+              echo "--- XQuartz root depth / default visual ---"
+              xdpyinfo 2>/dev/null \
+                | grep -iE 'depth of root window|default visual id|class:|depth:' \
+                | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
               xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
               echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
             else

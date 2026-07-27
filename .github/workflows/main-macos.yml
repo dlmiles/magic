@@ -421,9 +421,14 @@ jobs:
           if [ -z "${DISPLAY:-}" ]; then
             echo "No X server running -- starting XQuartz"
             # Read at startup: disable auth + TCP so a local AF_UNIX client
-            # connects with no cookie.
-            defaults write org.xquartz.X11 no_auth      -bool true
-            defaults write org.xquartz.X11 nolisten_tcp -bool true
+            # connects with no cookie.  Domain is org.xquartz.X11 (modern XQuartz
+            # 2.8.x; the old org.macosforge.xquartz.X11 is pre-2.7 and unused now).
+            # no_quit_alert: suppress XQuartz's "Do you really want to quit?" modal
+            # so `killall Xquartz` (in the diagnostic) tears the server down cleanly
+            # instead of blocking on -- or leaving up -- a confirmation dialog.
+            defaults write org.xquartz.X11 no_auth       -bool true
+            defaults write org.xquartz.X11 nolisten_tcp  -bool true
+            defaults write org.xquartz.X11 no_quit_alert -bool true
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -561,14 +566,33 @@ jobs:
             #     override-redirect / dialog window).
             X11BIN=/opt/X11/bin
             DISP="${DISPLAY:-:0}"
+            # cap SECS cmd... -- hard-timeout wrapper.  CRITICAL: xwd/xwininfo are
+            # X clients, so they issue requests to the SAME wedged X server that
+            # magicexec is stuck on and would hang this step FOREVER with no
+            # timeout (macOS has no `timeout`, hence a background killer).  An
+            # overrunning capture is killed and we move on -- never block the step.
+            # screencapture talks to the macOS WindowServer (not X11), so it is
+            # reliable; it is still capped defensively and run FIRST.
+            cap() {
+              local s="$1"; shift
+              "$@" & local cpid=$!
+              ( sleep "$s"; kill -KILL "$cpid" 2>/dev/null ) & local wpid=$!
+              wait "$cpid" 2>/dev/null; local rc=$?
+              kill -KILL "$wpid" 2>/dev/null; wait "$wpid" 2>/dev/null
+              return "$rc"
+            }
             echo "--- capturing XQuartz screen state at hang (DISPLAY=$DISP) ---"
-            /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null \
-              && echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)" \
-              || echo "screencapture failed (screen-recording permission?)"
+            if cap 20 /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null; then
+              echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)"
+            else
+              echo "screencapture failed/timed out (screen-recording permission?)"
+            fi
             if [ -x "$X11BIN/xwd" ]; then
-              "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null \
-                && echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)" \
-                || echo "xwd failed"
+              if cap 15 "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null; then
+                echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)"
+              else
+                echo "xwd failed/timed out (X server wedged?)"
+              fi
               if   command -v magick  >/dev/null 2>&1; then magick  /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
               elif command -v convert >/dev/null 2>&1; then convert /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
               fi
@@ -577,12 +601,23 @@ jobs:
             fi
             if [ -x "$X11BIN/xwininfo" ]; then
               echo "--- xwininfo -root -tree (X window list) ---"
-              "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed)"
+              cap 15 "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed/timed out)"
             fi
+            # Dump + capture are done: tear the (wedged) X server down so it can
+            # not hang the remaining steps.  no_quit_alert (set in "Check X11")
+            # stops the quit dialog blocking this.  On a deterministic-hang runner
+            # the later x11 tests then self-skip (no display) instead of hanging
+            # again -- the HUNG evidence is already captured above.
+            echo "--- tearing down XQuartz (killall) after capture ---"
+            killall Xquartz  2>/dev/null || true
+            killall quartz-wm 2>/dev/null || true
           else
             echo "magicexec exited within 8s (did not hang)"
           fi
+          # Bounded kill; also sweep any lingering magicexec so a wedged process
+          # can never keep the step alive holding descriptors.
           kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null; wait "$p" 2>/dev/null
+          pkill -KILL -f 'magicexec' 2>/dev/null || true
           echo "--- magicexec captured output (may be block-buffered/partial) ---"
           cat /tmp/diag_x11.txt
           if   grep -q X11_OK /tmp/diag_x11.txt;             then x11=WORKS
@@ -681,6 +716,11 @@ jobs:
           ) >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare archive
+        # always(): still stage + collect the BUILD-INFO diagnostics (the stack
+        # sample and XQuartz screenshots) even when an earlier x11 test step
+        # failed or the run was cancelled -- otherwise the captures are stranded
+        # in /tmp and never reach the artifact.
+        if: always()
         run: |
           mkdir -p dist
           make -C build-tmp install "DESTDIR=$(pwd)/dist"
@@ -714,6 +754,7 @@ jobs:
           true
 
       - name: Upload archive magic-macos15
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: magic-macos15
@@ -1111,9 +1152,14 @@ jobs:
           if [ -z "${DISPLAY:-}" ]; then
             echo "No X server running -- starting XQuartz"
             # Read at startup: disable auth + TCP so a local AF_UNIX client
-            # connects with no cookie.
-            defaults write org.xquartz.X11 no_auth      -bool true
-            defaults write org.xquartz.X11 nolisten_tcp -bool true
+            # connects with no cookie.  Domain is org.xquartz.X11 (modern XQuartz
+            # 2.8.x; the old org.macosforge.xquartz.X11 is pre-2.7 and unused now).
+            # no_quit_alert: suppress XQuartz's "Do you really want to quit?" modal
+            # so `killall Xquartz` (in the diagnostic) tears the server down cleanly
+            # instead of blocking on -- or leaving up -- a confirmation dialog.
+            defaults write org.xquartz.X11 no_auth       -bool true
+            defaults write org.xquartz.X11 nolisten_tcp  -bool true
+            defaults write org.xquartz.X11 no_quit_alert -bool true
             open -a XQuartz
             up=0
             for i in $(seq 1 30); do
@@ -1251,14 +1297,33 @@ jobs:
             #     override-redirect / dialog window).
             X11BIN=/opt/X11/bin
             DISP="${DISPLAY:-:0}"
+            # cap SECS cmd... -- hard-timeout wrapper.  CRITICAL: xwd/xwininfo are
+            # X clients, so they issue requests to the SAME wedged X server that
+            # magicexec is stuck on and would hang this step FOREVER with no
+            # timeout (macOS has no `timeout`, hence a background killer).  An
+            # overrunning capture is killed and we move on -- never block the step.
+            # screencapture talks to the macOS WindowServer (not X11), so it is
+            # reliable; it is still capped defensively and run FIRST.
+            cap() {
+              local s="$1"; shift
+              "$@" & local cpid=$!
+              ( sleep "$s"; kill -KILL "$cpid" 2>/dev/null ) & local wpid=$!
+              wait "$cpid" 2>/dev/null; local rc=$?
+              kill -KILL "$wpid" 2>/dev/null; wait "$wpid" 2>/dev/null
+              return "$rc"
+            }
             echo "--- capturing XQuartz screen state at hang (DISPLAY=$DISP) ---"
-            /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null \
-              && echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)" \
-              || echo "screencapture failed (screen-recording permission?)"
+            if cap 20 /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null; then
+              echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)"
+            else
+              echo "screencapture failed/timed out (screen-recording permission?)"
+            fi
             if [ -x "$X11BIN/xwd" ]; then
-              "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null \
-                && echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)" \
-                || echo "xwd failed"
+              if cap 15 "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null; then
+                echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)"
+              else
+                echo "xwd failed/timed out (X server wedged?)"
+              fi
               if   command -v magick  >/dev/null 2>&1; then magick  /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
               elif command -v convert >/dev/null 2>&1; then convert /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
               fi
@@ -1267,12 +1332,23 @@ jobs:
             fi
             if [ -x "$X11BIN/xwininfo" ]; then
               echo "--- xwininfo -root -tree (X window list) ---"
-              "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed)"
+              cap 15 "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed/timed out)"
             fi
+            # Dump + capture are done: tear the (wedged) X server down so it can
+            # not hang the remaining steps.  no_quit_alert (set in "Check X11")
+            # stops the quit dialog blocking this.  On a deterministic-hang runner
+            # the later x11 tests then self-skip (no display) instead of hanging
+            # again -- the HUNG evidence is already captured above.
+            echo "--- tearing down XQuartz (killall) after capture ---"
+            killall Xquartz  2>/dev/null || true
+            killall quartz-wm 2>/dev/null || true
           else
             echo "magicexec exited within 8s (did not hang)"
           fi
+          # Bounded kill; also sweep any lingering magicexec so a wedged process
+          # can never keep the step alive holding descriptors.
           kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null; wait "$p" 2>/dev/null
+          pkill -KILL -f 'magicexec' 2>/dev/null || true
           echo "--- magicexec captured output (may be block-buffered/partial) ---"
           cat /tmp/diag_x11.txt
           if   grep -q X11_OK /tmp/diag_x11.txt;             then x11=WORKS
@@ -1371,6 +1447,11 @@ jobs:
           ) >> $GITHUB_STEP_SUMMARY
 
       - name: Prepare archive
+        # always(): still stage + collect the BUILD-INFO diagnostics (the stack
+        # sample and XQuartz screenshots) even when an earlier x11 test step
+        # failed or the run was cancelled -- otherwise the captures are stranded
+        # in /tmp and never reach the artifact.
+        if: always()
         run: |
           mkdir -p dist
           make -C build-tmp install "DESTDIR=$(pwd)/dist"
@@ -1404,6 +1485,7 @@ jobs:
           true
 
       - name: Upload archive magic-macos
+        if: always()
         uses: actions/upload-artifact@v7
         with:
           name: magic-macos

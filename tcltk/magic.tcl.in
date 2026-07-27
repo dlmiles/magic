@@ -5,6 +5,14 @@
 
 global Opts
 
+# magic's console/command interface is a text REPL, so default stdout to line
+# buffering -- a shell-like default that is the same for every launcher and
+# device.  Without it, magicexec's Tk_Main event loop never flushes per command
+# and Tcl block-buffers stdout whenever it is not a detected tty, so `puts`
+# output can sit unseen (this stalled batch send/expect on macOS).  A user who
+# prefers full buffering can override with `fconfigure stdout -buffering full`.
+catch {fconfigure stdout -buffering line}
+
 # If we called magic via the non-console script, then we want to reset
 # the environment variable HOME to its original value.
 

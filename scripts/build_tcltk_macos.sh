@@ -147,6 +147,17 @@ log "configure + build Tcl -> $PREFIX"
     make install-libraries install-msgs install-tzdata 2>/dev/null || true
 )
 
+# Verify --disable-corefoundation actually took: the built libtcl should NOT link
+# CoreFoundation (portable select() notifier).  If it still does, the flag was
+# ignored and the headless event loop can go dead -- log loudly so the build log
+# shows it without waiting for the runtime diagnostic.
+if otool -L "$PREFIX"/lib/libtcl*.dylib 2>/dev/null | grep -qi CoreFoundation; then
+    log "WARNING: libtcl STILL links CoreFoundation -- --disable-corefoundation had NO effect (CF notifier)"
+    otool -L "$PREFIX"/lib/libtcl*.dylib 2>/dev/null | grep -i CoreFoundation | sed 's/^/    /'
+else
+    log "notifier OK: libtcl has no CoreFoundation dependency (select() notifier active)"
+fi
+
 # --- Tk (X11 on XQuartz, NOT Aqua) --------------------------------------
 fetch tk "$BUILD_DIR/tk"
 log "configure + build Tk (X11) -> $PREFIX"

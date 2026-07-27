@@ -374,6 +374,25 @@ jobs:
           set +e
           set +o pipefail
           echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+
+          # Proof of whether the --disable-corefoundation fix is actually in this
+          # build: if the from-source libtcl still links CoreFoundation, the CF
+          # (CFRunLoop) notifier is compiled in and the event loop can go dead;
+          # if absent, the portable select() notifier is active.
+          echo "=== from-source Tcl notifier: CoreFoundation should be ABSENT ==="
+          libtcl=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | head -1)
+          if [ -n "$libtcl" ]; then
+            echo "libtcl=$libtcl"
+            if otool -L "$libtcl" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "  NOTIFIER: CoreFoundation LINKED -> --disable-corefoundation NOT in effect (CF notifier)"
+            else
+              echo "  NOTIFIER: no CoreFoundation -> select() notifier active (fix applied)"
+            fi
+            otool -L "$libtcl" 2>/dev/null | grep -iE 'CoreFoundation|Cocoa|/opt/magic/lib/libtcl' | sed 's/^/   /'
+          else
+            echo "  (no /opt/magic/lib/libtcl* -- from-source Tcl not built: tcl_source=homebrew or build failed)"
+          fi
+
           printf 'puts DNULL_OK\nquit -noprompt\n' > /tmp/cmd_dnull.txt
           printf 'puts X11_OK\nquit -noprompt\n'   > /tmp/cmd_x11.txt
 
@@ -859,6 +878,25 @@ jobs:
           set +e
           set +o pipefail
           echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+
+          # Proof of whether the --disable-corefoundation fix is actually in this
+          # build: if the from-source libtcl still links CoreFoundation, the CF
+          # (CFRunLoop) notifier is compiled in and the event loop can go dead;
+          # if absent, the portable select() notifier is active.
+          echo "=== from-source Tcl notifier: CoreFoundation should be ABSENT ==="
+          libtcl=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | head -1)
+          if [ -n "$libtcl" ]; then
+            echo "libtcl=$libtcl"
+            if otool -L "$libtcl" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "  NOTIFIER: CoreFoundation LINKED -> --disable-corefoundation NOT in effect (CF notifier)"
+            else
+              echo "  NOTIFIER: no CoreFoundation -> select() notifier active (fix applied)"
+            fi
+            otool -L "$libtcl" 2>/dev/null | grep -iE 'CoreFoundation|Cocoa|/opt/magic/lib/libtcl' | sed 's/^/   /'
+          else
+            echo "  (no /opt/magic/lib/libtcl* -- from-source Tcl not built: tcl_source=homebrew or build failed)"
+          fi
+
           printf 'puts DNULL_OK\nquit -noprompt\n' > /tmp/cmd_dnull.txt
           printf 'puts X11_OK\nquit -noprompt\n'   > /tmp/cmd_x11.txt
 

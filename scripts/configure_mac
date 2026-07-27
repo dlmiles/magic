@@ -107,6 +107,17 @@ then
     fi
 fi
 
+# A from-source X11 Tcl/Tk (built by scripts/build_tcltk_macos.sh on top of
+# XQuartz) installs to a magic-specific prefix and is passed here via
+# $TCLTK_PREFIX.  It takes precedence over any Homebrew tcl-tk so magic links the
+# real X11 Tk -- not the Homebrew Aqua/Cocoa Tk, whose non-X11 Tk_Display() hangs
+# magic's grTk driver under `-d X11`.  This is the path that fixes X11 on macOS.
+if [ -n "${TCLTK_PREFIX:-}" ] && [ -d "${TCLTK_PREFIX}" ]
+then
+    echo "Using from-source X11 tcl-tk prefix TCLTK_PREFIX -> ${TCLTK_PREFIX}"
+    tcl_tk_prefix_dir="${TCLTK_PREFIX}"
+fi
+
 if [ -n "$x11_include_dir" ]
 then
     # On some versions of MacOSX (example macosx12 / XCode 14.2) the tcl-tk

@@ -8850,7 +8850,7 @@ if test $usingTcl ; then
     $as_echo "#define THREE_D 1" >>confdefs.h
 
     gr_dflags="$gr_dflags -DOGL"
-    gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
+    gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext}"
     gr_srcs="$gr_srcs \${TOGL_GL_SRCS} \${TOGL_GLU_SRCS} \${THREE_D_GL_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
@@ -8879,7 +8879,7 @@ else
   fi
   if test $usingOGL ; then
     gr_dflags="$gr_dflags -DOGL"
-    gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext} -lm"
+    gr_libs="$gr_libs -lGL ${use_libglu} ${use_libxi} ${use_libxmu} ${use_libxext}"
     gr_srcs="$gr_srcs \${OGL_GL_SRCS} \${OGL_GLU_SRCS}"
     if ! test $usingX11 ; then
       usingX11=1
@@ -9114,7 +9114,13 @@ if test $usingTcl ; then
     *darwin*)
       SHDLIB_EXT=".dylib"
       LDDL_FLAGS="-dynamiclib -undefined dynamic_lookup"
-      LDFLAGS="${LDFLAGS} ${LIB_SPECS}"
+      # Do NOT push ${LIB_SPECS} (the Tcl/Tk *stub* specs) into the global
+      # LDFLAGS.  Every final link already adds the spec it needs explicitly:
+      # tclmagic.dylib appends ${LIB_SPECS}; magicexec/magicdnull use the
+      # LIB_SPECS_NOSTUB / LIB_SPECS_GRNULL (real -ltcl/-ltk) variants.  Injecting
+      # it here duplicated -ltclstub/-ltkstub on the module link and wrongly
+      # linked the stub archives into the standalone launchers (even -ltkstub
+      # into the -dnull binary, which references no Tk at all).
       CFLAGS="${CFLAGS} ${X_CFLAGS} ${INC_SPECS}"
       ;;
 

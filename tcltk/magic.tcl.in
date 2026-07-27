@@ -179,12 +179,14 @@ proc magic::print_version_verbose {} {
    set _mver {MAGIC_VERSION}
    set _mrev {MAGIC_REVISION}
    set _mcom {MAGIC_COMMIT}
+   set _mcdt {MAGIC_COMMITDATE}
    set _mbld {MAGIC_BUILDDATE}
    set _K "MAGIC_"
    puts stdout "$_mver.$_mrev"
    puts stdout "${_K}VERSION=$_mver.$_mrev"
    puts stdout "${_K}REVISION=$_mrev"
    puts stdout "${_K}COMMIT=$_mcom"
+   puts stdout "${_K}COMMITDATE=$_mcdt"
    # Build date is optional: empty under --disable-magic-builddate, or still
    # the un-substituted placeholder if built without the Makefile builddate
    # sed -- omit the line in either case.

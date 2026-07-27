@@ -134,6 +134,12 @@ endif
 ifndef MAGIC_COMMIT
 MAGIC_COMMIT	       := $(shell git -C ${MAGICSRC} rev-parse HEAD 2>/dev/null)
 endif
+# Committer date of MAGIC_COMMIT (strict ISO-8601).  Unlike MAGIC_BUILDDATE this
+# is FIXED for a given commit -- reproducible without SOURCE_DATE_EPOCH.  Empty
+# when git is absent / MAGICSRC is not a work-tree (same fallback as COMMIT).
+ifndef MAGIC_COMMITDATE
+MAGIC_COMMITDATE       := $(shell test -n "${MAGIC_COMMIT}" && git -C ${MAGICSRC} show -s --format=%cI ${MAGIC_COMMIT} 2>/dev/null)
+endif
 # "-DMAGIC_NO_BUILDDATE" when configured with --disable-magic-builddate, else
 # empty.  buildinfo.c reports an empty MagicCompileTime under that define.
 MAGIC_BUILDDATE_DEFS   = @MAGIC_BUILDDATE_DEFS@
@@ -157,6 +163,7 @@ endif
 export MAGIC_VERSION
 export MAGIC_REVISION
 export MAGIC_COMMIT
+export MAGIC_COMMITDATE
 export MAGIC_BUILDDATE
 
 CC                     = @CC@

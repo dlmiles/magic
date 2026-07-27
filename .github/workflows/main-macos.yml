@@ -28,6 +28,16 @@ on:
         description: 'github/tarball source: exact tag e.g. core-9-0-4 (blank derives it from tcl_tk_version or auto-resolves).'
         type: string
         default: ''
+      graphics_mode:
+        description: 'Graphics device for the x11-mode smoketests. "default" (placeholder, used by automated push/PR) resolves to X11. Manual: X11, XR (Cairo), OGL (OpenGL), or all three. Any failure is a CI failure.'
+        type: choice
+        options:
+          - default
+          - X11
+          - XR
+          - OGL
+          - all
+        default: 'default'
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -698,7 +708,27 @@ jobs:
             || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
             || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
             || pip3 install --quiet pyyaml || true
-          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
+          # Graphics device(s) for the x11-mode tests.  Blank / "default" (every
+          # automated push/PR run) -> X11.  Manual workflow_dispatch can pick
+          # X11 | XR (Cairo) | OGL (OpenGL) | all.  Each selected mode runs the
+          # FULL catalog; every mode still runs (so the summary shows all
+          # results), but ANY failure in ANY mode fails the step -- a real CI
+          # failure, exactly like X11 today.
+          sel="${{ github.event.inputs.graphics_mode }}"
+          case "${sel:-default}" in
+            all)        modes="X11 XR OGL" ;;
+            X11|XR|OGL) modes="$sel" ;;
+            *)          modes="X11" ;;
+          esac
+          echo "x11-mode graphics device(s) to test: $modes"
+          rc=0
+          for m in $modes; do
+            echo "::group::YAML catalog -- device -d $m"
+            MAGICTEST_X11_DEVICE="$m" \
+              python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v || rc=1
+            echo "::endgroup::"
+          done
+          exit $rc
 
       - name: Summary
         if: always()
@@ -1471,7 +1501,27 @@ jobs:
             || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
             || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
             || pip3 install --quiet pyyaml || true
-          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
+          # Graphics device(s) for the x11-mode tests.  Blank / "default" (every
+          # automated push/PR run) -> X11.  Manual workflow_dispatch can pick
+          # X11 | XR (Cairo) | OGL (OpenGL) | all.  Each selected mode runs the
+          # FULL catalog; every mode still runs (so the summary shows all
+          # results), but ANY failure in ANY mode fails the step -- a real CI
+          # failure, exactly like X11 today.
+          sel="${{ github.event.inputs.graphics_mode }}"
+          case "${sel:-default}" in
+            all)        modes="X11 XR OGL" ;;
+            X11|XR|OGL) modes="$sel" ;;
+            *)          modes="X11" ;;
+          esac
+          echo "x11-mode graphics device(s) to test: $modes"
+          rc=0
+          for m in $modes; do
+            echo "::group::YAML catalog -- device -d $m"
+            MAGICTEST_X11_DEVICE="$m" \
+              python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v || rc=1
+            echo "::endgroup::"
+          done
+          exit $rc
 
       - name: Summary
         if: always()
@@ -2244,7 +2294,27 @@ jobs:
             || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
             || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
             || pip3 install --quiet pyyaml || true
-          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
+          # Graphics device(s) for the x11-mode tests.  Blank / "default" (every
+          # automated push/PR run) -> X11.  Manual workflow_dispatch can pick
+          # X11 | XR (Cairo) | OGL (OpenGL) | all.  Each selected mode runs the
+          # FULL catalog; every mode still runs (so the summary shows all
+          # results), but ANY failure in ANY mode fails the step -- a real CI
+          # failure, exactly like X11 today.
+          sel="${{ github.event.inputs.graphics_mode }}"
+          case "${sel:-default}" in
+            all)        modes="X11 XR OGL" ;;
+            X11|XR|OGL) modes="$sel" ;;
+            *)          modes="X11" ;;
+          esac
+          echo "x11-mode graphics device(s) to test: $modes"
+          rc=0
+          for m in $modes; do
+            echo "::group::YAML catalog -- device -d $m"
+            MAGICTEST_X11_DEVICE="$m" \
+              python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v || rc=1
+            echo "::endgroup::"
+          done
+          exit $rc
 
       - name: Summary
         if: always()

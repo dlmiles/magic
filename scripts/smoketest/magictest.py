@@ -656,7 +656,11 @@ def run_test(path, verbose=False):
     env = dict(os.environ, MAGIC_BUILDDIR=builddir)
     cmd = [launcher]
     if mode == "x11":
-        cmd += ["-d", "X11", "-noconsole", "-timeout", str(min(timeout, 120))]
+        # Device for x11-mode tests: X11 (default) | XR (Cairo) | OGL (OpenGL).
+        # $MAGICTEST_X11_DEVICE lets CI run the same tests under each renderer;
+        # blank/unset -> X11.  All three need a display (gated above on DISPLAY).
+        dev = os.environ.get("MAGICTEST_X11_DEVICE") or "X11"
+        cmd += ["-d", dev, "-noconsole", "-timeout", str(min(timeout, 120))]
 
     logpath = os.path.join(work, "magic.log")
     started = time.time()

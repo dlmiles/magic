@@ -462,8 +462,23 @@ jobs:
           cat /tmp/diag_dnull.txt
           grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT/HUNG
 
-          echo "=== -d X11 (magicexec): expect X11_OK ==="
-          run_bounded x11 25 /tmp/diag_x11.txt /tmp/cmd_x11.txt -d X11 -noconsole
+          echo "=== -d X11 (magicexec): start, SAMPLE the stack while hung, then kill ==="
+          # CF notifier is ruled out (select() active) yet magicexec still hangs,
+          # so capture WHERE with macOS `sample` (a stack trace of the live pid).
+          : > /tmp/diag_x11.txt
+          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          p=$!
+          sleep 8    # let magicexec boot and (if it does) hang
+          if kill -0 "$p" 2>/dev/null; then
+            echo "magicexec (pid $p) still alive after 8s -- sampling its stack"
+            sample "$p" 3 -file /tmp/magicexec.sample >/dev/null 2>&1 || echo "(sample failed)"
+            echo "--- magicexec stack sample (top ~90 lines of the call graph) ---"
+            sed -n '1,90p' /tmp/magicexec.sample 2>/dev/null || echo "(no sample output)"
+          else
+            echo "magicexec exited within 8s (did not hang)"
+          fi
+          kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null; wait "$p" 2>/dev/null
+          echo "--- magicexec captured output (may be block-buffered/partial) ---"
           cat /tmp/diag_x11.txt
           grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT/HUNG
 
@@ -1014,8 +1029,23 @@ jobs:
           cat /tmp/diag_dnull.txt
           grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT/HUNG
 
-          echo "=== -d X11 (magicexec): expect X11_OK ==="
-          run_bounded x11 25 /tmp/diag_x11.txt /tmp/cmd_x11.txt -d X11 -noconsole
+          echo "=== -d X11 (magicexec): start, SAMPLE the stack while hung, then kill ==="
+          # CF notifier is ruled out (select() active) yet magicexec still hangs,
+          # so capture WHERE with macOS `sample` (a stack trace of the live pid).
+          : > /tmp/diag_x11.txt
+          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          p=$!
+          sleep 8    # let magicexec boot and (if it does) hang
+          if kill -0 "$p" 2>/dev/null; then
+            echo "magicexec (pid $p) still alive after 8s -- sampling its stack"
+            sample "$p" 3 -file /tmp/magicexec.sample >/dev/null 2>&1 || echo "(sample failed)"
+            echo "--- magicexec stack sample (top ~90 lines of the call graph) ---"
+            sed -n '1,90p' /tmp/magicexec.sample 2>/dev/null || echo "(no sample output)"
+          else
+            echo "magicexec exited within 8s (did not hang)"
+          fi
+          kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null; wait "$p" 2>/dev/null
+          echo "--- magicexec captured output (may be block-buffered/partial) ---"
           cat /tmp/diag_x11.txt
           grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT/HUNG
 

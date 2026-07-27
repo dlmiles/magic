@@ -155,6 +155,49 @@ proc echo {args} {
    puts stdout $args
 }
 
+# Verbose diagnostic for "magic --version -v" (aka "-V -v"), and callable at
+# runtime as magic::print_version_verbose.  Everything here is intrinsic to
+# magic's runtime and always shown -- except: the Tk line appears only when Tk
+# is actually loaded (never under -dnull, and it never opens a display itself),
+# and $DISPLAY/$XAUTHORITY are transitive so are shown only when actually set.
+proc magic::print_version_verbose {} {
+   global env
+   puts stdout "Magic MAGIC_VERSION revision MAGIC_REVISION (commit MAGIC_COMMIT)"
+   puts stdout [format "Platform: %s %s %s (%s)" $::tcl_platform(os) \
+	 $::tcl_platform(osVersion) $::tcl_platform(machine) $::tcl_platform(platform)]
+   set threaded [expr {[info exists ::tcl_platform(threaded)] ? \
+	 $::tcl_platform(threaded) : 0}]
+   puts stdout [format "Tcl:      %s  threaded=%s  pointerSize=%s  byteOrder=%s" \
+	 [info patchlevel] $threaded $::tcl_platform(pointerSize) $::tcl_platform(byteOrder)]
+
+   # Tk only when it is actually present (not under -dnull).  package present
+   # raises if Tk was never loaded; catch => omit the line.  This never opens a
+   # display: if Tk is present, its init already succeeded.
+   if {![catch {package present Tk} tkver]} {
+      set wsys "unknown"
+      catch {set wsys [tk windowingsystem]}	;# aqua | x11 | win32
+      puts stdout [format "Tk:       %s  windowingsystem=%s" $tkver $wsys]
+      catch {
+	 set srv [winfo server .]			;# X server identity (x11)
+	 if {$srv ne ""} {puts stdout [format "Display:  %s" $srv]}
+      }
+   }
+
+   # Compiled path defaults, flagging an active environment override.  Only
+   # CAD_DIR has one ($CAD_ROOT); BIN_DIR/TCL_DIR are always compiled defaults.
+   if {[info exists env(CAD_ROOT)]} {
+      puts stdout "CAD_DIR:  $env(CAD_ROOT)  \[\$CAD_ROOT override; compiled default @CAD_DIR@\]"
+   } else {
+      puts stdout "CAD_DIR:  @CAD_DIR@  \[compiled default\]"
+   }
+   puts stdout "BIN_DIR:  @BIN_DIR@  \[compiled default\]"
+   puts stdout "TCL_DIR:  @TCL_DIR@  \[compiled default\]"
+
+   # Transitive display environment -- shown only when actually set.
+   if {[info exists env(DISPLAY)]}    {puts stdout "DISPLAY:    $env(DISPLAY)"}
+   if {[info exists env(XAUTHORITY)]} {puts stdout "XAUTHORITY: $env(XAUTHORITY)"}
+}
+
 # Parse argument list for "-c[onsole]" and "-now[rapper]".
 
 set celllist {}
@@ -202,9 +245,19 @@ for {set i 0} {$i < $argc} {incr i 1} {
          incr i 1
          lappend argafter [lindex $argv $i]
       }
-      ^--version {
-	 puts stdout "MAGIC_VERSION.MAGIC_REVISION"
+      ^--version$ -
+      ^-V$ {
+	 if {[lsearch -regexp $argv {^(-v|--verbose)$}] >= 0} {
+	    magic::print_version_verbose
+	 } else {
+	    puts stdout "MAGIC_VERSION.MAGIC_REVISION"
+	 }
 	 exit 0
+      }
+      ^-v$ -
+      ^--verbose$ {
+	 # Verbose modifier for --version/-V; consumed here so it is not treated
+	 # as a cell name (or passed to magic's C argument parser).
       }
       ^--commit {
 	 puts stdout "MAGIC_COMMIT"

@@ -84,6 +84,9 @@ magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICSRC}/VERSION
 	${SED} -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
 	    -e /MAGIC_COMMIT/s%MAGIC_COMMIT%${MAGIC_COMMIT}%g \
+	    -e /@CAD_DIR@/s%@CAD_DIR@%${LIBDIR}%g \
+	    -e /@BIN_DIR@/s%@BIN_DIR@%${BINDIR}%g \
+	    -e /@TCL_DIR@/s%@TCL_DIR@%${TCLDIR}%g \
 	    $< > $@.new && \
 	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 

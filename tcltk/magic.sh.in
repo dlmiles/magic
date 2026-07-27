@@ -29,12 +29,27 @@ if [ "`uname | cut -d_ -f1`" = "CYGWIN" ]; then
    export DISPLAY=${DISPLAY:=":0"}
 fi
 
-# Preserve quotes in arguments
+# Preserve quotes in arguments.  Also select the Tk-less "magicdnull" binary for
+# headless invocations: with a real X11 Tk (vs. macOS Aqua Tk), magicexec's
+# Tk_Init() needs a $DISPLAY at startup -- before magic ever parses "-d" -- so a
+# null/help device would otherwise fail in batch/CI with
+# "no display name and no $DISPLAY environment variable".  Route -dnull, the
+# "-d null"/"-d NULL" spelling, and the "-d help" device query (all headless and
+# exit without a GUI) to magicdnull; GUI devices (X11/OGL/cairo) use magicexec.
 arglist=''
+want_dev=
 for i in "$@" ; do
+   if [ -n "$want_dev" ]; then
+      want_dev=
+      case $i in
+         [Nn][Uu][Ll][Ll]|[Hh][Ee][Ll][Pp]) DNULL=true;;
+      esac
+   fi
    case $i in
       -noc*) TKCON=;;
       -dnull) DNULL=true;;
+      -d) want_dev=true;
+          arglist="$arglist${arglist:+ }\"${i//\"/\\\"}\"";;
       --version) TKCON=; DNULL=true;;
       --commit) TKCON=; DNULL=true;;
       --prefix) TKCON=; DNULL=true;;

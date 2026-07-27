@@ -31,11 +31,12 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  simple_build_macos15:
-    # TEMP diag: back on macos-15-intel (the deterministic XAllocColor/XQuartz
-    # hang case) to test whether the "Check X11" warm-up cures it.  Revert
-    # afterward (this is the normal Intel runner anyway).
-    runs-on: macos-15-intel
+  macos26_intel:
+    # macOS 26 on Intel -- the resolution for the deterministic macOS-15-Intel
+    # XAllocColor/XQuartz hang.  Apple fixed that server-side stall on macOS 26,
+    # so the x11 tests pass here.  (The macOS-15 workarounds -- depth=8 and the
+    # XQuartz 2.8.5 pin -- are gated on macOS<=15, so they stay dormant on 26.)
+    runs-on: macos-26-intel
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
     # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
@@ -779,11 +780,11 @@ jobs:
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
 
-      - name: Upload archive magic-macos15
+      - name: Upload archive magic-macos26-intel
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: magic-macos15
+          name: magic-macos26-intel
           path: |
             ${{ github.workspace }}/dist
 

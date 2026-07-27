@@ -210,6 +210,32 @@ proc magic::print_version_verbose {} {
    } else {
       puts stdout [format "  tcl_library: %s  \[default; \$TCL_LIBRARY unset\]" $tcllib]
    }
+   # Under Tcl 9 the standard library is usually a virtual zipfs mount embedded
+   # in the libtcl shared library, so tcl_library reads "//zipfs:/..." -- which
+   # hides WHICH libtcl on disk is actually in use (the whole point here: proving
+   # the custom Tcl build is the one loaded).  Resolve the zipfs mount back to
+   # its backing native archive file; that file IS the Tcl copy being used.
+   if {![catch {zipfs root} _zr] && [string match "${_zr}*" $tcllib]} {
+      set _src ""; set _mp ""
+      # `zipfs mount` (no args) is a dict: mountpoint -> backing archive file.
+      # Pick the LONGEST mountpoint that prefixes tcl_library (most specific).
+      catch {
+	 foreach {mp arch} [zipfs mount] {
+	    if {[string match "${mp}*" $tcllib] && \
+		[string length $mp] >= [string length $_mp]} {
+	       set _mp $mp; set _src $arch
+	    }
+	 }
+      }
+      if {$_src ne ""} {
+	 set _abs $_src
+	 catch {set _abs [file normalize $_src]}
+	 puts stdout [format "  zipfs src:   %s  \[backing libtcl for mount %s; %s\]" \
+	       $_abs $_mp [expr {[file exists $_src] ? "exists" : "MISSING"}]]
+      } else {
+	 puts stdout "  zipfs src:   (unresolved -- `zipfs mount` reported no backing file)"
+      }
+   }
    set initf [file join $tcllib init.tcl]
    puts stdout [format "  init.tcl:    %s  \[%s\]" $initf \
 	 [expr {[file exists $initf] ? "found" : "MISSING"}]]

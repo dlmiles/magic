@@ -547,6 +547,38 @@ jobs:
             sample "$p" 3 -file /tmp/magicexec.sample >/dev/null 2>&1 || echo "(sample failed)"
             echo "--- magicexec stack sample (top ~90 lines of the call graph) ---"
             sed -n '1,90p' /tmp/magicexec.sample 2>/dev/null || echo "(no sample output)"
+            # A blocking XQuartz/TCC modal dialog would present EXACTLY like this
+            # XAllocColor stall (the X server main thread stops answering while a
+            # dialog is up).  Grab the screen NOW, while magicexec is still hung
+            # (before the kill below), so the popup -- if any -- is captured:
+            #   screencapture -> the Aqua layer: XQuartz app dialogs and macOS
+            #     TCC/permission prompts (needs screen-recording TCC; best-effort,
+            #     and a black/empty frame is itself a data point).
+            #   xwd -root      -> the X11 root window: any X client modal.  Pure
+            #     X protocol, needs no macOS permission.  Converted to PNG when a
+            #     converter exists, else the .xwd is uploaded (xwud/GIMP-viewable).
+            #   xwininfo -tree -> the X window tree (a grab often shows as a stray
+            #     override-redirect / dialog window).
+            X11BIN=/opt/X11/bin
+            DISP="${DISPLAY:-:0}"
+            echo "--- capturing XQuartz screen state at hang (DISPLAY=$DISP) ---"
+            /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null \
+              && echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)" \
+              || echo "screencapture failed (screen-recording permission?)"
+            if [ -x "$X11BIN/xwd" ]; then
+              "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null \
+                && echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)" \
+                || echo "xwd failed"
+              if   command -v magick  >/dev/null 2>&1; then magick  /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              elif command -v convert >/dev/null 2>&1; then convert /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              fi
+            else
+              echo "xwd not found under $X11BIN (skipping X11 root dump)"
+            fi
+            if [ -x "$X11BIN/xwininfo" ]; then
+              echo "--- xwininfo -root -tree (X window list) ---"
+              "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed)"
+            fi
           else
             echo "magicexec exited within 8s (did not hang)"
           fi
@@ -564,7 +596,7 @@ jobs:
             echo "### stdin->magic diagnostic ($(uname -m))"
             echo "- \`-d null\` (magicdnull): **$dnull**"
             echo "- \`-d X11\` (magicexec): **$x11**"
-            [ "$x11" = "HUNG" ] && echo "  → magicexec HUNG in an X round-trip (XAllocColor) -- see the sampled stack in the step log"
+            [ "$x11" = "HUNG" ] && echo "  → magicexec HUNG in an X round-trip (XAllocColor) -- see the sampled stack in the step log, and the XQuartz screenshot (xquartz_hang.png / xquartz_root.*) in the magic-macos* artifact under BUILD-INFO/ (check for a modal dialog)"
             [ "$x11" = "NO-DISPLAY" ] && echo "  → NOT a hang: XQuartz was not up (\$DISPLAY unset); magicexec's Tk_Init aborted (CI XQuartz-startup flakiness)"
           } >> "$GITHUB_STEP_SUMMARY"
           true
@@ -668,6 +700,12 @@ jobs:
           cp build-tmp/config.log dist/BUILD-INFO/
           cp build-tmp/*.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
+          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it hung):
+          # the magicexec stack sample and the XQuartz screen/X11 captures.
+          cp /tmp/magicexec.sample  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_hang.png  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_root.xwd  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_root.png  dist/BUILD-INFO/ 2>/dev/null
 
       - name: Upload archive magic-macos15
         uses: actions/upload-artifact@v7
@@ -1193,6 +1231,38 @@ jobs:
             sample "$p" 3 -file /tmp/magicexec.sample >/dev/null 2>&1 || echo "(sample failed)"
             echo "--- magicexec stack sample (top ~90 lines of the call graph) ---"
             sed -n '1,90p' /tmp/magicexec.sample 2>/dev/null || echo "(no sample output)"
+            # A blocking XQuartz/TCC modal dialog would present EXACTLY like this
+            # XAllocColor stall (the X server main thread stops answering while a
+            # dialog is up).  Grab the screen NOW, while magicexec is still hung
+            # (before the kill below), so the popup -- if any -- is captured:
+            #   screencapture -> the Aqua layer: XQuartz app dialogs and macOS
+            #     TCC/permission prompts (needs screen-recording TCC; best-effort,
+            #     and a black/empty frame is itself a data point).
+            #   xwd -root      -> the X11 root window: any X client modal.  Pure
+            #     X protocol, needs no macOS permission.  Converted to PNG when a
+            #     converter exists, else the .xwd is uploaded (xwud/GIMP-viewable).
+            #   xwininfo -tree -> the X window tree (a grab often shows as a stray
+            #     override-redirect / dialog window).
+            X11BIN=/opt/X11/bin
+            DISP="${DISPLAY:-:0}"
+            echo "--- capturing XQuartz screen state at hang (DISPLAY=$DISP) ---"
+            /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null \
+              && echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)" \
+              || echo "screencapture failed (screen-recording permission?)"
+            if [ -x "$X11BIN/xwd" ]; then
+              "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null \
+                && echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)" \
+                || echo "xwd failed"
+              if   command -v magick  >/dev/null 2>&1; then magick  /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              elif command -v convert >/dev/null 2>&1; then convert /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              fi
+            else
+              echo "xwd not found under $X11BIN (skipping X11 root dump)"
+            fi
+            if [ -x "$X11BIN/xwininfo" ]; then
+              echo "--- xwininfo -root -tree (X window list) ---"
+              "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed)"
+            fi
           else
             echo "magicexec exited within 8s (did not hang)"
           fi
@@ -1210,7 +1280,7 @@ jobs:
             echo "### stdin->magic diagnostic ($(uname -m))"
             echo "- \`-d null\` (magicdnull): **$dnull**"
             echo "- \`-d X11\` (magicexec): **$x11**"
-            [ "$x11" = "HUNG" ] && echo "  → magicexec HUNG in an X round-trip (XAllocColor) -- see the sampled stack in the step log"
+            [ "$x11" = "HUNG" ] && echo "  → magicexec HUNG in an X round-trip (XAllocColor) -- see the sampled stack in the step log, and the XQuartz screenshot (xquartz_hang.png / xquartz_root.*) in the magic-macos* artifact under BUILD-INFO/ (check for a modal dialog)"
             [ "$x11" = "NO-DISPLAY" ] && echo "  → NOT a hang: XQuartz was not up (\$DISPLAY unset); magicexec's Tk_Init aborted (CI XQuartz-startup flakiness)"
           } >> "$GITHUB_STEP_SUMMARY"
           true
@@ -1314,6 +1384,12 @@ jobs:
           cp build-tmp/config.log dist/BUILD-INFO/
           cp build-tmp/*.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
+          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it hung):
+          # the magicexec stack sample and the XQuartz screen/X11 captures.
+          cp /tmp/magicexec.sample  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_hang.png  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_root.xwd  dist/BUILD-INFO/ 2>/dev/null
+          cp /tmp/xquartz_root.png  dist/BUILD-INFO/ 2>/dev/null
 
       - name: Upload archive magic-macos
         uses: actions/upload-artifact@v7

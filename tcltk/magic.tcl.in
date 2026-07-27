@@ -170,7 +170,27 @@ proc echo {args} {
 # and $DISPLAY/$XAUTHORITY are transitive so are shown only when actually set.
 proc magic::print_version_verbose {} {
    global env
-   puts stdout "Magic MAGIC_VERSION revision MAGIC_REVISION (commit MAGIC_COMMIT)"
+   # --- Machine-readable build identity (grep-friendly KEY=VALUE) -----------
+   # Line 1 is byte-identical to plain `magic --version` (version.revision).
+   # The values are captured from the build-time placeholders below (the
+   # Makefile sed rewrites those right-hand sides).  The key names are
+   # assembled from $_K so the literal placeholder tokens are NEVER written on
+   # the puts lines -- otherwise that same global sed would rewrite the keys.
+   set _mver {MAGIC_VERSION}
+   set _mrev {MAGIC_REVISION}
+   set _mcom {MAGIC_COMMIT}
+   set _mbld {MAGIC_BUILDDATE}
+   set _K "MAGIC_"
+   puts stdout "$_mver.$_mrev"
+   puts stdout "${_K}VERSION=$_mver.$_mrev"
+   puts stdout "${_K}REVISION=$_mrev"
+   puts stdout "${_K}COMMIT=$_mcom"
+   # Build date is optional: empty under --disable-magic-builddate, or still
+   # the un-substituted placeholder if built without the Makefile builddate
+   # sed -- omit the line in either case.
+   if {$_mbld ne "" && $_mbld ne "${_K}BUILDDATE"} {
+      puts stdout "${_K}BUILDDATE=$_mbld"
+   }
    puts stdout [format "Platform: %s %s %s (%s)" $::tcl_platform(os) \
 	 $::tcl_platform(osVersion) $::tcl_platform(machine) $::tcl_platform(platform)]
    # Tcl 9 made threading mandatory and dropped tcl_platform(threaded), so read it

@@ -46,18 +46,33 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          # tcl-tk brew package: default @8 (also on push/PR); a manual run may
-          # select a version (8/9) via the tcl_version input, or clear it to use
-          # the unversioned tcl-tk formula.  Exported for configure_mac (Build).
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TCLVER="${{ github.event.inputs.tcl_version }}"
+          # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
+          # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
+          # magic will link.  In github/tarball mode magic builds a PRIVATE X11
+          # Tcl/Tk (see "Build X11 Tcl/Tk from source") and must be independent of
+          # Homebrew's Aqua tcl-tk, so we do NOT install the formula here -- and
+          # configure_mac links only the private copy, so even a pre-existing
+          # Homebrew tcl-tk is never used and can be upgraded/removed freely.
+          SRC="${{ github.event.inputs.tcl_source }}"
+          [ -n "$SRC" ] || SRC="github"
+          if [ "$SRC" = "homebrew" ]; then
+            # default @8 (also on push/PR when homebrew is chosen); a manual run
+            # may select a version (8/9) via tcl_version, or clear it for the
+            # unversioned formula.  Exported for configure_mac (Build).
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              TCLVER="${{ github.event.inputs.tcl_version }}"
+            else
+              TCLVER="8"
+            fi
+            if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
+            echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
+            brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
+            _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           else
-            TCLVER="8"
+            echo "tcl_source=$SRC -- NOT installing Homebrew tcl-tk; magic uses its private X11 Tcl/Tk"
+            brew install cairo tcsh gnu-sed
+            _package_list="cairo tcsh gnu-sed"
           fi
-          if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
-          echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
-          brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
-          _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -86,7 +101,7 @@ jobs:
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
-            brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""
@@ -428,6 +443,16 @@ jobs:
         run: |
           mkdir -p dist
           make -C build-tmp install "DESTDIR=$(pwd)/dist"
+          # Bundle magic's PRIVATE Tcl/Tk (github/tarball mode) into the same
+          # artifact so it travels WITH magic toward a self-contained DMG.  In
+          # homebrew mode /opt/magic does not exist and this is skipped.  (Full
+          # relocation still needs @rpath/install_name_tool fix-ups -- a later
+          # step; for now the private tcl-tk is captured alongside magic.)
+          if [ -d /opt/magic ]; then
+            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
+            mkdir -p dist/opt
+            cp -R /opt/magic dist/opt/magic
+          fi
           # Diagnostic details about this build
           mkdir -p dist/BUILD-INFO
           set +e
@@ -457,18 +482,33 @@ jobs:
         run: |
           brew install --cask xquartz
           PACKAGE_LIST="xquartz"
-          # tcl-tk brew package: default @8 (also on push/PR); a manual run may
-          # select a version (8/9) via the tcl_version input, or clear it to use
-          # the unversioned tcl-tk formula.  Exported for configure_mac (Build).
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            TCLVER="${{ github.event.inputs.tcl_version }}"
+          # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
+          # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
+          # magic will link.  In github/tarball mode magic builds a PRIVATE X11
+          # Tcl/Tk (see "Build X11 Tcl/Tk from source") and must be independent of
+          # Homebrew's Aqua tcl-tk, so we do NOT install the formula here -- and
+          # configure_mac links only the private copy, so even a pre-existing
+          # Homebrew tcl-tk is never used and can be upgraded/removed freely.
+          SRC="${{ github.event.inputs.tcl_source }}"
+          [ -n "$SRC" ] || SRC="github"
+          if [ "$SRC" = "homebrew" ]; then
+            # default @8 (also on push/PR when homebrew is chosen); a manual run
+            # may select a version (8/9) via tcl_version, or clear it for the
+            # unversioned formula.  Exported for configure_mac (Build).
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              TCLVER="${{ github.event.inputs.tcl_version }}"
+            else
+              TCLVER="8"
+            fi
+            if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
+            echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
+            brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
+            _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           else
-            TCLVER="8"
+            echo "tcl_source=$SRC -- NOT installing Homebrew tcl-tk; magic uses its private X11 Tcl/Tk"
+            brew install cairo tcsh gnu-sed
+            _package_list="cairo tcsh gnu-sed"
           fi
-          if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
-          echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
-          brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
-          _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -497,7 +537,7 @@ jobs:
             brew info libglu   > $TMPFILE && head -n1 $TMPFILE
             brew info freeglut > $TMPFILE && head -n1 $TMPFILE
             brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
-            brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
             brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
             brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
             echo ""
@@ -839,6 +879,16 @@ jobs:
         run: |
           mkdir -p dist
           make -C build-tmp install "DESTDIR=$(pwd)/dist"
+          # Bundle magic's PRIVATE Tcl/Tk (github/tarball mode) into the same
+          # artifact so it travels WITH magic toward a self-contained DMG.  In
+          # homebrew mode /opt/magic does not exist and this is skipped.  (Full
+          # relocation still needs @rpath/install_name_tool fix-ups -- a later
+          # step; for now the private tcl-tk is captured alongside magic.)
+          if [ -d /opt/magic ]; then
+            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
+            mkdir -p dist/opt
+            cp -R /opt/magic dist/opt/magic
+          fi
           # Diagnostic details about this build
           mkdir -p dist/BUILD-INFO
           set +e

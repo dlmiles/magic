@@ -84,7 +84,8 @@ tclmagic${SHDLIB_EXT}: ${EXTRA_LIBS}
 		-lc ${LIBS} ${LIB_SPECS}
 
 proto.magicrc: proto.magicrc.in
-	${MCPP} ${GR_DFLAGS} ${DFLAGS} $< > proto.magicrc
+	${MCPP} ${GR_DFLAGS} ${DFLAGS} $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 
 install: $(DESTDIR)${INSTALL_BINDIR}/${MODULE}${EXEEXT} $(DESTDIR)${INSTALL_SYSDIR}/.magicrc \
 	$(DESTDIR)${INSTALL_SYSDIR}/magicps.pro

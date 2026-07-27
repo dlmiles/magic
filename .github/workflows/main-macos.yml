@@ -188,6 +188,61 @@ jobs:
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
 
+      - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
+        # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
+        # at runtime it must bind the SAME libX11 that Tk uses.  XQuartz ships a
+        # full libX11 in /opt/X11/lib; Homebrew's tcl-tk is typically an Aqua
+        # (Cocoa) build that does not use X11 at all, and any Homebrew libx11 keg
+        # is a separate, smaller copy.  Two different (or missing) libX11 in one
+        # process is what stalls magic in X11 init.  Informational (never fails).
+        run: |
+          set +e
+          xq=$(ls /opt/X11/lib/libX11.6.dylib /opt/X11/lib/libX11.dylib 2>/dev/null | head -1)
+          hbx=$(brew --prefix libx11 2>/dev/null)/lib
+          hblib=$(ls "$hbx"/libX11.6.dylib "$hbx"/libX11.dylib 2>/dev/null | head -1)
+          tcltk=$(brew --prefix tcl-tk 2>/dev/null)
+
+          echo "=== XQuartz libX11 (/opt/X11/lib) ==="
+          ls -l /opt/X11/lib/libX11*.dylib 2>/dev/null || echo "(no XQuartz libX11 -- is XQuartz installed?)"
+          echo "=== Homebrew libx11 keg ($hbx) ==="
+          ls -l "$hbx"/libX11*.dylib 2>/dev/null || echo "(no Homebrew libx11 keg installed)"
+
+          echo "=== Homebrew tcl-tk ($tcltk): which libX11 does Tk reference? ==="
+          for f in "$tcltk"/lib/libtk*.dylib "$tcltk"/lib/libtcl*.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11' \
+              || echo "  (no X11 refs -- this Tk is Aqua/Cocoa, not X11)"; }
+          done
+
+          echo "=== magic binaries: which libX11 / tcl / tk do they bind? ==="
+          for f in build-tmp/tcltk/magicexec build-tmp/magic/tclmagic.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11|libtcl|libtk'; }
+          done
+
+          echo "=== exported-symbol counts (full vs cut-down libX11) ==="
+          for lib in "$xq" "$hblib"; do
+            [ -n "$lib" ] && [ -e "$lib" ] && echo "$(nm -gU "$lib" 2>/dev/null | wc -l | tr -d ' ') symbols  $lib"
+          done
+          only_xq=""; only_hb=""
+          if [ -n "$xq" ] && [ -e "$xq" ] && [ -n "$hblib" ] && [ -e "$hblib" ]; then
+            nm -gU "$xq"    2>/dev/null | awk '{print $NF}' | sort -u > /tmp/xq.sym
+            nm -gU "$hblib" 2>/dev/null | awk '{print $NF}' | sort -u > /tmp/hb.sym
+            only_xq=$(comm -23 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            only_hb=$(comm -13 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            echo "XQuartz-only symbols: $only_xq   Homebrew-only symbols: $only_hb"
+            echo "-- up to 40 symbols in XQuartz libX11 but MISSING from Homebrew libx11 --"
+            comm -23 /tmp/xq.sym /tmp/hb.sym | head -40
+          fi
+
+          {
+            echo "### X11 / Tcl-Tk libX11 diagnosis (${SMOKE_SUMMARY_LABEL:-macOS})"
+            echo
+            echo "- XQuartz libX11: \`${xq:-<none>}\`"
+            echo "- Homebrew libx11: \`${hblib:-<none installed>}\`"
+            echo "- Tk X11 refs and magic X11 refs: see the step log (\`otool -L\`)"
+            [ -n "$only_xq" ] && echo "- XQuartz libX11 exports **$only_xq** symbols absent from Homebrew libx11 (Homebrew-only: ${only_hb})"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
+
       - name: Check X11 environment (start XQuartz if needed)
         # If no X server is running, start XQuartz on :0 with local, no-auth
         # security (AF_UNIX socket only, no MIT-MAGIC-COOKIE), confirm it with
@@ -516,6 +571,61 @@ jobs:
           echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
           echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
+        # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
+        # at runtime it must bind the SAME libX11 that Tk uses.  XQuartz ships a
+        # full libX11 in /opt/X11/lib; Homebrew's tcl-tk is typically an Aqua
+        # (Cocoa) build that does not use X11 at all, and any Homebrew libx11 keg
+        # is a separate, smaller copy.  Two different (or missing) libX11 in one
+        # process is what stalls magic in X11 init.  Informational (never fails).
+        run: |
+          set +e
+          xq=$(ls /opt/X11/lib/libX11.6.dylib /opt/X11/lib/libX11.dylib 2>/dev/null | head -1)
+          hbx=$(brew --prefix libx11 2>/dev/null)/lib
+          hblib=$(ls "$hbx"/libX11.6.dylib "$hbx"/libX11.dylib 2>/dev/null | head -1)
+          tcltk=$(brew --prefix tcl-tk 2>/dev/null)
+
+          echo "=== XQuartz libX11 (/opt/X11/lib) ==="
+          ls -l /opt/X11/lib/libX11*.dylib 2>/dev/null || echo "(no XQuartz libX11 -- is XQuartz installed?)"
+          echo "=== Homebrew libx11 keg ($hbx) ==="
+          ls -l "$hbx"/libX11*.dylib 2>/dev/null || echo "(no Homebrew libx11 keg installed)"
+
+          echo "=== Homebrew tcl-tk ($tcltk): which libX11 does Tk reference? ==="
+          for f in "$tcltk"/lib/libtk*.dylib "$tcltk"/lib/libtcl*.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11' \
+              || echo "  (no X11 refs -- this Tk is Aqua/Cocoa, not X11)"; }
+          done
+
+          echo "=== magic binaries: which libX11 / tcl / tk do they bind? ==="
+          for f in build-tmp/tcltk/magicexec build-tmp/magic/tclmagic.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11|libtcl|libtk'; }
+          done
+
+          echo "=== exported-symbol counts (full vs cut-down libX11) ==="
+          for lib in "$xq" "$hblib"; do
+            [ -n "$lib" ] && [ -e "$lib" ] && echo "$(nm -gU "$lib" 2>/dev/null | wc -l | tr -d ' ') symbols  $lib"
+          done
+          only_xq=""; only_hb=""
+          if [ -n "$xq" ] && [ -e "$xq" ] && [ -n "$hblib" ] && [ -e "$hblib" ]; then
+            nm -gU "$xq"    2>/dev/null | awk '{print $NF}' | sort -u > /tmp/xq.sym
+            nm -gU "$hblib" 2>/dev/null | awk '{print $NF}' | sort -u > /tmp/hb.sym
+            only_xq=$(comm -23 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            only_hb=$(comm -13 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            echo "XQuartz-only symbols: $only_xq   Homebrew-only symbols: $only_hb"
+            echo "-- up to 40 symbols in XQuartz libX11 but MISSING from Homebrew libx11 --"
+            comm -23 /tmp/xq.sym /tmp/hb.sym | head -40
+          fi
+
+          {
+            echo "### X11 / Tcl-Tk libX11 diagnosis (${SMOKE_SUMMARY_LABEL:-macOS})"
+            echo
+            echo "- XQuartz libX11: \`${xq:-<none>}\`"
+            echo "- Homebrew libx11: \`${hblib:-<none installed>}\`"
+            echo "- Tk X11 refs and magic X11 refs: see the step log (\`otool -L\`)"
+            [ -n "$only_xq" ] && echo "- XQuartz libX11 exports **$only_xq** symbols absent from Homebrew libx11 (Homebrew-only: ${only_hb})"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
 
       - name: Check X11 environment (start XQuartz if needed)
         # If no X server is running, start XQuartz on :0 with local, no-auth

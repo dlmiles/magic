@@ -63,37 +63,51 @@ install: all
 		f=$$i; test -f $$f || f=$(srcdir)/$$i; \
 		${CP} $$f $(DESTDIR)${INSTALL_SYSDIR}; done
 
+# Generated tech files are built atomically and idempotently.  Each rule writes
+# a per-target temp ($@.out for the preprocessor input, $@.new for the result)
+# -- NEVER a single shared "scmos.tech.out", which parallel make (-j) clobbered
+# across the four targets below -- then replaces the target only if the content
+# changed (move-if-change).  So no other make thread ever sees a partial file,
+# and an unchanged output keeps its timestamp (no needless downstream rebuilds).
+
 scmos.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSTANDARD scmos.tech.out > scmos.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSTANDARD $@.out > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
+	$(RM) $@.out
 
 scmos-tm.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL scmos.tech.out > scmos-tm.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DHPTECH -DTIGHTMETAL $@.out > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
+	$(RM) $@.out
 
 scmos-sub.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSUBMICRON scmos.tech.out > scmos-sub.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSUBMICRON $@.out > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
+	$(RM) $@.out
 
 scmosWR.tech: $(OBJS)
-	$(MSED) $(srcdir)/scmos.tech.in > scmos.tech.out
-	cat $(srcdir)/scmos.tech.in > scmos.tech.out
-	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK scmos.tech.out > scmosWR.tech
-	$(RM) scmos.tech.out
+	$(MSED) $(srcdir)/scmos.tech.in > $@.out
+	cat $(srcdir)/scmos.tech.in > $@.out
+	$(SC_PP) -DV5 -DSTANDARD -DWELL_ROUTE_CHECK $@.out > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
+	$(RM) $@.out
 
 minimum.tech: minimum.tech.in
-	$(SC_PP) $< > minimum.tech
+	$(SC_PP) $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
 
 gdsquery.tech: gdsquery.tech.in
-	$(SC_PP) $< > gdsquery.tech
+	$(SC_PP) $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
 
 nmos.tech: nmos.tech.in
-	$(CP) $< nmos.tech
+	$(CP) $< $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then $(RM) $@.new; else mv -f $@.new $@; fi
 
 $(CIFin):
 $(CIFout):
@@ -110,5 +124,5 @@ $(DESTDIR)${INSTALL_SYSDIR}/%: %
 	cp $< $(DESTDIR)${INSTALL_SYSDIR}/$*
 
 clean:;
-	-$(RM) *.tech *.tech27
+	-$(RM) *.tech *.tech27 *.tech.out *.tech.new
 	test -d cif_template && ${MAKE} -C cif_template clean || true

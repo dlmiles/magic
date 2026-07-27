@@ -15,36 +15,32 @@
 # codeload.github.com, or a git checkout of the tcltk/{tcl,tk} repos.
 #
 # Configured entirely by environment variables (all optional):
-#   TCLTK_SOURCE   homebrew | tarball | github   (default: homebrew -> no-op)
-#   TCLTK_VERSION  e.g. 8.6.16 or 9.0.4           (default: 8.6.16)
-#   TCLTK_REF      github tag, e.g. core-9-0-4    (default: core-<version dashed>)
+#   TCLTK_SOURCE   homebrew | tarball | github   (default: github)
+#   TCLTK_VERSION  e.g. 8.6.16 or 9.0.4           (default: latest in TCLTK_SERIES)
+#   TCLTK_REF      exact tag, e.g. core-9-0-4     (default: derived / auto-resolved)
+#   TCLTK_SERIES   tag glob for auto-resolution   (default: core-9-0-*  i.e. 9.0.x)
 #   TCLTK_PREFIX   install prefix                 (default: /opt/magic)
 #   X11_PREFIX     XQuartz prefix                 (default: /opt/X11)
 #   TCLTK_BUILD_DIR scratch dir for sources       (default: $PWD/tcltk-build)
 #   DRYRUN         1 -> print the plan, do not fetch or build (for local checks)
 #
+# With no version/ref pinned, the newest tag matching TCLTK_SERIES that exists in
+# BOTH the tcl and tk repos is resolved via `git ls-remote` (as the AppImage
+# workflow does), falling back to a pinned tag if the network lookup fails.
+#
 # On success prints  TCLTK_PREFIX=<prefix>  as the last line so a caller (the
 # workflow) can capture it and hand it to scripts/configure_mac.
 set -euo pipefail
 
-SOURCE="${TCLTK_SOURCE:-homebrew}"
-VERSION="${TCLTK_VERSION:-8.6.16}"
+SOURCE="${TCLTK_SOURCE:-github}"
 PREFIX="${TCLTK_PREFIX:-/opt/magic}"
 X11="${X11_PREFIX:-/opt/X11}"
 BUILD_DIR="${TCLTK_BUILD_DIR:-$PWD/tcltk-build}"
 DRYRUN="${DRYRUN:-0}"
+SERIES_GLOB="${TCLTK_SERIES:-core-9-0-*}"            # default Tcl/Tk series: 9.0.x
+SERIES_RE="^$(printf '%s' "$SERIES_GLOB" | sed 's/[*]/[0-9]+/')$"
+FALLBACK_REF="core-9-0-4"                            # used if git ls-remote fails
 
-# core-8-6-16 <- 8.6.16 ; reverse of the AppImage ref math.
-REF="${TCLTK_REF:-core-${VERSION//./-}}"
-# If a github ref was given as core-X-Y-Z, keep VERSION in sync for wish/tclsh
-# suffixes and the tclConfig.sh location.
-if printf '%s' "$REF" | grep -Eq '^core-[0-9]+-[0-9]+-[0-9]+$'; then
-    VERSION="$(printf '%s' "$REF" | sed -E 's/^core-([0-9]+)-([0-9]+)-([0-9]+)$/\1.\2.\3/')"
-fi
-ABI="$(printf '%s' "$VERSION" | cut -d. -f1-2)"      # 8.6 or 9.0 -> wish8.6 / libtk9.0
-
-TCL_TARBALL_URL="https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/${REF}"
-TK_TARBALL_URL="https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/${REF}"
 TCL_GIT="https://github.com/tcltk/tcl.git"
 TK_GIT="https://github.com/tcltk/tk.git"
 
@@ -54,6 +50,40 @@ if [ "$SOURCE" = "homebrew" ]; then
     log "TCLTK_SOURCE=homebrew -- nothing to build; magic uses the Homebrew tcl-tk (Aqua)."
     exit 0
 fi
+
+# newest tag in $SERIES_GLOB present in BOTH tcl and tk (empty on failure).  A
+# low-speed cap keeps a dead network from hanging the build (no `timeout` needed,
+# which macOS lacks).
+resolve_latest_ref() {
+    git_ls() {
+        git -c http.lowSpeedLimit=1000 -c http.lowSpeedTime=15 \
+            ls-remote --tags --refs "$1" "refs/tags/${SERIES_GLOB}" 2>/dev/null \
+            | sed 's#.*refs/tags/##'
+    }
+    { git_ls "$TCL_GIT" | sort -u; git_ls "$TK_GIT" | sort -u; } \
+        | grep -E "$SERIES_RE" | sort | uniq -d | sort -V | tail -1
+}
+
+# Decide REF.  Precedence: explicit TCLTK_REF > TCLTK_VERSION > auto-resolve.
+if [ -n "${TCLTK_REF:-}" ]; then
+    REF="$TCLTK_REF"
+elif [ -n "${TCLTK_VERSION:-}" ]; then
+    REF="core-${TCLTK_VERSION//./-}"                 # 9.0.4 -> core-9-0-4
+else
+    log "resolving latest ${SERIES_GLOB} tag shared by tcl and tk"
+    REF="$(resolve_latest_ref || true)"
+    if [ -z "$REF" ]; then
+        REF="$FALLBACK_REF"
+        log "auto-resolve failed (no network?) -- falling back to $REF"
+    fi
+fi
+
+# core-9-0-4 -> 9.0.4 -> ABI 9.0 (wish9.0 / libtk9.0.dylib).
+VERSION="$(printf '%s' "$REF" | sed -E 's/^core-([0-9]+)-([0-9]+)-([0-9]+)$/\1.\2.\3/')"
+ABI="$(printf '%s' "$VERSION" | cut -d. -f1-2)"
+
+TCL_TARBALL_URL="https://codeload.github.com/tcltk/tcl/tar.gz/refs/tags/${REF}"
+TK_TARBALL_URL="https://codeload.github.com/tcltk/tk/tar.gz/refs/tags/${REF}"
 
 log "Building X11 Tcl/Tk from source"
 log "source=$SOURCE  version=$VERSION  ref=$REF  abi=$ABI"

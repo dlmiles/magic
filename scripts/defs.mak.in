@@ -150,12 +150,14 @@ ifndef MAGIC_BUILDDATE
 # Honor SOURCE_DATE_EPOCH (reproducible builds -- appimage/npm tarballs) when set,
 # else the current time.  @SOURCE_DATE_CMD@ is the platform's epoch->UTC-date
 # invocation, chosen by configure (GNU `date -u -d @` / `gdate` vs BSD
-# `date -u -r `); the epoch is appended here.  The SOURCE_DATE_EPOCH branch is
-# UTC so a reproducible stamp does not depend on the builder's zone; the plain
-# `date` fallback is local.
+# `date -u -r `); the epoch is appended here, then a trailing +FORMAT.  Both the
+# epoch branch AND the fallback emit strict ISO-8601 UTC (YYYY-MM-DDThh:mm:ssZ),
+# matching MAGIC_COMMITDATE's format (git %cI).  Both GNU and BSD `date` accept a
+# trailing `+FORMAT`, so no configure change is needed.  UTC throughout so a
+# reproducible stamp does not depend on the builder's zone.
 MAGIC_BUILDDATE	       := $(shell if [ -n "$$SOURCE_DATE_EPOCH" ]; then \
-			@SOURCE_DATE_CMD@$$SOURCE_DATE_EPOCH; \
-			else date; fi | tr -d '\r\n')
+			@SOURCE_DATE_CMD@$$SOURCE_DATE_EPOCH +%Y-%m-%dT%H:%M:%SZ; \
+			else date -u +%Y-%m-%dT%H:%M:%SZ; fi | tr -d '\r\n')
 endif
 endif
 

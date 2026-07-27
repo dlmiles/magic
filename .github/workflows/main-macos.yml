@@ -788,12 +788,12 @@ jobs:
           path: |
             ${{ github.workspace }}/dist
 
-  simple_build_macos:
-    # TEMP diag: pinned to macos-26 (arm64) -- the runner where a magicexec hang
-    # was seen (XQuartz 2.8.6 up) -- to reproduce it and capture the stack with
-    # the sampler.  arm64 is fast (NVMe), so this may be an XQuartz-readiness race.
-    # Revert to macos-latest afterward.
-    runs-on: macos-26
+  macos_arm64:
+    # arm64 via macos-latest (currently macOS 26 arm64).  The earlier arm64
+    # "hang" was an XQuartz-readiness race, cured by the "Check X11" warm-up, so
+    # this job rides whatever version macos-latest points at.  For a pinned arm64
+    # macOS 26 runner see the macos_26_arm64 job.
+    runs-on: macos-latest
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
     # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
@@ -1537,10 +1537,10 @@ jobs:
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
 
-      - name: Upload archive magic-macos
+      - name: Upload archive magic-macos-arm64
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: magic-macos
+          name: magic-macos-arm64
           path: |
             ${{ github.workspace }}/dist

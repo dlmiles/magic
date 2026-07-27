@@ -363,37 +363,49 @@ jobs:
           sysctl kern.corefile kern.coredump 2>/dev/null || true
 
       - name: Diagnose stdin -> magic (does macOS process piped commands?)
-        # 030/040 time out on macOS Intel: the from-source X11 Tk boots fine, but
-        # NO piped command produces output -- not even 040's native "Cell ... read".
-        # magicdnull (Tcl_Main, blocking stdin read) works everywhere; magicexec
-        # (Tk_Main event loop) is suspected of never servicing the stdin pipe on
-        # Intel.  Pipe one command into each device and report which echoes back;
-        # the captured log distinguishes "no stdin processing" (booted but silent)
-        # from "no display" (connect error).  magic's own -timeout bounds a hang
-        # (macOS has no `timeout`).  Informational -- never fails the job.
+        # 030/040 fail on macOS Intel: magicdnull (Tcl_Main, blocking stdin read)
+        # works, but magicexec (Tk_Main event loop) HANGS -- no command runs and
+        # even magic's own -timeout watchdog never fires, i.e. the Tk notifier is
+        # not delivering ANY events (stdin or timers).  So we canNOT rely on
+        # -timeout to bound it: each run is hard-bounded with a background + kill
+        # (macOS has no `timeout`).  Pipe one command into each device; whichever
+        # echoes its marker back processed stdin.  Informational -- never fails.
         run: |
           set +e
           set +o pipefail
           echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+          printf 'puts DNULL_OK\nquit -noprompt\n' > /tmp/cmd_dnull.txt
+          printf 'puts X11_OK\nquit -noprompt\n'   > /tmp/cmd_x11.txt
+
+          # run_bounded <label> <secs> <outfile> <stdinfile> <magic args...>
+          run_bounded() {
+            lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
+            : > "$out"
+            magic "$@" < "$stdin" > "$out" 2>&1 &
+            p=$!
+            ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
+            w=$!
+            wait "$p" 2>/dev/null; rc=$?
+            kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
+            echo "[$lbl] magic exit rc=$rc (>=128 => killed = hung)"
+          }
 
           echo "=== -d null (magicdnull): expect DNULL_OK ==="
-          printf 'puts DNULL_OK\nquit -noprompt\n' \
-            | magic -d null -noconsole -timeout 20 > /tmp/diag_dnull.txt 2>&1
+          run_bounded dnull 25 /tmp/diag_dnull.txt /tmp/cmd_dnull.txt -d null -noconsole
           cat /tmp/diag_dnull.txt
-          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT
+          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT/HUNG
 
           echo "=== -d X11 (magicexec): expect X11_OK ==="
-          printf 'puts X11_OK\nquit -noprompt\n' \
-            | magic -d X11 -noconsole -timeout 20 > /tmp/diag_x11.txt 2>&1
+          run_bounded x11 25 /tmp/diag_x11.txt /tmp/cmd_x11.txt -d X11 -noconsole
           cat /tmp/diag_x11.txt
-          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT
+          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT/HUNG
 
           echo "RESULT: -d null stdin=$dnull   -d X11 (magicexec) stdin=$x11"
           {
             echo "### stdin->magic diagnostic ($(uname -m))"
             echo "- \`-d null\` (magicdnull): **$dnull**"
             echo "- \`-d X11\` (magicexec): **$x11**"
-            [ "$x11" = "NO-OUTPUT" ] && echo "  → magicexec booted but its Tk event loop did not service the stdin pipe (the 030/040 cause)"
+            [ "$x11" != "WORKS" ] && echo "  → magicexec's Tk event loop is stuck (no stdin, no timer): notifier failure"
           } >> "$GITHUB_STEP_SUMMARY"
           true
 
@@ -836,37 +848,49 @@ jobs:
           sysctl kern.corefile kern.coredump 2>/dev/null || true
 
       - name: Diagnose stdin -> magic (does macOS process piped commands?)
-        # 030/040 time out on macOS Intel: the from-source X11 Tk boots fine, but
-        # NO piped command produces output -- not even 040's native "Cell ... read".
-        # magicdnull (Tcl_Main, blocking stdin read) works everywhere; magicexec
-        # (Tk_Main event loop) is suspected of never servicing the stdin pipe on
-        # Intel.  Pipe one command into each device and report which echoes back;
-        # the captured log distinguishes "no stdin processing" (booted but silent)
-        # from "no display" (connect error).  magic's own -timeout bounds a hang
-        # (macOS has no `timeout`).  Informational -- never fails the job.
+        # 030/040 fail on macOS Intel: magicdnull (Tcl_Main, blocking stdin read)
+        # works, but magicexec (Tk_Main event loop) HANGS -- no command runs and
+        # even magic's own -timeout watchdog never fires, i.e. the Tk notifier is
+        # not delivering ANY events (stdin or timers).  So we canNOT rely on
+        # -timeout to bound it: each run is hard-bounded with a background + kill
+        # (macOS has no `timeout`).  Pipe one command into each device; whichever
+        # echoes its marker back processed stdin.  Informational -- never fails.
         run: |
           set +e
           set +o pipefail
           echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+          printf 'puts DNULL_OK\nquit -noprompt\n' > /tmp/cmd_dnull.txt
+          printf 'puts X11_OK\nquit -noprompt\n'   > /tmp/cmd_x11.txt
+
+          # run_bounded <label> <secs> <outfile> <stdinfile> <magic args...>
+          run_bounded() {
+            lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
+            : > "$out"
+            magic "$@" < "$stdin" > "$out" 2>&1 &
+            p=$!
+            ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
+            w=$!
+            wait "$p" 2>/dev/null; rc=$?
+            kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
+            echo "[$lbl] magic exit rc=$rc (>=128 => killed = hung)"
+          }
 
           echo "=== -d null (magicdnull): expect DNULL_OK ==="
-          printf 'puts DNULL_OK\nquit -noprompt\n' \
-            | magic -d null -noconsole -timeout 20 > /tmp/diag_dnull.txt 2>&1
+          run_bounded dnull 25 /tmp/diag_dnull.txt /tmp/cmd_dnull.txt -d null -noconsole
           cat /tmp/diag_dnull.txt
-          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT
+          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT/HUNG
 
           echo "=== -d X11 (magicexec): expect X11_OK ==="
-          printf 'puts X11_OK\nquit -noprompt\n' \
-            | magic -d X11 -noconsole -timeout 20 > /tmp/diag_x11.txt 2>&1
+          run_bounded x11 25 /tmp/diag_x11.txt /tmp/cmd_x11.txt -d X11 -noconsole
           cat /tmp/diag_x11.txt
-          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT
+          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT/HUNG
 
           echo "RESULT: -d null stdin=$dnull   -d X11 (magicexec) stdin=$x11"
           {
             echo "### stdin->magic diagnostic ($(uname -m))"
             echo "- \`-d null\` (magicdnull): **$dnull**"
             echo "- \`-d X11\` (magicexec): **$x11**"
-            [ "$x11" = "NO-OUTPUT" ] && echo "  → magicexec booted but its Tk event loop did not service the stdin pipe (the 030/040 cause)"
+            [ "$x11" != "WORKS" ] && echo "  → magicexec's Tk event loop is stuck (no stdin, no timer): notifier failure"
           } >> "$GITHUB_STEP_SUMMARY"
           true
 

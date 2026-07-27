@@ -20,6 +20,11 @@ include ${MAGICDIR}/defs.mak
 
 SC_CPP	   = ${CPP} -I$(srcdir)
 
+# The CIF template objs are built atomically and idempotently: each rule writes
+# a temp ($@.new) and replaces the target only if the content changed
+# (move-if-change), instead of `rm -f X; ... > X` which left X missing/partial
+# to other make threads and rewrote it every build (bumping mtime, so scmos's
+# tech files -- which depend on these objs -- needlessly rebuilt each time).
 all: $(OBJS_DIR) $(CIFIN) $(CIFOUT) $(IBMCIFIN) $(IBMCIFOUT) $(TMCIFIN) \
 	$(TMCIFOUT) $(SUBCIFIN) $(SUBCIFOUT)
 
@@ -28,42 +33,42 @@ clean:;
 
 scg: cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
 	   cifout.others cifout.pw cifout.scgnw cifout.scgpw
-	rm -f $(CIFOUT)
-	$(SC_CPP) $(srcdir)/scgcifout.c | ${SED_CMD} > $(CIFOUT)
+	$(SC_CPP) $(srcdir)/scgcifout.c | ${SED_CMD} > $(CIFOUT).new && \
+	if cmp -s $(CIFOUT).new $(CIFOUT) 2>/dev/null; then rm -f $(CIFOUT).new; else mv -f $(CIFOUT).new $(CIFOUT); fi
 
 $(OBJS_DIR):
 	$(MKDIR) $(OBJS_DIR)
 
 $(CIFIN): $(OBJS_DIR) cifin.c cifin-cmos26b.gen cifin.gen cifin.nw cifin.oldnw\
 	  cifin.others cifin.pw cifin-ami16.gen
-	rm -f $(CIFIN)
-	$(SC_CPP) -DSTANDARD $(srcdir)/cifin.c | ${SED_CMD} > $(CIFIN)
+	$(SC_CPP) -DSTANDARD $(srcdir)/cifin.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(CIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26b.gen cifout.gen cifout.nw\
 	   cifout.others cifout.pw cifout-ami16.gen
-	rm -f $(CIFOUT)
-	$(SC_CPP) -DSTANDARD $(srcdir)/cifout.c | ${SED_CMD} > $(CIFOUT)
+	$(SC_CPP) -DSTANDARD $(srcdir)/cifout.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(IBMCIFIN): $(OBJS_DIR) cifin.c cifin-ibm.gen
-	rm -f $(IBMCIFIN)
-	$(SC_CPP) -DIBM $(srcdir)/cifin.c | ${SED_CMD} > $(IBMCIFIN)
+	$(SC_CPP) -DIBM $(srcdir)/cifin.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(IBMCIFOUT): $(OBJS_DIR) cifout.c cifout-ibm.gen
-	rm -f $(IBMCIFOUT)
-	$(SC_CPP) -DIBM $(srcdir)/cifout.c | ${SED_CMD} > $(IBMCIFOUT)
+	$(SC_CPP) -DIBM $(srcdir)/cifout.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(TMCIFIN): $(OBJS_DIR) cifin.c cifin-cmos26b.gen
-	rm -f $(TMCIFIN)
-	$(SC_CPP) -DTIGHTMETAL $(srcdir)/cifin.c | ${SED_CMD} > $(TMCIFIN)
+	$(SC_CPP) -DTIGHTMETAL $(srcdir)/cifin.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(TMCIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26b.gen
-	rm -f $(TMCIFOUT)
-	$(SC_CPP) -DTIGHTMETAL $(srcdir)/cifout.c | ${SED_CMD} > $(TMCIFOUT)
+	$(SC_CPP) -DTIGHTMETAL $(srcdir)/cifout.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(SUBCIFIN): $(OBJS_DIR) cifin.c cifin-cmos26g.gen cifin-cmos14b.gen
-	rm -f $(SUBCIFIN)
-	$(SC_CPP) -DSUBMICRON $(srcdir)/cifin.c | ${SED_CMD} > $(SUBCIFIN)
+	$(SC_CPP) -DSUBMICRON $(srcdir)/cifin.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi
 
 $(SUBCIFOUT): $(OBJS_DIR) cifout.c cifout-cmos26g.gen cifout-cmos14b.gen
-	rm -f $(SUBCIFOUT)
-	$(SC_CPP) -DSUBMICRON $(srcdir)/cifout.c | ${SED_CMD} > $(SUBCIFOUT)
+	$(SC_CPP) -DSUBMICRON $(srcdir)/cifout.c | ${SED_CMD} > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then rm -f $@.new; else mv -f $@.new $@; fi

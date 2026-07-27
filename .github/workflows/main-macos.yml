@@ -239,6 +239,8 @@ jobs:
 
           echo "=== magic --version"
           magic --version
+          echo "=== magic --version --verbose"
+          magic --version --verbose
           echo "=== magic -d help -noconsole"
           magic -d help -noconsole
           echo "=== magic -d null -noconsole -nowindow -T scmos"
@@ -675,6 +677,8 @@ jobs:
 
           echo "=== magic --version"
           magic --version
+          echo "=== magic --version --verbose"
+          magic --version --verbose
           echo "=== magic -d help -noconsole"
           magic -d help -noconsole
           echo "=== magic -d null -noconsole -nowindow -T scmos"

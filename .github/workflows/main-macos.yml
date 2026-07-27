@@ -32,9 +32,10 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   simple_build_macos15:
-    # TEMP diag: flipped to macOS 26 on Intel (was macos-15-intel) to see if the
-    # XAllocColor/XQuartz hang persists on macOS 26 x86_64.  Revert afterward.
-    runs-on: macos-26-intel
+    # TEMP diag: back on macos-15-intel (the deterministic XAllocColor/XQuartz
+    # hang case) to test whether the "Check X11" warm-up cures it.  Revert
+    # afterward (this is the normal Intel runner anyway).
+    runs-on: macos-15-intel
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:

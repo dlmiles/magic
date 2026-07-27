@@ -700,12 +700,18 @@ jobs:
           cp build-tmp/config.log dist/BUILD-INFO/
           cp build-tmp/*.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
-          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it hung):
-          # the magicexec stack sample and the XQuartz screen/X11 captures.
-          cp /tmp/magicexec.sample  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_hang.png  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_root.xwd  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_root.png  dist/BUILD-INFO/ 2>/dev/null
+          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it
+          # hung): the magicexec stack sample and the XQuartz screen/X11 captures.
+          # Copy only if present, and NEVER let a missing one set the step's exit
+          # status -- these are the LAST commands under `set +e`, so a bare
+          # `cp missing 2>/dev/null` (exit 1) would silently fail the whole step
+          # on any run that did not hang.
+          for f in /tmp/magicexec.sample /tmp/xquartz_hang.png \
+                   /tmp/xquartz_root.xwd /tmp/xquartz_root.png; do
+            [ -e "$f" ] && cp "$f" dist/BUILD-INFO/
+          done
+          # Guarantee a 0 exit regardless of the best-effort copies above.
+          true
 
       - name: Upload archive magic-macos15
         uses: actions/upload-artifact@v7
@@ -1384,12 +1390,18 @@ jobs:
           cp build-tmp/config.log dist/BUILD-INFO/
           cp build-tmp/*.mak dist/BUILD-INFO/
           cp *.LOG dist/BUILD-INFO/
-          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it hung):
-          # the magicexec stack sample and the XQuartz screen/X11 captures.
-          cp /tmp/magicexec.sample  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_hang.png  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_root.xwd  dist/BUILD-INFO/ 2>/dev/null
-          cp /tmp/xquartz_root.png  dist/BUILD-INFO/ 2>/dev/null
+          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it
+          # hung): the magicexec stack sample and the XQuartz screen/X11 captures.
+          # Copy only if present, and NEVER let a missing one set the step's exit
+          # status -- these are the LAST commands under `set +e`, so a bare
+          # `cp missing 2>/dev/null` (exit 1) would silently fail the whole step
+          # on any run that did not hang.
+          for f in /tmp/magicexec.sample /tmp/xquartz_hang.png \
+                   /tmp/xquartz_root.xwd /tmp/xquartz_root.png; do
+            [ -e "$f" ] && cp "$f" dist/BUILD-INFO/
+          done
+          # Guarantee a 0 exit regardless of the best-effort copies above.
+          true
 
       - name: Upload archive magic-macos
         uses: actions/upload-artifact@v7

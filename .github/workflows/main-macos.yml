@@ -39,7 +39,10 @@ jobs:
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:
-      SMOKE_SUMMARY_LABEL: macOS 15 Intel (x86_64) [TEMP diag]
+      SMOKE_SUMMARY_LABEL: macOS 15 Intel (x86_64) XQuartz 2.8.5 [TEMP diag]
+      # TEMP diag: pin XQuartz 2.8.5 here to test the version hypothesis on the
+      # one failing combo (macos-15-intel).  arm64 stays on latest (2.8.6).
+      XQUARTZ_VERSION: "2.8.5"
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -57,7 +60,21 @@ jobs:
             v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
           done
 
-          brew install --cask xquartz
+          # XQuartz: if $XQUARTZ_VERSION is set, pin that exact release by
+          # installing its .pkg straight from the XQuartz GitHub release (the
+          # cask only ever gives latest).  Otherwise install the latest cask.
+          # We pin 2.8.5 on macos-15-intel to test whether the deterministic
+          # XAllocColor hang there is XQuartz-version related: 2.8.6 FAILS on
+          # 15-Intel yet WORKS on 15-arm64 and 26-Intel, and 2.8.5 (known good
+          # on 14-arm64) has never been run on 15-Intel.
+          if [ -n "${XQUARTZ_VERSION:-}" ]; then
+            echo "=== pinning XQuartz $XQUARTZ_VERSION from GitHub release .pkg ==="
+            xq_url="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-${XQUARTZ_VERSION}/XQuartz-${XQUARTZ_VERSION}.pkg"
+            curl -fL --retry 3 -o /tmp/XQuartz.pkg "$xq_url"
+            sudo installer -pkg /tmp/XQuartz.pkg -target /
+          else
+            brew install --cask xquartz
+          fi
           PACKAGE_LIST="xquartz"
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
           # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
@@ -630,7 +647,9 @@ jobs:
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:
-      SMOKE_SUMMARY_LABEL: macOS 26 (arm64) [TEMP diag]
+      SMOKE_SUMMARY_LABEL: macOS 26 (arm64) XQuartz latest [TEMP diag]
+      # arm64 keeps the latest cask XQuartz (2.8.6); empty -> latest.
+      XQUARTZ_VERSION: ""
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -648,7 +667,21 @@ jobs:
             v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
           done
 
-          brew install --cask xquartz
+          # XQuartz: if $XQUARTZ_VERSION is set, pin that exact release by
+          # installing its .pkg straight from the XQuartz GitHub release (the
+          # cask only ever gives latest).  Otherwise install the latest cask.
+          # We pin 2.8.5 on macos-15-intel to test whether the deterministic
+          # XAllocColor hang there is XQuartz-version related: 2.8.6 FAILS on
+          # 15-Intel yet WORKS on 15-arm64 and 26-Intel, and 2.8.5 (known good
+          # on 14-arm64) has never been run on 15-Intel.
+          if [ -n "${XQUARTZ_VERSION:-}" ]; then
+            echo "=== pinning XQuartz $XQUARTZ_VERSION from GitHub release .pkg ==="
+            xq_url="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-${XQUARTZ_VERSION}/XQuartz-${XQUARTZ_VERSION}.pkg"
+            curl -fL --retry 3 -o /tmp/XQuartz.pkg "$xq_url"
+            sudo installer -pkg /tmp/XQuartz.pkg -target /
+          else
+            brew install --cask xquartz
+          fi
           PACKAGE_LIST="xquartz"
           # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
           # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula

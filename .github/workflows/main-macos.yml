@@ -1544,3 +1544,759 @@ jobs:
           name: magic-macos-arm64
           path: |
             ${{ github.workspace }}/dist
+
+  macos_26_arm64:
+    # arm64 pinned to macOS 26 (macos-26) for explicit, non-drifting macOS-26
+    # arm64 coverage (macos-latest may advance past 26).  Identical steps to
+    # macos_arm64; the XQuartz-readiness race is handled by "Check X11" warm-up.
+    runs-on: macos-26
+    timeout-minutes: 30 # arm64 seems SSD based (faster)
+    # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
+    # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
+    # hard-code per job.  macOS <= 15 auto-pins XQuartz 2.8.5; >= 16 uses latest.
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7
+
+      - name: Get Dependencies
+        shell: bash # default shell has unwanted broken pipe indication
+        run: |
+          # --- Homebrew state BEFORE we install anything (the GHA runner image
+          # ships many formulae pre-installed, sometimes including tcl-tk) ---
+          echo "=== Homebrew $(brew --version 2>/dev/null | head -1) -- pre-existing packages ==="
+          echo "--- brew list --versions (all pre-installed formulae) ---"
+          brew list --versions 2>/dev/null | sort
+          echo "--- is tcl-tk already on the runner image? ---"
+          for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+            v=$(brew list --versions "$p" 2>/dev/null) && echo "  PRESENT: $v" || echo "  absent:  $p"
+          done
+
+          # --- Detect OS/arch FIRST -- this drives the XQuartz version policy ---
+          # sw_vers is the source of truth for the macOS version (14, 15, 26,
+          # ...) -- the runner label can drift, so never hard-code it.
+          MACOS_VER="$(sw_vers -productVersion 2>/dev/null || echo unknown)"
+          MACOS_MAJOR="${MACOS_VER%%.*}"
+          case "$(uname -m)" in
+            arm64)  ARCH_LABEL="arm64" ;;
+            x86_64) ARCH_LABEL="Intel (x86_64)" ;;
+            *)      ARCH_LABEL="$(uname -m)" ;;
+          esac
+
+          # XQuartz version policy, keyed on the DETECTED macOS major version:
+          # macOS <= 15 is pinned to a known-good 2.8.5 -- the latest 2.8.6
+          # deterministically hangs the XAllocColor round-trip on 15/Intel (it
+          # works on 15-arm64 and 26-Intel).  macOS >= 16 (26, ...) takes the
+          # latest cask.  A non-empty $XQUARTZ_VERSION in the job env, if present,
+          # still overrides this policy.
+          XQ_PIN_MAX_MAJOR=15
+          XQ_PIN_VERSION="2.8.5"
+          if [ -z "${XQUARTZ_VERSION:-}" ] && [ "${MACOS_MAJOR:-0}" -le "$XQ_PIN_MAX_MAJOR" ] 2>/dev/null; then
+            XQUARTZ_VERSION="$XQ_PIN_VERSION"
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR <= $XQ_PIN_MAX_MAJOR -> pin $XQUARTZ_VERSION ==="
+          else
+            echo "=== XQuartz policy: macOS $MACOS_MAJOR -> latest cask (${XQUARTZ_VERSION:-none pinned}) ==="
+          fi
+
+          # Install XQuartz.  A pinned $XQUARTZ_VERSION is fetched as its exact
+          # .pkg from the XQuartz GitHub release (the cask only offers latest);
+          # otherwise install the latest cask.
+          if [ -n "${XQUARTZ_VERSION:-}" ]; then
+            echo "=== pinning XQuartz $XQUARTZ_VERSION from GitHub release .pkg ==="
+            xq_url="https://github.com/XQuartz/XQuartz/releases/download/XQuartz-${XQUARTZ_VERSION}/XQuartz-${XQUARTZ_VERSION}.pkg"
+            curl -fL --retry 3 -o /tmp/XQuartz.pkg "$xq_url"
+            sudo installer -pkg /tmp/XQuartz.pkg -target /
+          else
+            brew install --cask xquartz
+          fi
+          PACKAGE_LIST="xquartz"
+
+          # --- Export detected facts for later steps.  Everything written to
+          # $GITHUB_ENV is visible to SUBSEQUENT steps (the smoke + diagnosis
+          # steps that emit $GITHUB_STEP_SUMMARY), so the summary title
+          # self-labels from what actually ran.  Read the ACTUAL installed
+          # XQuartz version from the pkgutil receipt so the label always shows a
+          # real number (even when the latest cask was used). ---
+          # Actual installed XQuartz version, authoritatively.  Prefer the app
+          # bundle's CFBundleShortVersionString -- that is the XQuartz `open -a
+          # XQuartz` actually launches -- then the pkgutil receipt, then the
+          # pinned request only as a last resort.  pkgutil-then-$XQUARTZ_VERSION
+          # was WRONG: when the receipt was missing it reported the PINNED value
+          # (e.g. 2.8.5) while the runner really ran 2.8.6, so the STEP_SUMMARY
+          # label mismatched the installed XQuartz.
+          XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          {
+            echo "MACOS_VER=$MACOS_VER"
+            echo "MACOS_MAJOR=$MACOS_MAJOR"
+            echo "RUNNER_ARCH_LABEL=$ARCH_LABEL"
+            echo "XQUARTZ_ACTUAL=$XQ_ACTUAL"
+            echo "SMOKE_SUMMARY_LABEL=$SMOKE_SUMMARY_LABEL"
+          } >> "$GITHUB_ENV"
+          echo "=== detected: $SMOKE_SUMMARY_LABEL (full $MACOS_VER, $(uname -m)) ==="
+
+          # Tcl/Tk source is chosen by tcl_source (default github on push/PR).
+          # Only 'homebrew' mode installs (and pins) the Homebrew tcl-tk formula
+          # magic will link.  In github/tarball mode magic builds a PRIVATE X11
+          # Tcl/Tk (see "Build X11 Tcl/Tk from source") and must be independent of
+          # Homebrew's Aqua tcl-tk, so we do NOT install the formula here -- and
+          # configure_mac links only the private copy, so even a pre-existing
+          # Homebrew tcl-tk is never used and can be upgraded/removed freely.
+          SRC="${{ github.event.inputs.tcl_source }}"
+          [ -n "$SRC" ] || SRC="github"
+          if [ "$SRC" = "homebrew" ]; then
+            # default @8 (also on push/PR when homebrew is chosen); a manual run
+            # may select a version (8/9) via tcl_version, or clear it for the
+            # unversioned formula.  Exported for configure_mac (Build).
+            if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+              TCLVER="${{ github.event.inputs.tcl_version }}"
+            else
+              TCLVER="8"
+            fi
+            if [ -n "$TCLVER" ]; then TCL_TK_PKG="tcl-tk@$TCLVER"; else TCL_TK_PKG="tcl-tk"; fi
+            echo "TCL_TK_PKG=$TCL_TK_PKG" | tee -a "$GITHUB_ENV"
+            brew install cairo "$TCL_TK_PKG" tcsh gnu-sed
+            _package_list="cairo $TCL_TK_PKG tcsh gnu-sed"
+          else
+            echo "tcl_source=$SRC -- NOT installing Homebrew tcl-tk; magic uses its private X11 Tcl/Tk"
+            # Remove any tcl-tk the runner image pre-installed, so configure_mac
+            # cannot even detect it (proves the private /opt/magic build is used).
+            # CI-only cleanup -- configure_mac itself never uninstalls anything.
+            # Best-effort: never fail the build if a dependent blocks removal.
+            for p in tcl-tk tcl-tk@8 tcl-tk@9; do
+              if brew list --versions "$p" >/dev/null 2>&1; then
+                echo "uninstalling pre-existing $p (from-source mode)"
+                brew uninstall --ignore-dependencies "$p" 2>&1 | tail -3 \
+                  || echo "  (could not uninstall $p; magic links /opt/magic regardless)"
+              fi
+            done
+            brew install cairo tcsh gnu-sed
+            _package_list="cairo tcsh gnu-sed"
+          fi
+          # coreutils provides gdate (GNU date) for reproducible build dates on
+          # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
+          # Wanted in both homebrew and from-source modes.
+          brew install coreutils
+          _package_list="$_package_list coreutils"
+          # These seem needed maybe they are being provided from somewhere else GHA runner
+          #  or brew transitive depend either way doesn't hurt to confirm they are installed.
+          _package_list="$_package_list libglu freeglut"
+          if [ -n "$PACKAGE_LIST" ]
+          then
+            brew install $PACKAGE_LIST
+          fi
+          PACKAGE_LIST="$PACKAGE_LIST $_package_list"
+          echo "PACKAGE_LIST=$PACKAGE_LIST" >> $GITHUB_ENV
+          echo "UNAME_M=$(uname -m)" >> $GITHUB_ENV
+          set +e
+          set +o pipefail # macosx this is on by default (turn it off)
+          (
+            echo "### $(uname -s) $(uname -m) $(uname -r)"
+            echo ""
+            set +e
+            set +o pipefail # macosx this is on by default (turn it off)
+            export HOMEBREW_NO_COLOR=true
+            export HOMEBREW_NO_EMOKI=true
+            # output to $TMPFILE first, then head, instead of using pipeline directly
+            #  this removes unwanted GHA SIGPIPE error/warning indicators from GHA logs
+            # brew maybe a nodejs command which has a known issue in this area on macosx
+            TMPFILE=/tmp/shell0$$.tmp
+            brew info xquartz  > $TMPFILE && head -n1 $TMPFILE
+            brew info cairo    > $TMPFILE && head -n1 $TMPFILE
+            brew info libglu   > $TMPFILE && head -n1 $TMPFILE
+            brew info freeglut > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info tcl-tk        > $TMPFILE && head -n1 $TMPFILE
+            [ -n "${TCL_TK_PKG:-}" ] && brew info "$TCL_TK_PKG" > $TMPFILE && head -n1 $TMPFILE
+            brew info tcsh     > $TMPFILE && head -n1 $TMPFILE
+            brew info gnu-sed  > $TMPFILE && head -n1 $TMPFILE
+            echo ""
+            cc -v 2>&1
+            echo ""
+            xcodebuild -version
+            echo ""
+            xcodebuild -showsdks | grep macOS
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Search
+        run: |
+          set +e
+          ( # designed to speed up this process in a single scan
+            echo "#!/bin/sh"
+            echo "echo \$*"
+            echo "ls -ld -- \$*"
+            echo "shasum -a 1 \$* </dev/null"
+            echo "echo \"\""
+            echo "exit 0"
+          ) > search.sh
+          echo "=== search.sh"
+          cat search.sh
+          chmod a+x search.sh
+          find /opt /usr $HOME \( -iname "libX11.*dylib" -or -iname "Xlib.h" -or -iname "libtcl*dylib" -or -iname "tcl.h" \) -exec ./search.sh {} \; 2>/dev/null
+          #
+          # Example symbols that were found missing from the tcl-tk X11 implementation
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XCreateGC" {} \; 2>/dev/null || true
+          #find /opt /usr $HOME -iname "x*.h" -exec grep -Hn "XGetVisualInfo" {} \; 2>/dev/null || true
+          #for i in /usr/X11/include/X11/Xlib.h /opt/X11/include/X11/Xlib.h /usr/local/include/X11/Xlib.h;
+          #do
+          #  echo "====== $i"
+          #  head -n 50 "$i"
+          #  echo "==="
+          #  tail -n 50 "$i"
+          #  echo "======"
+          #done
+
+          # Different GHA platforms have different layouts (x86_64/arm64)
+          echo "=== /opt"
+          ls -l /opt
+          if [ -d /opt/homebrew ]
+          then
+            echo "=== /opt/homebrew"
+            ls -l /opt/homebrew
+          fi
+          echo "=== /usr/local/opt"
+          ls -l /usr/local/opt
+          echo "=== /usr/local/opt/runner"
+          ls -l /usr/local/opt/runner
+
+          echo "Done"
+
+      - name: Build X11 Tcl/Tk from source (XQuartz)
+        # Default path: build a REAL X11 Tcl/Tk (latest core-9-0-N) on top of
+        # XQuartz into /opt/magic and hand its prefix to configure_mac via
+        # $TCLTK_PREFIX -- so magic links the X11 Tk (whose Tk_Display() is a real
+        # X display) instead of the Homebrew Aqua Tk that hangs `-d X11`.  The
+        # Homebrew tcl-tk@8/@9 stay installed alongside.  push/PR (empty inputs)
+        # default to github; a dispatch can pick homebrew to skip the build.
+        run: |
+          SRC="${{ github.event.inputs.tcl_source }}"
+          [ -n "$SRC" ] || SRC="github"
+          if [ "$SRC" = "homebrew" ]; then
+            echo "tcl_source=homebrew -- using Homebrew tcl-tk (no source build)"
+            exit 0
+          fi
+          sudo mkdir -p /opt/magic
+          sudo chown "$(id -un)" /opt/magic
+          export TCLTK_SOURCE="$SRC"
+          export TCLTK_PREFIX="/opt/magic"
+          export X11_PREFIX="/opt/X11"
+          _ver="${{ github.event.inputs.tcl_tk_version }}"
+          _ref="${{ github.event.inputs.tcl_ref }}"
+          [ -n "$_ver" ] && export TCLTK_VERSION="$_ver"
+          [ -n "$_ref" ] && export TCLTK_REF="$_ref"
+          scripts/build_tcltk_macos.sh
+          # Hand the prefix to configure_mac (Build step, below) via the env file.
+          echo "TCLTK_PREFIX=/opt/magic" >> "$GITHUB_ENV"
+
+      - name: Build (out-of-tree in build-tmp)
+        run: |
+          export PATH="/opt/X11/bin:$PATH"
+          # Out-of-tree build, like CI.yml on Linux: configure + build inside
+          # build-tmp so the source tree stays clean and the smoke tests below can
+          # run straight from build-tmp's launchers.  config.log / defs.mak land
+          # in build-tmp; CONFIGURE.LOG / MAKE.LOG are teed to the workspace root
+          # for the Summary step.
+          mkdir build-tmp
+          cd build-tmp
+          ../scripts/configure_mac 2>&1 | tee ../CONFIGURE.LOG
+
+          config_log=""
+          if [ -f config.log ]
+          then
+            config_log="config.log"
+          fi
+          if [ -n "$config_log" ]
+          then
+            CONFIGURE_ARGS=$(head -n 10 $config_log | egrep "/configure" | sed -e 's#^ *\$ ##' -e 's#.*/configure ##')
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS" >> $GITHUB_ENV
+          fi
+
+          echo "===== defs.mak ====="
+          cat defs.mak
+          echo "===== defs.mak ====="
+
+          make prepare
+          make -j$(sysctl -n hw.ncpu) 2>&1 | tee ../MAKE.LOG
+
+      - name: Install
+        run: |
+          sudo make -C build-tmp install
+
+      - name: Kick The Tyres
+        run: |
+          set +e
+          echo "=== ls -l"
+          ls -l
+          find . -type f \( -name "*.dylib" -or -name "magic" -or -name "magicexec" -or -name "magicdnull" \)
+          echo "=== find /usr/local/bin"
+          find /usr/local/bin -mtime 0
+          echo "=== find /usr/local/share"
+          find /usr/local/share -mtime 0
+          echo "=== find /usr/local/lib/magic"
+          find /usr/local/lib/magic -mtime 0
+          echo "=== otool -L build-tmp/magic/tclmagic.dylib"
+          otool -L build-tmp/magic/tclmagic.dylib
+          echo "=== otool -L build-tmp/tcltk/magicexec"
+          otool -L build-tmp/tcltk/magicexec
+          echo "=== otool -L build-tmp/tcltk/magicdnull"
+          otool -L build-tmp/tcltk/magicdnull
+
+          set +o pipefail # macosx this is on by default (turn it off)
+
+          echo "=== trace libtcl*/libtk* linked by the launchers, then otool those ==="
+          # Which Tcl/Tk do magicexec/magicdnull actually load, and does that Tcl
+          # pull in CoreFoundation -- the CF/CFRunLoop notifier that goes dead
+          # under a headless X11 Tk (magicexec -d X11 hangs on Intel)?  Collect the
+          # unique ABSOLUTE libtcl*/libtk* paths from the launchers' otool -L, then
+          # otool each and flag CoreFoundation.
+          tcltk_libs=$(
+            for e in build-tmp/tcltk/magicexec build-tmp/tcltk/magicdnull build-tmp/magic/tclmagic.dylib; do
+              [ -e "$e" ] && otool -L "$e" 2>/dev/null
+            done | awk '/libtcl|libtk/ {print $1}' | grep '^/' | sort -u)
+          echo "linked tcl/tk libraries (unique, absolute):"
+          printf '%s\n' "$tcltk_libs" | sed 's/^/   /'
+          for lib in $tcltk_libs; do
+            echo "--- otool -L $lib ---"
+            otool -L "$lib" 2>/dev/null | sed 's/^/     /'
+            if otool -L "$lib" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "     >>> $lib LINKS CoreFoundation (CF/CFRunLoop notifier; can hang headless)"
+            else
+              echo "     >>> $lib has NO CoreFoundation (portable select() notifier)"
+            fi
+          done
+
+          echo "=== magic --version"
+          magic --version
+          echo "=== magic --version --verbose"
+          magic --version --verbose
+          echo "=== magic -d help -noconsole"
+          magic -d help -noconsole
+          echo "=== magic -d null -noconsole -nowindow -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "=== magic -d null -noconsole -T scmos"
+          echo "version ; quit" | magic -d null -noconsole -T scmos
+
+      - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
+        # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
+        # at runtime it must bind the SAME libX11 that Tk uses.  XQuartz ships a
+        # full libX11 in /opt/X11/lib; Homebrew's tcl-tk is typically an Aqua
+        # (Cocoa) build that does not use X11 at all, and any Homebrew libx11 keg
+        # is a separate, smaller copy.  Two different (or missing) libX11 in one
+        # process is what stalls magic in X11 init.  Informational (never fails).
+        run: |
+          set +e
+          xq=$(ls /opt/X11/lib/libX11.6.dylib /opt/X11/lib/libX11.dylib 2>/dev/null | head -1)
+          hbx=$(brew --prefix libx11 2>/dev/null)/lib
+          hblib=$(ls "$hbx"/libX11.6.dylib "$hbx"/libX11.dylib 2>/dev/null | head -1)
+          tcltk=$(brew --prefix tcl-tk 2>/dev/null)
+
+          echo "=== XQuartz libX11 (/opt/X11/lib) ==="
+          ls -l /opt/X11/lib/libX11*.dylib 2>/dev/null || echo "(no XQuartz libX11 -- is XQuartz installed?)"
+          echo "=== Homebrew libx11 keg ($hbx) ==="
+          ls -l "$hbx"/libX11*.dylib 2>/dev/null || echo "(no Homebrew libx11 keg installed)"
+
+          echo "=== Homebrew tcl-tk ($tcltk): which libX11 does Tk reference? ==="
+          for f in "$tcltk"/lib/libtk*.dylib "$tcltk"/lib/libtcl*.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11' \
+              || echo "  (no X11 refs -- this Tk is Aqua/Cocoa, not X11)"; }
+          done
+
+          echo "=== magic binaries: which libX11 / tcl / tk do they bind? ==="
+          for f in build-tmp/tcltk/magicexec build-tmp/magic/tclmagic.dylib; do
+            [ -e "$f" ] && { echo "[$f]"; otool -L "$f" 2>/dev/null | grep -iE 'x11|/opt/X11|libx11|libtcl|libtk'; }
+          done
+
+          echo "=== exported-symbol counts (full vs cut-down libX11) ==="
+          for lib in "$xq" "$hblib"; do
+            [ -n "$lib" ] && [ -e "$lib" ] && echo "$(nm -gU "$lib" 2>/dev/null | wc -l | tr -d ' ') symbols  $lib"
+          done
+          only_xq=""; only_hb=""
+          if [ -n "$xq" ] && [ -e "$xq" ] && [ -n "$hblib" ] && [ -e "$hblib" ]; then
+            nm -gU "$xq"    2>/dev/null | awk '{print $NF}' | sort -u > /tmp/xq.sym
+            nm -gU "$hblib" 2>/dev/null | awk '{print $NF}' | sort -u > /tmp/hb.sym
+            only_xq=$(comm -23 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            only_hb=$(comm -13 /tmp/xq.sym /tmp/hb.sym | wc -l | tr -d ' ')
+            echo "XQuartz-only symbols: $only_xq   Homebrew-only symbols: $only_hb"
+            echo "-- up to 40 symbols in XQuartz libX11 but MISSING from Homebrew libx11 --"
+            comm -23 /tmp/xq.sym /tmp/hb.sym | head -40
+          fi
+
+          {
+            echo "### X11 / Tcl-Tk libX11 diagnosis (${SMOKE_SUMMARY_LABEL:-macOS})"
+            echo
+            echo "- XQuartz libX11: \`${xq:-<none>}\`"
+            echo "- Homebrew libx11: \`${hblib:-<none installed>}\`"
+            echo "- Tk X11 refs and magic X11 refs: see the step log (\`otool -L\`)"
+            [ -n "$only_xq" ] && echo "- XQuartz libX11 exports **$only_xq** symbols absent from Homebrew libx11 (Homebrew-only: ${only_hb})"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
+
+      - name: Check X11 environment (start XQuartz if needed)
+        # If no X server is running, start XQuartz on :0 with local, no-auth
+        # security (AF_UNIX socket only, no MIT-MAGIC-COOKIE), confirm it with
+        # xdpyinfo, and hand DISPLAY to the GUI smoke below.  Non-fatal (set +e):
+        # if XQuartz does not come up, DISPLAY stays unset and the x11 tests skip.
+        run: |
+          set +e
+          export PATH="/opt/X11/bin:$PATH"
+
+          if [ -z "${DISPLAY:-}" ]; then
+            echo "No X server running -- starting XQuartz"
+            # Read at startup: disable auth + TCP so a local AF_UNIX client
+            # connects with no cookie.  Domain is org.xquartz.X11 (modern XQuartz
+            # 2.8.x; the old org.macosforge.xquartz.X11 is pre-2.7 and unused now).
+            # no_quit_alert: suppress XQuartz's "Do you really want to quit?" modal
+            # so `killall Xquartz` (in the diagnostic) tears the server down cleanly
+            # instead of blocking on -- or leaving up -- a confirmation dialog.
+            defaults write org.xquartz.X11 no_auth       -bool true
+            defaults write org.xquartz.X11 nolisten_tcp  -bool true
+            defaults write org.xquartz.X11 no_quit_alert -bool true
+            # macOS 15 + Intel ONLY: XQuartz 2.8.x deterministically stalls the
+            # XAllocColor round-trip during Tk's first paint on the default
+            # (TrueColor) visual (Apple bug; fixed on macOS 26).  Force an 8-bit
+            # PseudoColor root depth so Tk allocates from a real colormap instead
+            # -- a different server code path that may sidestep the stall.  Read
+            # at server start, so it must precede `open -a XQuartz`.  Strictly
+            # scoped to this one failing cell (no effect on arm64 / macOS >= 16).
+            if [ "${MACOS_MAJOR:-}" = 15 ] && [ "$(uname -m)" = x86_64 ]; then
+              echo "macOS 15 Intel: forcing XQuartz depth=8 (XAllocColor-stall workaround)"
+              defaults write org.xquartz.X11 depth -int 8
+            fi
+            open -a XQuartz
+            up=0
+            for i in $(seq 1 30); do
+              export DISPLAY=:0
+              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              d=$(launchctl getenv DISPLAY 2>/dev/null)
+              if [ -n "$d" ]; then
+                export DISPLAY="$d"
+                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              fi
+              sleep 1
+            done
+            if [ "$up" = "1" ]; then
+              echo "XQuartz responded on DISPLAY=$DISPLAY after ${i} probe(s)"
+              # Timing hypothesis (arm64 is fast, NVMe): xdpyinfo succeeding does
+              # NOT mean XQuartz finished warming up (fonts, colormap, GLX).
+              # magic's first render does an XAllocColor, which can stall on a
+              # server that answered xdpyinfo but is not fully ready.  So settle:
+              # require the font path + round-trips to be stable, then a margin.
+              for j in $(seq 1 15); do
+                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && break
+                sleep 1
+              done
+              sleep 3   # extra warm-up margin before magic connects
+              echo "XQuartz warm-up done (fonts served, round-trips stable)"
+              # Report the effective root depth + default visual -- confirms
+              # whether the macOS-15-Intel depth=8 pref actually took, and shows
+              # the visual class Tk's XAllocColor will run against.
+              echo "--- XQuartz root depth / default visual ---"
+              xdpyinfo 2>/dev/null \
+                | grep -iE 'depth of root window|default visual id|class:|depth:' \
+                | head -8 | sed 's/^/  /' || echo "  (xdpyinfo depth query failed)"
+              xhost +local: 2>/dev/null || xhost + 2>/dev/null || true
+              echo "DISPLAY=$DISPLAY" >> "$GITHUB_ENV"
+            else
+              echo "XQuartz did not come up within 30s -- x11 tests will skip"
+              unset DISPLAY
+            fi
+          fi
+
+          echo "DISPLAY=${DISPLAY:-<unset>}"
+          echo "XAUTHORITY=${XAUTHORITY:-<unset>}"
+          echo "=== xauth list ==="
+          xauth list 2>&1 | head
+          echo "=== xset q (server modes / settings) ==="
+          xset q 2>&1 | head -40
+          echo "=== xdpyinfo (vendor / version / screen / dimensions / dpi) ==="
+          xdpyinfo 2>&1 | egrep -i \
+            'name of display|^version|vendor|release number|screen #|dimensions|resolution|depth of|number of visuals' \
+            | head -40 || echo "(no X server reachable on DISPLAY='${DISPLAY}')"
+
+      - name: Enable core dumps (crash detection)
+        # macOS writes cores to /cores/core.<pid> (kern.corefile) when the
+        # per-process core limit allows it -- magictest sets RLIMIT_CORE in the
+        # child.  Make /cores writable by the runner and confirm kern.coredump
+        # is on, so a crash leaves a core magictest can backtrace with lldb.
+        run: |
+          sudo sysctl -w kern.coredump=1 || true
+          sudo chmod 1777 /cores 2>/dev/null || sudo mkdir -m 1777 -p /cores || true
+          ls -ld /cores || true
+          sysctl kern.corefile kern.coredump 2>/dev/null || true
+
+      - name: Diagnose stdin -> magic (does macOS process piped commands?)
+        # 030/040 fail on macOS Intel: magicdnull (Tcl_Main, blocking stdin read)
+        # works, but magicexec (Tk_Main event loop) HANGS -- no command runs and
+        # even magic's own -timeout watchdog never fires, i.e. the Tk notifier is
+        # not delivering ANY events (stdin or timers).  So we canNOT rely on
+        # -timeout to bound it: each run is hard-bounded with a background + kill
+        # (macOS has no `timeout`).  Pipe one command into each device; whichever
+        # echoes its marker back processed stdin.  Informational -- never fails.
+        run: |
+          set +e
+          set +o pipefail
+          echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+
+          # Proof of whether the --disable-corefoundation fix is actually in this
+          # build: if the from-source libtcl still links CoreFoundation, the CF
+          # (CFRunLoop) notifier is compiled in and the event loop can go dead;
+          # if absent, the portable select() notifier is active.
+          echo "=== from-source Tcl notifier: CoreFoundation should be ABSENT ==="
+          libtcl=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | head -1)
+          if [ -n "$libtcl" ]; then
+            echo "libtcl=$libtcl"
+            if otool -L "$libtcl" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "  NOTIFIER: CoreFoundation LINKED -> --disable-corefoundation NOT in effect (CF notifier)"
+            else
+              echo "  NOTIFIER: no CoreFoundation -> select() notifier active (fix applied)"
+            fi
+            otool -L "$libtcl" 2>/dev/null | grep -iE 'CoreFoundation|Cocoa|/opt/magic/lib/libtcl' | sed 's/^/   /'
+          else
+            echo "  (no /opt/magic/lib/libtcl* -- from-source Tcl not built: tcl_source=homebrew or build failed)"
+          fi
+
+          printf 'puts DNULL_OK\nquit -noprompt\n' > /tmp/cmd_dnull.txt
+          printf 'puts X11_OK\nquit -noprompt\n'   > /tmp/cmd_x11.txt
+
+          # run_bounded <label> <secs> <outfile> <stdinfile> <magic args...>
+          run_bounded() {
+            lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
+            : > "$out"
+            magic "$@" < "$stdin" > "$out" 2>&1 &
+            p=$!
+            ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
+            w=$!
+            wait "$p" 2>/dev/null; rc=$?
+            kill -KILL "$w" 2>/dev/null; wait "$w" 2>/dev/null
+            echo "[$lbl] magic exit rc=$rc (>=128 => killed = hung)"
+          }
+
+          echo "=== -d null (magicdnull): expect DNULL_OK ==="
+          run_bounded dnull 25 /tmp/diag_dnull.txt /tmp/cmd_dnull.txt -d null -noconsole
+          cat /tmp/diag_dnull.txt
+          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT/HUNG
+
+          echo "=== -d X11 (magicexec): start, SAMPLE the stack if it hangs, then kill ==="
+          # Three distinct outcomes (do NOT lump them): WORKS (echoed X11_OK),
+          # NO-DISPLAY (Tk_Init aborted because XQuartz was not up -- NOT a hang),
+          # or HUNG (still alive after 8s -> sample its stack).  CF notifier already
+          # ruled out; the deterministic HANG is the macOS-15-Intel XAllocColor bug.
+          : > /tmp/diag_x11.txt
+          hung=0
+          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          p=$!
+          sleep 8    # let magicexec boot and (if it does) hang
+          if kill -0 "$p" 2>/dev/null; then
+            hung=1
+            echo "magicexec (pid $p) still alive after 8s -- sampling its stack"
+            sample "$p" 3 -file /tmp/magicexec.sample >/dev/null 2>&1 || echo "(sample failed)"
+            echo "--- magicexec stack sample (top ~90 lines of the call graph) ---"
+            sed -n '1,90p' /tmp/magicexec.sample 2>/dev/null || echo "(no sample output)"
+            # A blocking XQuartz/TCC modal dialog would present EXACTLY like this
+            # XAllocColor stall (the X server main thread stops answering while a
+            # dialog is up).  Grab the screen NOW, while magicexec is still hung
+            # (before the kill below), so the popup -- if any -- is captured:
+            #   screencapture -> the Aqua layer: XQuartz app dialogs and macOS
+            #     TCC/permission prompts (needs screen-recording TCC; best-effort,
+            #     and a black/empty frame is itself a data point).
+            #   xwd -root      -> the X11 root window: any X client modal.  Pure
+            #     X protocol, needs no macOS permission.  Converted to PNG when a
+            #     converter exists, else the .xwd is uploaded (xwud/GIMP-viewable).
+            #   xwininfo -tree -> the X window tree (a grab often shows as a stray
+            #     override-redirect / dialog window).
+            X11BIN=/opt/X11/bin
+            DISP="${DISPLAY:-:0}"
+            # cap SECS cmd... -- hard-timeout wrapper.  CRITICAL: xwd/xwininfo are
+            # X clients, so they issue requests to the SAME wedged X server that
+            # magicexec is stuck on and would hang this step FOREVER with no
+            # timeout (macOS has no `timeout`, hence a background killer).  An
+            # overrunning capture is killed and we move on -- never block the step.
+            # screencapture talks to the macOS WindowServer (not X11), so it is
+            # reliable; it is still capped defensively and run FIRST.
+            cap() {
+              local s="$1"; shift
+              "$@" & local cpid=$!
+              ( sleep "$s"; kill -KILL "$cpid" 2>/dev/null ) & local wpid=$!
+              wait "$cpid" 2>/dev/null; local rc=$?
+              kill -KILL "$wpid" 2>/dev/null; wait "$wpid" 2>/dev/null
+              return "$rc"
+            }
+            echo "--- capturing XQuartz screen state at hang (DISPLAY=$DISP) ---"
+            if cap 20 /usr/sbin/screencapture -x /tmp/xquartz_hang.png 2>/dev/null; then
+              echo "screencapture -> /tmp/xquartz_hang.png ($(stat -f%z /tmp/xquartz_hang.png 2>/dev/null || echo 0) bytes)"
+            else
+              echo "screencapture failed/timed out (screen-recording permission?)"
+            fi
+            if [ -x "$X11BIN/xwd" ]; then
+              if cap 15 "$X11BIN/xwd" -root -display "$DISP" -out /tmp/xquartz_root.xwd 2>/dev/null; then
+                echo "xwd root -> /tmp/xquartz_root.xwd ($(stat -f%z /tmp/xquartz_root.xwd 2>/dev/null || echo 0) bytes)"
+              else
+                echo "xwd failed/timed out (X server wedged?)"
+              fi
+              if   command -v magick  >/dev/null 2>&1; then magick  /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              elif command -v convert >/dev/null 2>&1; then convert /tmp/xquartz_root.xwd /tmp/xquartz_root.png 2>/dev/null || true
+              fi
+            else
+              echo "xwd not found under $X11BIN (skipping X11 root dump)"
+            fi
+            if [ -x "$X11BIN/xwininfo" ]; then
+              echo "--- xwininfo -root -tree (X window list) ---"
+              cap 15 "$X11BIN/xwininfo" -root -tree -display "$DISP" 2>/dev/null | sed -n '1,60p' || echo "(xwininfo failed/timed out)"
+            fi
+            # Dump + capture are done: tear the (wedged) X server down so it can
+            # not hang the remaining steps.  no_quit_alert (set in "Check X11")
+            # stops the quit dialog blocking this.  On a deterministic-hang runner
+            # the later x11 tests then self-skip (no display) instead of hanging
+            # again -- the HUNG evidence is already captured above.
+            echo "--- tearing down XQuartz (killall) after capture ---"
+            killall Xquartz  2>/dev/null || true
+            killall quartz-wm 2>/dev/null || true
+          else
+            echo "magicexec exited within 8s (did not hang)"
+          fi
+          # Bounded kill; also sweep any lingering magicexec so a wedged process
+          # can never keep the step alive holding descriptors.
+          kill -TERM "$p" 2>/dev/null; sleep 1; kill -KILL "$p" 2>/dev/null; wait "$p" 2>/dev/null
+          pkill -KILL -f 'magicexec' 2>/dev/null || true
+          echo "--- magicexec captured output (may be block-buffered/partial) ---"
+          cat /tmp/diag_x11.txt
+          if   grep -q X11_OK /tmp/diag_x11.txt;             then x11=WORKS
+          elif grep -qi 'no display name' /tmp/diag_x11.txt; then x11=NO-DISPLAY
+          elif [ "$hung" = 1 ];                              then x11=HUNG
+          else                                                    x11=OTHER-FAIL
+          fi
+
+          echo "RESULT: -d null stdin=$dnull   -d X11 (magicexec) stdin=$x11"
+          {
+            echo "### stdin->magic diagnostic ($(uname -m))"
+            echo "- \`-d null\` (magicdnull): **$dnull**"
+            echo "- \`-d X11\` (magicexec): **$x11**"
+            [ "$x11" = "HUNG" ] && echo "  → magicexec HUNG in an X round-trip (XAllocColor) -- see the sampled stack in the step log, and the XQuartz screenshot (xquartz_hang.png / xquartz_root.*) in the magic-macos* artifact under BUILD-INFO/ (check for a modal dialog)"
+            [ "$x11" = "NO-DISPLAY" ] && echo "  → NOT a hang: XQuartz was not up (\$DISPLAY unset); magicexec's Tk_Init aborted (CI XQuartz-startup flakiness)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
+
+      - name: Smoke test — startup + features (-dnull)
+        # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
+        # boot magicdnull headless, load a tech, assert the command surface.
+        run: scripts/smoketest/run.sh startup
+
+      - name: Smoke test — extract/export/DRC workflow (-dnull)
+        # The same extract -> ext2spice -> gds -> cif -> drc pipeline the Linux CI
+        # runs, on npm/examples/min.mag, with the output artifacts validated.
+        run: scripts/smoketest/run.sh workflow
+
+      - name: Run magic YAML test catalog
+        # One portable catalog: -dnull tests run headless; x11 tests self-skip
+        # without a display; the Linux-only ones (050 xdotool, 070 /proc) self-skip
+        # via `if: linux`.  PyYAML is installed best-effort if missing.
+        run: |
+          python3 -c 'import yaml' 2>/dev/null \
+            || python3 -m pip install --user --quiet pyyaml 2>/dev/null \
+            || python3 -m pip install --break-system-packages --quiet pyyaml 2>/dev/null \
+            || pip3 install --quiet pyyaml || true
+          python3 scripts/smoketest/magictest.py run scripts/smoketest/tests -v
+
+      - name: Summary
+        if: always()
+        run: |
+          set +e
+
+          ls -l
+
+          touch MAKE.LOG # just in case it did not even build
+          grep "error:"   MAKE.LOG > MAKE_error.LOG
+          grep "warning:" MAKE.LOG > MAKE_warning.LOG
+
+          # Less important warnings relating to codesmell more than security (filter out of headline)
+          grep -v  "Wunused-variable"         MAKE_warning.LOG |
+           grep -v "Wunused-local-typedefs" |
+           grep -v "Wunused-label" |
+           grep -v "Wunused-but-set-variable" > MAKE_warning_filtered.LOG
+
+          wc -l *.LOG
+
+          error_count=$(           grep -c "error:"   MAKE_error.LOG)
+          filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
+
+          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          if [ "$error_count" -gt 0 ]
+          then
+            title="$title $error_count error(s)"
+          fi
+          if [ "$filtered_warning_count" -gt 0 ]
+          then
+            title="$title $filtered_warning_count warning(s)"
+          fi
+
+          (
+            total_error_count=$(  wc -l MAKE_error.LOG   | cut -d' ' -f1)
+            total_warning_count=$(wc -l MAKE_warning.LOG | cut -d' ' -f1)
+            echo "---"
+            echo "$title"
+            echo ""
+            [ -f build-tmp/config.log ] && grep "/configure" build-tmp/config.log | head -n1
+            echo ""
+            echo "PACKAGE_LIST=$PACKAGE_LIST"
+            echo "CONFIGURE_ARGS=$CONFIGURE_ARGS"
+            echo ""
+            if [ -s MAKE.LOG ]
+            then
+              echo "total ${total_error_count} error(s) ${total_warning_count} warning(s) :"
+              echo "|Count|Warning Group (-j build log inaccuracies)|"
+              echo "|--:|:--|"
+              # due to -j build the log lines might get corrupted, so missing/incorrect/bogus entries might be seen
+              #  so we add extra: egrep "\[\-W.*\]"  (to try to remove that)
+              sed -e 's#.*\(\[\-W\)#\1#' -e 's#\(\]\).*$#\1#' MAKE_warning.LOG | egrep "\[\-W.*\]" | sort | uniq -c | sort -n  | tr -s ' ' | tr ' ' '|' | awk '{print $0"|"}'
+              echo ""
+            fi
+            grep -A100 "Configuration Summary" CONFIGURE.LOG | grep -v "Configuration Summary" | egrep "^.*:" | sed -e '/\---/,//d'
+            echo ""
+            grep DCAD_DIR MAKE.LOG  | tail -n1
+          ) >> $GITHUB_STEP_SUMMARY
+
+      - name: Prepare archive
+        # always(): still stage + collect the BUILD-INFO diagnostics (the stack
+        # sample and XQuartz screenshots) even when an earlier x11 test step
+        # failed or the run was cancelled -- otherwise the captures are stranded
+        # in /tmp and never reach the artifact.
+        if: always()
+        run: |
+          mkdir -p dist
+          make -C build-tmp install "DESTDIR=$(pwd)/dist"
+          # Bundle magic's PRIVATE Tcl/Tk (github/tarball mode) into the same
+          # artifact so it travels WITH magic toward a self-contained DMG.  In
+          # homebrew mode /opt/magic does not exist and this is skipped.  (Full
+          # relocation still needs @rpath/install_name_tool fix-ups -- a later
+          # step; for now the private tcl-tk is captured alongside magic.)
+          if [ -d /opt/magic ]; then
+            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
+            mkdir -p dist/opt
+            cp -R /opt/magic dist/opt/magic
+          fi
+          # Diagnostic details about this build
+          mkdir -p dist/BUILD-INFO
+          set +e
+          cp build-tmp/config.log dist/BUILD-INFO/
+          cp build-tmp/*.mak dist/BUILD-INFO/
+          cp *.LOG dist/BUILD-INFO/
+          # Hang diagnostics from "Diagnose stdin -> magic" (only exist if it
+          # hung): the magicexec stack sample and the XQuartz screen/X11 captures.
+          # Copy only if present, and NEVER let a missing one set the step's exit
+          # status -- these are the LAST commands under `set +e`, so a bare
+          # `cp missing 2>/dev/null` (exit 1) would silently fail the whole step
+          # on any run that did not hang.
+          for f in /tmp/magicexec.sample /tmp/xquartz_hang.png \
+                   /tmp/xquartz_root.xwd /tmp/xquartz_root.png; do
+            [ -e "$f" ] && cp "$f" dist/BUILD-INFO/
+          done
+          # Guarantee a 0 exit regardless of the best-effort copies above.
+          true
+
+      - name: Upload archive magic-macos26-arm64
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: magic-macos26-arm64
+          path: |
+            ${{ github.workspace }}/dist

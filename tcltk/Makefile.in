@@ -76,24 +76,32 @@ magicdnull: magicdnull.c ${MAGICDIR}/defs.mak
 		-o magicdnull ${LD_RUN_PATH} ${LD_FIRST_LIBS} ${LIB_SPECS_GRNULL} ${ZLIB_FLAG} \
 		${LIBS}
 
+# The generated tcl/sh wrappers are written atomically: each rule redirects into
+# a temp ($@.new) and replaces the target only if the content changed
+# (move-if-change), so a parallel make never sees a half-written magic.tcl/magic.sh
+# and an unchanged wrapper keeps its timestamp (no needless reinstall/rebuild).
 magic.tcl: magic.tcl.in ${MAGICDIR}/defs.mak ${MAGICSRC}/VERSION
 	${SED} -e /MAGIC_VERSION/s%MAGIC_VERSION%${MAGIC_VERSION}%g \
 	    -e /MAGIC_REVISION/s%MAGIC_REVISION%${MAGIC_REVISION}%g \
 	    -e /MAGIC_COMMIT/s%MAGIC_COMMIT%${MAGIC_COMMIT}%g \
-	    $< > magic.tcl
+	    $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 
 magic.sh: magic.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
 	    -e /TCLLIB_DIR/s%TCLLIB_DIR%${TCL_LIB_DIR}%g \
-	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g $< > magic.sh
+	    -e /WISH_EXE/s%WISH_EXE%${WISH_EXE}%g $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 
 ext2spice.sh: ext2spice.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
-	    $< > ext2spice.sh
+	    $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 
 ext2sim.sh: ext2sim.sh.in ${MAGICDIR}/defs.mak
 	${SED} -e /TCL_DIR/s%TCL_DIR%${TCLDIR}%g \
-	    $< > ext2sim.sh
+	    $< > $@.new && \
+	if cmp -s $@.new $@ 2>/dev/null; then ${RM} $@.new; else mv -f $@.new $@; fi
 
 $(DESTDIR)${INSTALL_TCLDIR}/%: %
 	${RM} $(DESTDIR)${INSTALL_TCLDIR}/$*

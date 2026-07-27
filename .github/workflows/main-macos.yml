@@ -31,7 +31,7 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  macos26_intel:
+  macos_26_intel:
     # macOS 26 on Intel -- the resolution for the deterministic macOS-15-Intel
     # XAllocColor/XQuartz hang.  Apple fixed that server-side stall on macOS 26,
     # so the x11 tests pass here.  (The macOS-15 workarounds -- depth=8 and the
@@ -113,7 +113,7 @@ jobs:
           XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
-          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL}"
           {
             echo "MACOS_VER=$MACOS_VER"
             echo "MACOS_MAJOR=$MACOS_MAJOR"
@@ -722,7 +722,7 @@ jobs:
           error_count=$(           grep -c "error:"   MAKE_error.LOG)
           filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
 
-          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          title="### $(cat VERSION) ${SMOKE_SUMMARY_LABEL:-macOS} :: "
           if [ "$error_count" -gt 0 ]
           then
             title="$title $error_count error(s)"
@@ -796,19 +796,19 @@ jobs:
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
 
-      - name: Upload archive magic-macos26-intel
+      - name: Upload archive magic-macos-26-intel
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: magic-macos26-intel
+          name: magic-macos-26-intel
           path: |
             ${{ github.workspace }}/dist
 
   macos_arm64:
     # arm64 via macos-latest (currently macOS 26 arm64).  The earlier arm64
     # "hang" was an XQuartz-readiness race, cured by the "Check X11" warm-up, so
-    # this job rides whatever version macos-latest points at.  For a pinned arm64
-    # macOS 26 runner see the macos_26_arm64 job.
+    # this job rides whatever version macos-latest points at.  For a pinned older
+    # arm64 (macOS 15) runner see the macos_15_arm64 job.
     runs-on: macos-latest
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
@@ -886,7 +886,7 @@ jobs:
           XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
-          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL}"
           {
             echo "MACOS_VER=$MACOS_VER"
             echo "MACOS_MAJOR=$MACOS_MAJOR"
@@ -1495,7 +1495,7 @@ jobs:
           error_count=$(           grep -c "error:"   MAKE_error.LOG)
           filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
 
-          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          title="### $(cat VERSION) ${SMOKE_SUMMARY_LABEL:-macOS} :: "
           if [ "$error_count" -gt 0 ]
           then
             title="$title $error_count error(s)"
@@ -1577,11 +1577,12 @@ jobs:
           path: |
             ${{ github.workspace }}/dist
 
-  macos_26_arm64:
-    # arm64 pinned to macOS 26 (macos-26) for explicit, non-drifting macOS-26
-    # arm64 coverage (macos-latest may advance past 26).  Identical steps to
-    # macos_arm64; the XQuartz-readiness race is handled by "Check X11" warm-up.
-    runs-on: macos-26
+  macos_15_arm64:
+    # arm64 on macOS 15 (macos-15) -- older-macOS arm64 coverage.  macos-latest
+    # (the macos_arm64 job) is already macOS 26 arm64, so pin the PREVIOUS major
+    # here rather than duplicate 26.  Identical steps to macos_arm64; arm64 has
+    # no XAllocColor hang.
+    runs-on: macos-15
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     # SMOKE_SUMMARY_LABEL and the XQuartz version are both derived at runtime in
     # "Get Dependencies" from the detected macOS version (sw_vers) -- nothing to
@@ -1658,7 +1659,7 @@ jobs:
           XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
-          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
+          SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL}"
           {
             echo "MACOS_VER=$MACOS_VER"
             echo "MACOS_MAJOR=$MACOS_MAJOR"
@@ -2267,7 +2268,7 @@ jobs:
           error_count=$(           grep -c "error:"   MAKE_error.LOG)
           filtered_warning_count=$(grep -c "warning:" MAKE_warning_filtered.LOG)
 
-          title="### $(cat VERSION) ${MATRIX_OS} ${MATRIX_TC} ${MATRIX_PKGS} :: "
+          title="### $(cat VERSION) ${SMOKE_SUMMARY_LABEL:-macOS} :: "
           if [ "$error_count" -gt 0 ]
           then
             title="$title $error_count error(s)"
@@ -2341,10 +2342,10 @@ jobs:
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
 
-      - name: Upload archive magic-macos26-arm64
+      - name: Upload archive magic-macos-15-arm64
         if: always()
         uses: actions/upload-artifact@v7
         with:
-          name: magic-macos26-arm64
+          name: magic-macos-15-arm64
           path: |
             ${{ github.workspace }}/dist

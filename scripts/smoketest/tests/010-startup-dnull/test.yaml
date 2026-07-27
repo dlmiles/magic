@@ -11,10 +11,10 @@ steps:
   - name: tech-load
     send: "tech load {tech}"
   - name: tech-name
-    send: 'puts "TECHNAME=[tech name]"'
+    send: 'puts "TECHNAME=[tech name]" ; flush stdout'
     expect: "TECHNAME={tech}"
   - name: have-commands
-    send: 'puts "HAVE=[expr {[llength [info commands extract]]+[llength [info commands gds]]+[llength [info commands drc]]}]"'
+    send: 'puts "HAVE=[expr {[llength [info commands extract]]+[llength [info commands gds]]+[llength [info commands drc]]}]" ; flush stdout'
     expect: "HAVE=3"
   - name: quit
     send: "quit -noprompt"

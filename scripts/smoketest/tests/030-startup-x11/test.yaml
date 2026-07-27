@@ -14,7 +14,10 @@ steps:
   - name: tech-load
     send: "tech load {tech}"
   - name: tech-name
-    send: 'puts "TECHNAME=[tech name]"'
+    # flush stdout: under magicexec (Tk) on macOS Intel, Tcl's stdout is
+    # block-buffered, so the puts result is not seen by the orchestrator until
+    # flushed; harmless (idempotent) where stdout is already line-buffered.
+    send: 'puts "TECHNAME=[tech name]" ; flush stdout'
     expect: "TECHNAME={tech}"
   - name: quit
     send: "quit -noprompt"

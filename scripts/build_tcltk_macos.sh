@@ -103,9 +103,9 @@ if [ "$DRYRUN" = "1" ]; then
         echo "  curl -fsSL $TCL_TARBALL_URL"
         echo "  curl -fsSL $TK_TARBALL_URL"
     fi
-    echo "  (tcl) ./configure --prefix=$PREFIX --enable-shared --enable-threads && make && make install"
+    echo "  (tcl) ./configure --prefix=$PREFIX --enable-shared --enable-threads --disable-corefoundation && make && make install"
     echo "  (tk)  ./configure --prefix=$PREFIX --with-tcl=$PREFIX/lib --enable-aqua=no --with-x \\"
-    echo "           --x-includes=$X11/include --x-libraries=$X11/lib --enable-shared && make && make install"
+    echo "           --x-includes=$X11/include --x-libraries=$X11/lib --enable-shared --disable-corefoundation && make && make install"
     echo "TCLTK_PREFIX=$PREFIX"
     exit 0
 fi
@@ -134,7 +134,13 @@ fetch tcl "$BUILD_DIR/tcl"
 log "configure + build Tcl -> $PREFIX"
 (
     cd "$BUILD_DIR/tcl/unix"
-    ./configure --prefix="$PREFIX" --enable-shared --enable-threads
+    # --disable-corefoundation: use Tcl's portable select()-based notifier, NOT
+    # the macOS CoreFoundation/CFRunLoop notifier.  The CF notifier is meant for
+    # Cocoa/Aqua apps; under an X11 Tk driven headlessly it can go inert -- the
+    # Tk event loop then services no events at all (magicexec booted but processed
+    # no piped stdin and its own -timeout watchdog never fired on macOS Intel).
+    ./configure --prefix="$PREFIX" --enable-shared --enable-threads \
+        --disable-corefoundation
     make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 2)"
     make install
     # Best-effort extras (targets vary by Tcl series); never fatal.
@@ -149,7 +155,7 @@ log "configure + build Tk (X11) -> $PREFIX"
     ./configure --prefix="$PREFIX" --with-tcl="$PREFIX/lib" \
         --enable-aqua=no --with-x \
         --x-includes="$X11/include" --x-libraries="$X11/lib" \
-        --enable-shared
+        --enable-shared --disable-corefoundation
     make -j"$(sysctl -n hw.ncpu 2>/dev/null || echo 2)"
     make install
     make install-libraries 2>/dev/null || true

@@ -39,7 +39,7 @@ jobs:
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:
-      SMOKE_SUMMARY_LABEL: macOS 26 Intel (x86_64) [TEMP diag]
+      SMOKE_SUMMARY_LABEL: macOS 15 Intel (x86_64) [TEMP diag]
     steps:
       - name: Checkout
         uses: actions/checkout@v7

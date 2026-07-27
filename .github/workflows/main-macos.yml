@@ -32,11 +32,13 @@ on:
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
   simple_build_macos15:
-    runs-on: macos-15-intel # only and last supported intel MacOS
+    # TEMP diag: flipped to macOS 26 on Intel (was macos-15-intel) to see if the
+    # XAllocColor/XQuartz hang persists on macOS 26 x86_64.  Revert afterward.
+    runs-on: macos-26-intel
     timeout-minutes: 45 # x86_64 seems non-SSD based (slower)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:
-      SMOKE_SUMMARY_LABEL: macOS 15 Intel (x86_64)
+      SMOKE_SUMMARY_LABEL: macOS 26 Intel (x86_64) [TEMP diag]
     steps:
       - name: Checkout
         uses: actions/checkout@v7
@@ -599,15 +601,14 @@ jobs:
             ${{ github.workspace }}/dist
 
   simple_build_macos:
-    # TEMPORARY diagnostic: pinned to macos-15 (arm64) instead of macos-latest
-    # (macos-26/arm64) to isolate the Intel x11 hang -- is XAllocColor stalling a
-    # macOS-15 XQuartz issue (this hangs too) or x86_64-specific (this works)?
-    # Revert to macos-latest once answered.
-    runs-on: macos-15
+    # TEMP diag: flipped to macos-26 (arm64) (was macos-latest).  With the Intel
+    # job also on macos-26, this run tests macOS 26 on BOTH arches.  Revert to
+    # macos-latest afterward.
+    runs-on: macos-26
     timeout-minutes: 30 # arm64 seems SSD based (faster)
     # Titles the smoke-catalog SKIP/FAIL section in $GITHUB_STEP_SUMMARY.
     env:
-      SMOKE_SUMMARY_LABEL: macOS 15 (arm64) [TEMP diag]
+      SMOKE_SUMMARY_LABEL: macOS 26 (arm64) [TEMP diag]
     steps:
       - name: Checkout
         uses: actions/checkout@v7

@@ -237,6 +237,28 @@ jobs:
 
           set +o pipefail # macosx this is on by default (turn it off)
 
+          echo "=== trace libtcl*/libtk* linked by the launchers, then otool those ==="
+          # Which Tcl/Tk do magicexec/magicdnull actually load, and does that Tcl
+          # pull in CoreFoundation -- the CF/CFRunLoop notifier that goes dead
+          # under a headless X11 Tk (magicexec -d X11 hangs on Intel)?  Collect the
+          # unique ABSOLUTE libtcl*/libtk* paths from the launchers' otool -L, then
+          # otool each and flag CoreFoundation.
+          tcltk_libs=$(
+            for e in build-tmp/tcltk/magicexec build-tmp/tcltk/magicdnull build-tmp/magic/tclmagic.dylib; do
+              [ -e "$e" ] && otool -L "$e" 2>/dev/null
+            done | awk '/libtcl|libtk/ {print $1}' | grep '^/' | sort -u)
+          echo "linked tcl/tk libraries (unique, absolute):"
+          printf '%s\n' "$tcltk_libs" | sed 's/^/   /'
+          for lib in $tcltk_libs; do
+            echo "--- otool -L $lib ---"
+            otool -L "$lib" 2>/dev/null | sed 's/^/     /'
+            if otool -L "$lib" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "     >>> $lib LINKS CoreFoundation (CF/CFRunLoop notifier; can hang headless)"
+            else
+              echo "     >>> $lib has NO CoreFoundation (portable select() notifier)"
+            fi
+          done
+
           echo "=== magic --version"
           magic --version
           echo "=== magic --version --verbose"
@@ -740,6 +762,28 @@ jobs:
           otool -L build-tmp/tcltk/magicdnull
 
           set +o pipefail # macosx this is on by default (turn it off)
+
+          echo "=== trace libtcl*/libtk* linked by the launchers, then otool those ==="
+          # Which Tcl/Tk do magicexec/magicdnull actually load, and does that Tcl
+          # pull in CoreFoundation -- the CF/CFRunLoop notifier that goes dead
+          # under a headless X11 Tk (magicexec -d X11 hangs on Intel)?  Collect the
+          # unique ABSOLUTE libtcl*/libtk* paths from the launchers' otool -L, then
+          # otool each and flag CoreFoundation.
+          tcltk_libs=$(
+            for e in build-tmp/tcltk/magicexec build-tmp/tcltk/magicdnull build-tmp/magic/tclmagic.dylib; do
+              [ -e "$e" ] && otool -L "$e" 2>/dev/null
+            done | awk '/libtcl|libtk/ {print $1}' | grep '^/' | sort -u)
+          echo "linked tcl/tk libraries (unique, absolute):"
+          printf '%s\n' "$tcltk_libs" | sed 's/^/   /'
+          for lib in $tcltk_libs; do
+            echo "--- otool -L $lib ---"
+            otool -L "$lib" 2>/dev/null | sed 's/^/     /'
+            if otool -L "$lib" 2>/dev/null | grep -qi CoreFoundation; then
+              echo "     >>> $lib LINKS CoreFoundation (CF/CFRunLoop notifier; can hang headless)"
+            else
+              echo "     >>> $lib has NO CoreFoundation (portable select() notifier)"
+            fi
+          done
 
           echo "=== magic --version"
           magic --version

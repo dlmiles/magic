@@ -362,6 +362,41 @@ jobs:
           ls -ld /cores || true
           sysctl kern.corefile kern.coredump 2>/dev/null || true
 
+      - name: Diagnose stdin -> magic (does macOS process piped commands?)
+        # 030/040 time out on macOS Intel: the from-source X11 Tk boots fine, but
+        # NO piped command produces output -- not even 040's native "Cell ... read".
+        # magicdnull (Tcl_Main, blocking stdin read) works everywhere; magicexec
+        # (Tk_Main event loop) is suspected of never servicing the stdin pipe on
+        # Intel.  Pipe one command into each device and report which echoes back;
+        # the captured log distinguishes "no stdin processing" (booted but silent)
+        # from "no display" (connect error).  magic's own -timeout bounds a hang
+        # (macOS has no `timeout`).  Informational -- never fails the job.
+        run: |
+          set +e
+          set +o pipefail
+          echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+
+          echo "=== -d null (magicdnull): expect DNULL_OK ==="
+          printf 'puts DNULL_OK\nquit -noprompt\n' \
+            | magic -d null -noconsole -timeout 20 > /tmp/diag_dnull.txt 2>&1
+          cat /tmp/diag_dnull.txt
+          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT
+
+          echo "=== -d X11 (magicexec): expect X11_OK ==="
+          printf 'puts X11_OK\nquit -noprompt\n' \
+            | magic -d X11 -noconsole -timeout 20 > /tmp/diag_x11.txt 2>&1
+          cat /tmp/diag_x11.txt
+          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT
+
+          echo "RESULT: -d null stdin=$dnull   -d X11 (magicexec) stdin=$x11"
+          {
+            echo "### stdin->magic diagnostic ($(uname -m))"
+            echo "- \`-d null\` (magicdnull): **$dnull**"
+            echo "- \`-d X11\` (magicexec): **$x11**"
+            [ "$x11" = "NO-OUTPUT" ] && echo "  → magicexec booted but its Tk event loop did not service the stdin pipe (the 030/040 cause)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
+
       - name: Smoke test — startup + features (-dnull)
         # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):
         # boot magicdnull headless, load a tech, assert the command surface.
@@ -799,6 +834,41 @@ jobs:
           sudo chmod 1777 /cores 2>/dev/null || sudo mkdir -m 1777 -p /cores || true
           ls -ld /cores || true
           sysctl kern.corefile kern.coredump 2>/dev/null || true
+
+      - name: Diagnose stdin -> magic (does macOS process piped commands?)
+        # 030/040 time out on macOS Intel: the from-source X11 Tk boots fine, but
+        # NO piped command produces output -- not even 040's native "Cell ... read".
+        # magicdnull (Tcl_Main, blocking stdin read) works everywhere; magicexec
+        # (Tk_Main event loop) is suspected of never servicing the stdin pipe on
+        # Intel.  Pipe one command into each device and report which echoes back;
+        # the captured log distinguishes "no stdin processing" (booted but silent)
+        # from "no display" (connect error).  magic's own -timeout bounds a hang
+        # (macOS has no `timeout`).  Informational -- never fails the job.
+        run: |
+          set +e
+          set +o pipefail
+          echo "uname -m=$(uname -m)   DISPLAY=${DISPLAY:-<unset>}"
+
+          echo "=== -d null (magicdnull): expect DNULL_OK ==="
+          printf 'puts DNULL_OK\nquit -noprompt\n' \
+            | magic -d null -noconsole -timeout 20 > /tmp/diag_dnull.txt 2>&1
+          cat /tmp/diag_dnull.txt
+          grep -q DNULL_OK /tmp/diag_dnull.txt && dnull=WORKS || dnull=NO-OUTPUT
+
+          echo "=== -d X11 (magicexec): expect X11_OK ==="
+          printf 'puts X11_OK\nquit -noprompt\n' \
+            | magic -d X11 -noconsole -timeout 20 > /tmp/diag_x11.txt 2>&1
+          cat /tmp/diag_x11.txt
+          grep -q X11_OK /tmp/diag_x11.txt && x11=WORKS || x11=NO-OUTPUT
+
+          echo "RESULT: -d null stdin=$dnull   -d X11 (magicexec) stdin=$x11"
+          {
+            echo "### stdin->magic diagnostic ($(uname -m))"
+            echo "- \`-d null\` (magicdnull): **$dnull**"
+            echo "- \`-d X11\` (magicexec): **$x11**"
+            [ "$x11" = "NO-OUTPUT" ] && echo "  → magicexec booted but its Tk event loop did not service the stdin pipe (the 030/040 cause)"
+          } >> "$GITHUB_STEP_SUMMARY"
+          true
 
       - name: Smoke test — startup + features (-dnull)
         # Reuse the build-tmp launchers (MAGIC_BUILDDIR defaults to build-tmp):

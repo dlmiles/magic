@@ -102,7 +102,15 @@ jobs:
           # self-labels from what actually ran.  Read the ACTUAL installed
           # XQuartz version from the pkgutil receipt so the label always shows a
           # real number (even when the latest cask was used). ---
-          XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
+          # Actual installed XQuartz version, authoritatively.  Prefer the app
+          # bundle's CFBundleShortVersionString -- that is the XQuartz `open -a
+          # XQuartz` actually launches -- then the pkgutil receipt, then the
+          # pinned request only as a last resort.  pkgutil-then-$XQUARTZ_VERSION
+          # was WRONG: when the receipt was missing it reported the PINNED value
+          # (e.g. 2.8.5) while the runner really ran 2.8.6, so the STEP_SUMMARY
+          # label mismatched the installed XQuartz.
+          XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
           SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
           {
@@ -851,7 +859,15 @@ jobs:
           # self-labels from what actually ran.  Read the ACTUAL installed
           # XQuartz version from the pkgutil receipt so the label always shows a
           # real number (even when the latest cask was used). ---
-          XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
+          # Actual installed XQuartz version, authoritatively.  Prefer the app
+          # bundle's CFBundleShortVersionString -- that is the XQuartz `open -a
+          # XQuartz` actually launches -- then the pkgutil receipt, then the
+          # pinned request only as a last resort.  pkgutil-then-$XQUARTZ_VERSION
+          # was WRONG: when the receipt was missing it reported the PINNED value
+          # (e.g. 2.8.5) while the runner really ran 2.8.6, so the STEP_SUMMARY
+          # label mismatched the installed XQuartz.
+          XQ_ACTUAL="$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)"
+          [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="$(pkgutil --pkg-info org.xquartz.X11 2>/dev/null | awk '/^version:/{print $2}')"
           [ -n "$XQ_ACTUAL" ] || XQ_ACTUAL="${XQUARTZ_VERSION:-unknown}"
           SMOKE_SUMMARY_LABEL="macOS ${MACOS_MAJOR} ${ARCH_LABEL} XQuartz ${XQ_ACTUAL} [TEMP diag]"
           {

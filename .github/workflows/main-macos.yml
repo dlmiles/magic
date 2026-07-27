@@ -13,19 +13,19 @@ on:
         type: string
         default: '8'
       tcl_source:
-        description: 'Tcl/Tk source for magic. homebrew = Aqua Tk (x11 tests hang); tarball/github = build an X11 Tk on XQuartz (fixes -d X11).'
+        description: 'Tcl/Tk source for magic. github/tarball = build an X11 Tk on XQuartz (fixes -d X11, default); homebrew = Aqua Tk (x11 tests hang).'
         type: choice
         options:
-          - homebrew
-          - tarball
           - github
-        default: 'homebrew'
+          - tarball
+          - homebrew
+        default: 'github'
       tcl_tk_version:
-        description: 'Version for tarball/github source, e.g. 8.6.16 or 9.0.4 (blank uses the script default).'
+        description: 'Version for tarball/github source, e.g. 9.0.4 or 8.6.16 (blank auto-resolves the latest core-9-0-N).'
         type: string
         default: ''
       tcl_ref:
-        description: 'github source: exact tag e.g. core-9-0-4 (blank derives it from tcl_tk_version).'
+        description: 'github/tarball source: exact tag e.g. core-9-0-4 (blank derives it from tcl_tk_version or auto-resolves).'
         type: string
         default: ''
 
@@ -141,15 +141,15 @@ jobs:
           echo "Done"
 
       - name: Build X11 Tcl/Tk from source (XQuartz)
-        # When tcl_source is tarball/github, build a REAL X11 Tcl/Tk on top of
+        # Default path: build a REAL X11 Tcl/Tk (latest core-9-0-N) on top of
         # XQuartz into /opt/magic and hand its prefix to configure_mac via
         # $TCLTK_PREFIX -- so magic links the X11 Tk (whose Tk_Display() is a real
         # X display) instead of the Homebrew Aqua Tk that hangs `-d X11`.  The
-        # Homebrew tcl-tk@8/@9 stay installed alongside.  On the default
-        # 'homebrew' source (and on push/PR, where inputs are empty) this no-ops.
+        # Homebrew tcl-tk@8/@9 stay installed alongside.  push/PR (empty inputs)
+        # default to github; a dispatch can pick homebrew to skip the build.
         run: |
           SRC="${{ github.event.inputs.tcl_source }}"
-          [ -n "$SRC" ] || SRC="homebrew"
+          [ -n "$SRC" ] || SRC="github"
           if [ "$SRC" = "homebrew" ]; then
             echo "tcl_source=homebrew -- using Homebrew tcl-tk (no source build)"
             exit 0
@@ -552,15 +552,15 @@ jobs:
           echo "Done"
 
       - name: Build X11 Tcl/Tk from source (XQuartz)
-        # When tcl_source is tarball/github, build a REAL X11 Tcl/Tk on top of
+        # Default path: build a REAL X11 Tcl/Tk (latest core-9-0-N) on top of
         # XQuartz into /opt/magic and hand its prefix to configure_mac via
         # $TCLTK_PREFIX -- so magic links the X11 Tk (whose Tk_Display() is a real
         # X display) instead of the Homebrew Aqua Tk that hangs `-d X11`.  The
-        # Homebrew tcl-tk@8/@9 stay installed alongside.  On the default
-        # 'homebrew' source (and on push/PR, where inputs are empty) this no-ops.
+        # Homebrew tcl-tk@8/@9 stay installed alongside.  push/PR (empty inputs)
+        # default to github; a dispatch can pick homebrew to skip the build.
         run: |
           SRC="${{ github.event.inputs.tcl_source }}"
-          [ -n "$SRC" ] || SRC="homebrew"
+          [ -n "$SRC" ] || SRC="github"
           if [ "$SRC" = "homebrew" ]; then
             echo "tcl_source=homebrew -- using Homebrew tcl-tk (no source build)"
             exit 0

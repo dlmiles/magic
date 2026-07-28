@@ -8,10 +8,6 @@ on:
   pull_request:
   workflow_dispatch:
     inputs:
-      tcl_version:
-        description: 'Homebrew tcl-tk version suffix: 8 (default) or 9; leave empty for the unversioned tcl-tk formula.'
-        type: string
-        default: '8'
       tcl_source:
         description: 'Tcl/Tk source for magic. github/tarball = build an X11 Tk on XQuartz (fixes -d X11, default); homebrew = Aqua Tk (x11 tests hang).'
         type: choice
@@ -20,6 +16,10 @@ on:
           - tarball
           - homebrew
         default: 'github'
+      tcl_version:
+        description: 'Homebrew tcl-tk version suffix: 8 (default) or 9; leave empty for the unversioned tcl-tk formula.'
+        type: string
+        default: '8'
       tcl_tk_version:
         description: 'Version for tarball/github source, e.g. 9.0.4 or 8.6.16 (blank auto-resolves the latest core-9-0-N).'
         type: string

@@ -127,12 +127,33 @@ cat > "$MACOS/Magic" <<'LAUNCH'
 #!/bin/bash
 here="$(cd "$(dirname "$0")" && pwd)"
 res="$(cd "$here/../Resources/magic" && pwd)"
+checker="$here/../Resources/macos_runtime_prereq_check.command"
+
+# The magic binary we exec -- also the "have we upgraded?" reference below.
+magicbin="$res/lib/magic/tcl/magicexec"
+[ -x "$magicbin" ] || magicbin="$res/bin/magic"
+
+# Runtime-prerequisite check (XQuartz/cairo).  Runs on EVERY launch UNTIL it
+# reports all prerequisites OK -- the marker is written only when the check
+# passes (exit 0) -- and again after an upgrade, detected by the magic binary
+# being newer than the marker (an overwrite bumps its mtime; no reset needed).
+# No terminal here, so the checker shows its osascript pop-up and blocks until
+# dismissed, then magic starts.  Set MAGIC_DISABLE_START_CHECK (non-empty) to
+# inhibit the start-up check entirely.
+marker="$HOME/Library/Application Support/Magic/.prereq_ok"
+if [ -n "$MAGIC_DISABLE_START_CHECK" ]; then
+    :                                        # inhibited by the environment
+elif [ -f "$marker" ] && [ "$marker" -nt "$magicbin" ]; then
+    :                                        # already confirmed OK, not upgraded since
+elif [ -x "$checker" ]; then
+    if "$checker" </dev/null >/dev/null 2>&1; then
+        mkdir -p "$(dirname "$marker")" 2>/dev/null && : > "$marker" 2>/dev/null || true
+    fi
+fi
+
 export CAD_ROOT="$res/lib/magic"
 export PATH="$res/bin:$PATH"
-# magicexec is the Tk (wish) binary; run it so magic opens its GUI.
-exec="$res/lib/magic/tcl/magicexec"
-[ -x "$exec" ] || exec="$res/bin/magic"     # fallback to the wrapper
-exec "$exec" "$@"
+exec "$magicbin" "$@"                         # magicexec (Tk GUI), or the wrapper
 LAUNCH
 chmod +x "$MACOS/Magic"
 

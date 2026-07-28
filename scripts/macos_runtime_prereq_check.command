@@ -103,6 +103,11 @@ if [ "$GUI" = 1 ]; then
     fi
 fi
 
+# Exit status for callers (the app launcher): 0 = all prerequisites OK; 1 =
+# something MISSING or OUTDATED, so the launcher keeps prompting on next launch.
+printf '%s' "$report" | grep -q '^MISSING\|^OUTDATED' && exit 1
+exit 0
+
 # --- HOW TO RE-RUN THIS CHECK LATER ------------------------------------------
 # Double-click macos_runtime_prereq_check.command in Finder, or from Terminal:
 #   bash "/Applications/Magic.app/Contents/Resources/macos_runtime_prereq_check.command"

@@ -897,7 +897,13 @@ jobs:
           hash=$(git show -s --format=%h 2>/dev/null)                # short sha
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
-          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          # Tcl major (8 or 9) that magic was built against -- from the private
+          # /opt/magic libtcl (exclude the libtcl*tk* Tk lib).  The build works
+          # with either; default is Tcl 9 (tcl_tk_version selects e.g. 8.6.x).
+          tcllib=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | grep -v tk | head -1)
+          tclmajor=$(basename "${tcllib:-none}" | sed -nE 's/^libtcl([0-9]+).*/\1/p')
+          tclmajor="${tclmajor:-unknown}"
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}-Tcl${tclmajor}.dmg"
           echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
           rm -f "${DMG_NAME}"
           # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,
@@ -1774,7 +1780,13 @@ jobs:
           hash=$(git show -s --format=%h 2>/dev/null)                # short sha
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
-          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          # Tcl major (8 or 9) that magic was built against -- from the private
+          # /opt/magic libtcl (exclude the libtcl*tk* Tk lib).  The build works
+          # with either; default is Tcl 9 (tcl_tk_version selects e.g. 8.6.x).
+          tcllib=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | grep -v tk | head -1)
+          tclmajor=$(basename "${tcllib:-none}" | sed -nE 's/^libtcl([0-9]+).*/\1/p')
+          tclmajor="${tclmajor:-unknown}"
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}-Tcl${tclmajor}.dmg"
           echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
           rm -f "${DMG_NAME}"
           # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,
@@ -2651,7 +2663,13 @@ jobs:
           hash=$(git show -s --format=%h 2>/dev/null)                # short sha
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
-          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          # Tcl major (8 or 9) that magic was built against -- from the private
+          # /opt/magic libtcl (exclude the libtcl*tk* Tk lib).  The build works
+          # with either; default is Tcl 9 (tcl_tk_version selects e.g. 8.6.x).
+          tcllib=$(ls /opt/magic/lib/libtcl*.dylib 2>/dev/null | grep -v tk | head -1)
+          tclmajor=$(basename "${tcllib:-none}" | sed -nE 's/^libtcl([0-9]+).*/\1/p')
+          tclmajor="${tclmajor:-unknown}"
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}-Tcl${tclmajor}.dmg"
           echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
           rm -f "${DMG_NAME}"
           # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,

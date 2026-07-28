@@ -116,6 +116,11 @@ if [ -n "${TCLTK_PREFIX:-}" ] && [ -d "${TCLTK_PREFIX}" ]
 then
     echo "Using from-source X11 tcl-tk prefix TCLTK_PREFIX -> ${TCLTK_PREFIX}"
     tcl_tk_prefix_dir="${TCLTK_PREFIX}"
+    # Install magic into the SAME prefix as its private Tcl/Tk (e.g. /opt/magic)
+    # so the whole bundle -- magic + its X11 Tcl/Tk -- lives under one tree,
+    # which is what a self-contained DMG ships.  In Homebrew mode (no
+    # TCLTK_PREFIX) the default prefix (/usr/local) is kept.
+    CONFARGS="$CONFARGS --prefix=${TCLTK_PREFIX}"
 fi
 
 if [ -n "$x11_include_dir" ]

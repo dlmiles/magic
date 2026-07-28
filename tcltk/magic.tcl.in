@@ -170,55 +170,68 @@ proc echo {args} {
 # and $DISPLAY/$XAUTHORITY are transitive so are shown only when actually set.
 proc magic::print_version_verbose {} {
    global env
-   # --- Machine-readable build identity (grep-friendly KEY=VALUE) -----------
-   # Line 1 is byte-identical to plain `magic --version` (version.revision).
-   # The values are captured from the build-time placeholders below (the
-   # Makefile sed rewrites those right-hand sides).  The key names are
-   # assembled from $_K so the literal placeholder tokens are NEVER written on
-   # the puts lines -- otherwise that same global sed would rewrite the keys.
+   # Verbose --version.  Line 1 is byte-identical to plain `magic --version`.
+   # Everything after is one KEY=VALUE per line, optionally followed by
+   # " # comment" (what used to be shown in [square brackets]) -- so values
+   # extract cleanly with grep/sed while keeping all the information.  Order:
+   #   version / Platform / Tcl / Tk / MAGIC_* build identity / paths.
+   #
+   # MAGIC_* values are captured from the build-time placeholders here (the
+   # Makefile sed rewrites the right-hand sides); the key names are assembled
+   # from $_K so the literal placeholder tokens never appear on the puts lines,
+   # or that same global sed would rewrite the keys too.
    set _mver {MAGIC_VERSION}
    set _mrev {MAGIC_REVISION}
    set _mcom {MAGIC_COMMIT}
    set _mcdt {MAGIC_COMMITDATE}
    set _mbld {MAGIC_BUILDDATE}
    set _K "MAGIC_"
+
    puts stdout "$_mver.$_mrev"
+
+   # --- Platform / Tcl / Tk (lines 2-4) ------------------------------------
+   puts stdout [format "Platform=%s %s %s (%s)" $::tcl_platform(os) \
+	 $::tcl_platform(osVersion) $::tcl_platform(machine) $::tcl_platform(platform)]
+   # Tcl 9 made threading mandatory and dropped tcl_platform(threaded), so read
+   # it from pkgconfig (works on 8.6 + 9.x; == 1 when threaded).
+   set threaded [expr {![catch {::tcl::pkgconfig get threaded} _t] ? $_t : \
+	 ([info exists ::tcl_platform(threaded)] ? $::tcl_platform(threaded) : "?")}]
+   puts stdout [format "Tcl=%s # threaded=%s pointerSize=%s byteOrder=%s" \
+	 [info patchlevel] $threaded $::tcl_platform(pointerSize) $::tcl_platform(byteOrder)]
+   # Tk only when actually present (not under -dnull).  package present raises if
+   # Tk was never loaded; catch => omit.  This never opens a display.  Capture
+   # here for line 4; its library/server detail lines come after MAGIC_* below.
+   set _tk 0
+   if {![catch {package present Tk} _tkver]} {
+      set _tk 1
+      set _wsys "unknown"; catch {set _wsys [tk windowingsystem]}  ;# aqua|x11|win32
+      puts stdout [format "Tk=%s # windowingsystem=%s" $_tkver $_wsys]
+   }
+
+   # --- MAGIC_* build identity ---------------------------------------------
    puts stdout "${_K}VERSION=$_mver.$_mrev"
    puts stdout "${_K}REVISION=$_mrev"
    puts stdout "${_K}COMMIT=$_mcom"
    puts stdout "${_K}COMMITDATE=$_mcdt"
-   # Build date is optional: empty under --disable-magic-builddate, or still
-   # the un-substituted placeholder if built without the Makefile builddate
-   # sed -- omit the line in either case.
+   # Build date optional: empty under --disable-magic-builddate, or still the
+   # un-substituted placeholder if built without the Makefile builddate sed.
    if {$_mbld ne "" && $_mbld ne "${_K}BUILDDATE"} {
       puts stdout "${_K}BUILDDATE=$_mbld"
    }
-   puts stdout [format "Platform: %s %s %s (%s)" $::tcl_platform(os) \
-	 $::tcl_platform(osVersion) $::tcl_platform(machine) $::tcl_platform(platform)]
-   # Tcl 9 made threading mandatory and dropped tcl_platform(threaded), so read it
-   # from pkgconfig (reliable on 8.6 and 9.x; == 1 when the build is threaded).
-   set threaded [expr {![catch {::tcl::pkgconfig get threaded} _t] ? $_t : \
-	 ([info exists ::tcl_platform(threaded)] ? $::tcl_platform(threaded) : "?")}]
-   puts stdout [format "Tcl:      %s  threaded=%s  pointerSize=%s  byteOrder=%s" \
-	 [info patchlevel] $threaded $::tcl_platform(pointerSize) $::tcl_platform(byteOrder)]
-   # Tcl standard-library base: [info library] = $tcl_library, the directory
-   # init.tcl loads from.  $env(TCL_LIBRARY) overrides where Tcl looks for it.
+
+   # --- Tcl standard library / zipfs source / init.tcl ---------------------
    set tcllib [info library]
    if {[info exists env(TCL_LIBRARY)]} {
-      puts stdout [format "  tcl_library: %s  \[effective; \$TCL_LIBRARY=%s\]" \
-	    $tcllib $env(TCL_LIBRARY)]
+      puts stdout "tcl_library=$tcllib # effective; \$TCL_LIBRARY=$env(TCL_LIBRARY)"
    } else {
-      puts stdout [format "  tcl_library: %s  \[default; \$TCL_LIBRARY unset\]" $tcllib]
+      puts stdout "tcl_library=$tcllib # default; \$TCL_LIBRARY unset"
    }
-   # Under Tcl 9 the standard library is usually a virtual zipfs mount embedded
-   # in the libtcl shared library, so tcl_library reads "//zipfs:/..." -- which
-   # hides WHICH libtcl on disk is actually in use (the whole point here: proving
-   # the custom Tcl build is the one loaded).  Resolve the zipfs mount back to
-   # its backing native archive file; that file IS the Tcl copy being used.
+   # Under Tcl 9 tcl_library is usually a virtual zipfs mount embedded in libtcl
+   # ("//zipfs:/..."), which hides WHICH libtcl is in use.  Resolve the mount
+   # back to its backing native archive -- that file IS the Tcl copy loaded.
    if {![catch {zipfs root} _zr] && [string match "${_zr}*" $tcllib]} {
       set _src ""; set _mp ""
-      # `zipfs mount` (no args) is a dict: mountpoint -> backing archive file.
-      # Pick the LONGEST mountpoint that prefixes tcl_library (most specific).
+      # `zipfs mount` is a dict mountpoint->archive; pick the longest match.
       catch {
 	 foreach {mp arch} [zipfs mount] {
 	    if {[string match "${mp}*" $tcllib] && \
@@ -230,44 +243,38 @@ proc magic::print_version_verbose {} {
       if {$_src ne ""} {
 	 set _abs $_src
 	 catch {set _abs [file normalize $_src]}
-	 puts stdout [format "  zipfs src:   %s  \[backing libtcl for mount %s; %s\]" \
+	 puts stdout [format "zipfs_src=%s # backing libtcl for mount %s; %s" \
 	       $_abs $_mp [expr {[file exists $_src] ? "exists" : "MISSING"}]]
       } else {
-	 puts stdout "  zipfs src:   (unresolved -- `zipfs mount` reported no backing file)"
+	 puts stdout "zipfs_src= # unresolved -- zipfs mount reported no backing file"
       }
    }
    set initf [file join $tcllib init.tcl]
-   puts stdout [format "  init.tcl:    %s  \[%s\]" $initf \
+   puts stdout [format "init.tcl=%s # %s" $initf \
 	 [expr {[file exists $initf] ? "found" : "MISSING"}]]
 
-   # Tk only when it is actually present (not under -dnull).  package present
-   # raises if Tk was never loaded; catch => omit the line.  This never opens a
-   # display: if Tk is present, its init already succeeded.
-   if {![catch {package present Tk} tkver]} {
-      set wsys "unknown"
-      catch {set wsys [tk windowingsystem]}	;# aqua | x11 | win32
-      puts stdout [format "Tk:       %s  windowingsystem=%s" $tkver $wsys]
-      catch {puts stdout [format "  tk_library:  %s  \[%s\]" $::tk_library \
+   # --- Tk library / X server (only when Tk is loaded) ---------------------
+   if {$_tk} {
+      catch {puts stdout [format "tk_library=%s # %s" $::tk_library \
 	 [expr {[info exists env(TK_LIBRARY)] ? "\$TK_LIBRARY override" : "default"}]]}
       catch {
-	 set srv [winfo server .]			;# X server identity (x11)
-	 if {$srv ne ""} {puts stdout [format "Display:  %s" $srv]}
+	 set _srv [winfo server .]			;# X server identity (x11)
+	 if {$_srv ne ""} {puts stdout "Display=$_srv # X11 server (winfo server)"}
       }
    }
 
-   # Compiled path defaults, flagging an active environment override.  Only
-   # CAD_DIR has one ($CAD_ROOT); BIN_DIR/TCL_DIR are always compiled defaults.
+   # --- Compiled path defaults (flag an active environment override) -------
    if {[info exists env(CAD_ROOT)]} {
-      puts stdout "CAD_DIR:  $env(CAD_ROOT)  \[\$CAD_ROOT override; compiled default @CAD_DIR@\]"
+      puts stdout "CAD_DIR=$env(CAD_ROOT) # \$CAD_ROOT override; compiled default @CAD_DIR@"
    } else {
-      puts stdout "CAD_DIR:  @CAD_DIR@  \[compiled default\]"
+      puts stdout "CAD_DIR=@CAD_DIR@ # compiled default"
    }
-   puts stdout "BIN_DIR:  @BIN_DIR@  \[compiled default\]"
-   puts stdout "TCL_DIR:  @TCL_DIR@  \[compiled default\]"
+   puts stdout "BIN_DIR=@BIN_DIR@ # compiled default"
+   puts stdout "TCL_DIR=@TCL_DIR@ # compiled default"
 
-   # Transitive display environment -- shown only when actually set.
-   if {[info exists env(DISPLAY)]}    {puts stdout "DISPLAY:    $env(DISPLAY)"}
-   if {[info exists env(XAUTHORITY)]} {puts stdout "XAUTHORITY: $env(XAUTHORITY)"}
+   # --- Transitive display environment (only when actually set) ------------
+   if {[info exists env(DISPLAY)]}    {puts stdout "DISPLAY=$env(DISPLAY)"}
+   if {[info exists env(XAUTHORITY)]} {puts stdout "XAUTHORITY=$env(XAUTHORITY)"}
 }
 
 # Parse argument list for "-c[onsole]" and "-now[rapper]".

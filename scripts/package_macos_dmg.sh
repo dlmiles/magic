@@ -86,6 +86,21 @@ chmod -R u+w "$libroot" 2>/dev/null || true
 find "$libroot" -type f \( -name '*.dylib' -o -perm -u+x \) 2>/dev/null | while IFS= read -r f; do
     is_macho "$f" || continue
     echo "--- $f"
+    # A Tcl 9 zipfs dylib has its script-library ZIP appended AFTER the Mach-O,
+    # so the Mach-O does not cover the end of the file; install_name_tool +
+    # codesign then REFUSE it ("__LINKEDIT segment does not cover the end of the
+    # file").  Detect that precisely (Mach-O end < file size) and SKIP relocating
+    # it: it has NO /opt/magic dependencies (only its own id), nothing loads it
+    # by absolute path (clients use @rpath, rewritten below), and it keeps its
+    # original valid signature -- so it still loads from the bundle via @rpath.
+    # Tcl 8 dylibs / plain binaries have NO trailing data -> relocated normally.
+    mend=$(python3 "$SRCROOT/scripts/macho_zipfs.py" end "$f" 2>/dev/null)
+    fsize=$(stat -f%z "$f" 2>/dev/null || wc -c < "$f")
+    if [ -n "$mend" ] && [ "$mend" -lt "$fsize" ] 2>/dev/null; then
+        echo "  SKIP: $((fsize - mend)) bytes trailing data (Tcl zipfs) -- left as-is"
+        echo "        (no /opt/magic deps; loads via @rpath; original signature kept)"
+        continue
+    fi
     echo "  BEFORE:"; otool -L "$f" 2>/dev/null | sed -n '2,14p' | sed 's/^/    /'
     # Strip the code signature before editing (capture the real error too:
     # Tcl 9's libtcl/libtk carry an embedded zipfs appended after the Mach-O,
@@ -112,12 +127,19 @@ find "$libroot" -type f \( -name '*.dylib' -o -perm -u+x \) 2>/dev/null | while 
     echo "  AFTER:";  otool -L "$f" 2>/dev/null | sed -n '2,14p' | sed 's/^/    /'
 done
 
-# any remaining absolute references are the things still to fix next iteration
-log "remaining absolute $PREFIX references after relocation:"
+# Remaining absolute references: a zipfs dylib keeping its own id is expected
+# and harmless; anything else is a real relocation bug to fix.
+log "remaining absolute $PREFIX references (zipfs = expected/harmless):"
 find "$libroot" -type f \( -name '*.dylib' -o -perm -u+x \) 2>/dev/null | while IFS= read -r f; do
     is_macho "$f" || continue
-    otool -L "$f" 2>/dev/null | awk 'NR>1{print $1}' | grep -q "^$PREFIX/" \
-        && echo "  STILL-ABSOLUTE: $f"
+    otool -L "$f" 2>/dev/null | awk 'NR>1{print $1}' | grep -q "^$PREFIX/" || continue
+    mend=$(python3 "$SRCROOT/scripts/macho_zipfs.py" end "$f" 2>/dev/null)
+    fsize=$(stat -f%z "$f" 2>/dev/null || wc -c < "$f")
+    if [ -n "$mend" ] && [ "$mend" -lt "$fsize" ] 2>/dev/null; then
+        echo "  zipfs (expected; only its own id): $f"
+    else
+        echo "  STILL-ABSOLUTE (UNEXPECTED -- needs fixing): $f"
+    fi
 done || true
 
 # --- 4) launcher + Info.plist ------------------------------------------------
@@ -156,7 +178,9 @@ elif [ -x "$checker" ]; then
     fi
 fi
 
-export CAD_ROOT="$res/lib/magic"
+# CAD_ROOT is <prefix>/lib (magic.tcl derives it as <tcl-dir>/../..); point it at
+# the bundle so magic finds its sys/tech under Resources/magic/lib/magic/.
+export CAD_ROOT="$res/lib"
 export PATH="$res/bin:$PATH"
 exec "$magicbin" "$@"                         # magicexec (Tk GUI), or the wrapper
 LAUNCH
@@ -199,6 +223,32 @@ if [ -f "$PREREQ_SRC" ]; then
     log "prereq check -> Resources/macos_runtime_prereq_check.command (cairo=${cairo_want:-?} xquartz=${xq_want:-?})"
 else
     log "prereq check source $PREREQ_SRC missing -- not bundled"
+fi
+
+# --- 4c) load smoke-test: run the BUNDLED magicdnull ------------------------
+# Prove the relocation worked: run magicdnull from inside the bundle and check
+# it resolves its dylibs via @rpath to Resources/magic/lib (NOT /opt/magic,
+# which still exists on the runner).  --version runs the Tcl layer and exits
+# without a display, exactly like the "magic --version" earlier steps.  This is
+# a diagnostic -- a failure logs loudly but never fails the packaging.
+log "load smoke-test: bundled magicdnull --version (verifies @rpath loading)"
+smoke="$RES/magic/lib/magic/tcl/magicdnull"
+if [ -x "$smoke" ]; then
+    # DYLD_PRINT_LIBRARIES shows the ACTUAL path each dylib loaded from.
+    so=$(CAD_ROOT="$RES/magic/lib" DYLD_PRINT_LIBRARIES=1 \
+         "$smoke" -nowrapper --version 2>&1)
+    echo "$so" | grep -iE 'libtcl|libtk|Library not loaded|image not found|code signature|Killed' \
+               | sed 's/^/    /' | head -20
+    printf '%s\n' "$so" | grep -vE '^dyld' | grep -vE '^\s*$' | head -8 | sed 's/^/    out: /'
+    if printf '%s' "$so" | grep -qiE 'Library not loaded|image not found|code signature|Killed'; then
+        log "load smoke-test: FAIL -- dyld/@rpath/signature error (see above)"
+    elif printf '%s' "$so" | grep -qE "$(basename "$RES")|Resources/magic/lib/libtcl"; then
+        log "load smoke-test: PASS -- loaded libtcl from the bundle via @rpath"
+    else
+        log "load smoke-test: check the output above (did it print a version?)"
+    fi
+else
+    log "load smoke-test: bundled magicdnull not found at $smoke -- skipped"
 fi
 
 # --- 5) drag-and-drop DMG (Magic.app + /Applications) ------------------------

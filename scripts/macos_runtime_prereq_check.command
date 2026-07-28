@@ -69,13 +69,26 @@ check_xquartz() {   # want
     fi
 }
 
+check_brew() {      # never assume brew exists; report it + where to get it
+    if command -v brew >/dev/null 2>&1; then
+        add "OK       Homebrew  ($(brew --version 2>/dev/null | sed -n '1s/^Homebrew //p'))"
+        return 0
+    fi
+    add "MISSING  Homebrew  -- required to install cairo (and XQuartz via cask)"
+    add "         obtain it from  https://brew.sh  --  one-line install:"
+    add "         /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+    return 1
+}
+
 printf '=== Magic runtime prerequisites (this build: %s) ===\n' "$BUILD_LABEL"
+check_brew || true
+# XQuartz is read from the installed app, so it is checked with or without brew
+# (and can be installed from https://www.xquartz.org independently of brew).
+check_xquartz "$XQUARTZ_WANT"
 if command -v brew >/dev/null 2>&1; then
-    check_xquartz "$XQUARTZ_WANT"
     check_formula cairo "$CAIRO_WANT"
 else
-    add "MISSING  Homebrew  ->  /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
-    add "         (Homebrew is needed to install XQuartz + cairo, then re-run this check)"
+    add "MISSING  cairo    ->  install Homebrew (above), then:  brew install cairo"
 fi
 
 # Overall status + pop-up

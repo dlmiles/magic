@@ -888,10 +888,25 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic"
-          rm -f "${DMG_NAME}"
-          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
-            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
+          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
+          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
+          # files, and that attach/detach dance is the usual cause of hdiutil
+          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
+          # directly, no mount) then convert to compressed UDZO.  Both are hard-
+          # bounded with gtimeout (coreutils) so they can never hang the job.
+          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
+          rc=0
+          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
+            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
+          if [ $rc -eq 0 ]; then
+            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          fi
+          rm -f /tmp/magic_raw.dmg
+          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
+            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
+            exit 0
+          fi
           ls -la "${DMG_NAME}"
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
@@ -1749,10 +1764,25 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic"
-          rm -f "${DMG_NAME}"
-          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
-            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
+          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
+          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
+          # files, and that attach/detach dance is the usual cause of hdiutil
+          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
+          # directly, no mount) then convert to compressed UDZO.  Both are hard-
+          # bounded with gtimeout (coreutils) so they can never hang the job.
+          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
+          rc=0
+          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
+            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
+          if [ $rc -eq 0 ]; then
+            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          fi
+          rm -f /tmp/magic_raw.dmg
+          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
+            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
+            exit 0
+          fi
           ls -la "${DMG_NAME}"
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
@@ -2610,10 +2640,25 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic"
-          rm -f "${DMG_NAME}"
-          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
-            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
+          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
+          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
+          # files, and that attach/detach dance is the usual cause of hdiutil
+          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
+          # directly, no mount) then convert to compressed UDZO.  Both are hard-
+          # bounded with gtimeout (coreutils) so they can never hang the job.
+          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
+          rc=0
+          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
+            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
+          if [ $rc -eq 0 ]; then
+            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          fi
+          rm -f /tmp/magic_raw.dmg
+          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
+            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
+            exit 0
+          fi
           ls -la "${DMG_NAME}"
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"

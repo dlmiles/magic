@@ -486,11 +486,11 @@ jobs:
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
-              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               d=$(launchctl getenv DISPLAY 2>/dev/null)
               if [ -n "$d" ]; then
                 export DISPLAY="$d"
-                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+                xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               fi
               sleep 1
             done
@@ -502,7 +502,7 @@ jobs:
               # server that answered xdpyinfo but is not fully ready.  So settle:
               # require the font path + round-trips to be stable, then a margin.
               for j in $(seq 1 15); do
-                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && break
+                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
                 sleep 1
               done
               sleep 3   # extra warm-up margin before magic connects
@@ -696,8 +696,8 @@ jobs:
             elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
             else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
             fi
-            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
-            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
+            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }; sleep 1; done
+            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi
           else
             echo "magicexec exited within 8s (did not hang)"
@@ -1304,11 +1304,11 @@ jobs:
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
-              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               d=$(launchctl getenv DISPLAY 2>/dev/null)
               if [ -n "$d" ]; then
                 export DISPLAY="$d"
-                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+                xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               fi
               sleep 1
             done
@@ -1320,7 +1320,7 @@ jobs:
               # server that answered xdpyinfo but is not fully ready.  So settle:
               # require the font path + round-trips to be stable, then a margin.
               for j in $(seq 1 15); do
-                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && break
+                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
                 sleep 1
               done
               sleep 3   # extra warm-up margin before magic connects
@@ -1514,8 +1514,8 @@ jobs:
             elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
             else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
             fi
-            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
-            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
+            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }; sleep 1; done
+            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi
           else
             echo "magicexec exited within 8s (did not hang)"
@@ -2122,11 +2122,11 @@ jobs:
             up=0
             for i in $(seq 1 30); do
               export DISPLAY=:0
-              xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+              xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               d=$(launchctl getenv DISPLAY 2>/dev/null)
               if [ -n "$d" ]; then
                 export DISPLAY="$d"
-                xdpyinfo >/dev/null 2>&1 && { up=1; break; }
+                xdpyinfo >/dev/null 2>&1 && { up=1; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
               fi
               sleep 1
             done
@@ -2138,7 +2138,7 @@ jobs:
               # server that answered xdpyinfo but is not fully ready.  So settle:
               # require the font path + round-trips to be stable, then a margin.
               for j in $(seq 1 15); do
-                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && break
+                xlsfonts >/dev/null 2>&1 && xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }
                 sleep 1
               done
               sleep 3   # extra warm-up margin before magic connects
@@ -2332,8 +2332,8 @@ jobs:
             elif [ -x /opt/X11/bin/Xquartz ]; then echo "no XQuartz.app -- launching /opt/X11/bin/Xquartz :0 directly"; /opt/X11/bin/Xquartz :0 >/tmp/xquartz.log 2>&1 &
             else echo "WARNING: XQuartz NOT installed (no app, no /opt/X11/bin/Xquartz) -- cask/pkg install failed?"; ls -la /Applications/Utilities/ 2>/dev/null | grep -i quartz || echo "  (nothing XQuartz-ish in /Applications/Utilities)"
             fi
-            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && break; sleep 1; done
-            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; \
+            for r in $(seq 1 30); do export DISPLAY=:0; xdpyinfo >/dev/null 2>&1 && { xwininfo -root 2>/dev/null | sed 's/^/  /' || true; break; }; sleep 1; done
+            if xdpyinfo >/dev/null 2>&1; then echo "XQuartz back up on :0"; xwininfo -root 2>/dev/null | sed 's/^/  /' || true; \
               else echo "WARNING: XQuartz did not restart -- x11 tests may not connect"; fi
           else
             echo "magicexec exited within 8s (did not hang)"

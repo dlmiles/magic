@@ -87,18 +87,20 @@ find "$libroot" -type f \( -name '*.dylib' -o -perm -u+x \) 2>/dev/null | while 
     is_macho "$f" || continue
     echo "--- $f"
     echo "  BEFORE:"; otool -L "$f" 2>/dev/null | sed -n '2,14p' | sed 's/^/    /'
-    # Strip the code signature before editing: install_name_tool invalidates it
-    # anyway, and a stale signature can make it refuse to modify.
-    codesign --remove-signature "$f" 2>/dev/null || true
-    # dylib id -> @rpath/<basename>  (errors now VISIBLE)
+    # Strip the code signature before editing (capture the real error too:
+    # Tcl 9's libtcl/libtk carry an embedded zipfs appended after the Mach-O,
+    # which is what makes codesign / install_name_tool fail on exactly them).
+    e=$(codesign --remove-signature "$f" 2>&1) || echo "  remove-sig: $e"
+    # dylib id -> @rpath/<basename>  (capture the actual tool error)
     case "$f" in *.dylib)
-        install_name_tool -id "@rpath/$(basename "$f")" "$f" || echo "  ID-CHANGE FAILED" ;;
+        e=$(install_name_tool -id "@rpath/$(basename "$f")" "$f" 2>&1) \
+            || echo "  ID-CHANGE FAILED: $e" ;;
     esac
     # rewrite each dependency that lives under $PREFIX
     otool -L "$f" 2>/dev/null | awk 'NR>1{print $1}' | while IFS= read -r dep; do
         case "$dep" in
-            "$PREFIX"/*) install_name_tool -change "$dep" "@rpath/$(basename "$dep")" "$f" \
-                           || echo "  CHANGE FAILED: $dep" ;;
+            "$PREFIX"/*) e=$(install_name_tool -change "$dep" "@rpath/$(basename "$dep")" "$f" 2>&1) \
+                           || echo "  CHANGE FAILED ($dep): $e" ;;
         esac
     done
     # rpath -> the lib dir, relative to this binary's location
@@ -106,7 +108,7 @@ find "$libroot" -type f \( -name '*.dylib' -o -perm -u+x \) 2>/dev/null | while 
     install_name_tool -add_rpath "@loader_path/$reldir" "$f" 2>/dev/null || true
     # Re-ad-hoc-sign: install_name_tool broke the signature, and arm64 KILLS any
     # binary with an invalid signature on load -- without this the .app crashes.
-    codesign --force --sign - "$f" 2>/dev/null || echo "  codesign FAILED"
+    e=$(codesign --force --sign - "$f" 2>&1) || echo "  codesign FAILED: $e"
     echo "  AFTER:";  otool -L "$f" 2>/dev/null | sed -n '2,14p' | sed 's/^/    /'
 done
 

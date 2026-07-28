@@ -892,6 +892,18 @@ jobs:
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
+      - name: Upload DMG
+        # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact
+        # ALWAYS wraps the upload in a ZIP, so the browser download is
+        # "<name>.zip" containing the intact .dmg -- a bare, directly-openable
+        # .dmg download would require a GitHub Release asset instead.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.DMG_NAME }}
+          path: ${{ env.DMG_PATH }}
+          if-no-files-found: ignore
+
       - name: Upload archive magic-macos-26-intel
         if: always()
         uses: actions/upload-artifact@v7
@@ -1737,6 +1749,18 @@ jobs:
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
+      - name: Upload DMG
+        # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact
+        # ALWAYS wraps the upload in a ZIP, so the browser download is
+        # "<name>.zip" containing the intact .dmg -- a bare, directly-openable
+        # .dmg download would require a GitHub Release asset instead.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.DMG_NAME }}
+          path: ${{ env.DMG_PATH }}
+          if-no-files-found: ignore
+
       - name: Upload archive magic-macos-arm64
         if: always()
         uses: actions/upload-artifact@v7
@@ -2581,6 +2605,18 @@ jobs:
           ls -la "${DMG_NAME}"
           echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
           echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
+
+      - name: Upload DMG
+        # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact
+        # ALWAYS wraps the upload in a ZIP, so the browser download is
+        # "<name>.zip" containing the intact .dmg -- a bare, directly-openable
+        # .dmg download would require a GitHub Release asset instead.
+        if: always()
+        uses: actions/upload-artifact@v7
+        with:
+          name: ${{ env.DMG_NAME }}
+          path: ${{ env.DMG_PATH }}
+          if-no-files-found: ignore
 
       - name: Upload archive magic-macos-15-arm64
         if: always()

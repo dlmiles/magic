@@ -17,3 +17,7 @@ Makefile	filter=header
 *.mak		text eol=lf
 *.mak.in	text eol=lf
 Makefile.in	text eol=lf
+
+# Binary assets under scripts/ must NOT get eol/text normalisation
+# (the /scripts/** text eol=lf rule above would corrupt them).
+*.icns binary

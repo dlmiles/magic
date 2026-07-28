@@ -187,10 +187,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
-          # rasterises appimage/rsc/magic.svg into the DMG .icns.
-          brew install coreutils librsvg
-          _package_list="$_package_list coreutils librsvg"
+          # Wanted in both homebrew and from-source modes.  (The DMG icon is a
+          # committed static scripts/rsc/magic.icns, so no librsvg needed here.)
+          brew install coreutils
+          _package_list="$_package_list coreutils"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -1064,10 +1064,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
-          # rasterises appimage/rsc/magic.svg into the DMG .icns.
-          brew install coreutils librsvg
-          _package_list="$_package_list coreutils librsvg"
+          # Wanted in both homebrew and from-source modes.  (The DMG icon is a
+          # committed static scripts/rsc/magic.icns, so no librsvg needed here.)
+          brew install coreutils
+          _package_list="$_package_list coreutils"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -1941,10 +1941,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
-          # rasterises appimage/rsc/magic.svg into the DMG .icns.
-          brew install coreutils librsvg
-          _package_list="$_package_list coreutils librsvg"
+          # Wanted in both homebrew and from-source modes.  (The DMG icon is a
+          # committed static scripts/rsc/magic.icns, so no librsvg needed here.)
+          brew install coreutils
+          _package_list="$_package_list coreutils"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"

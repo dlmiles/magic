@@ -28,7 +28,8 @@ set -u
 PREFIX="${PREFIX:-/opt/magic}"
 SRCROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="${VERSION:-$(cat "${SRCROOT}/VERSION" 2>/dev/null || echo 0.0.0)}"
-ICON_SVG="${ICON_SVG:-${SRCROOT}/appimage/rsc/magic.svg}"
+ICON_ICNS="${ICON_ICNS:-${SRCROOT}/scripts/rsc/magic.icns}"   # committed static icon
+ICON_SVG="${ICON_SVG:-${SRCROOT}/appimage/rsc/magic.svg}"     # source (fallback convert)
 WORKDIR="${WORKDIR:-$PWD/dmg-build}"
 : "${DMG_NAME:?DMG_NAME must be set}"
 
@@ -51,21 +52,22 @@ log "staging $PREFIX -> $RES/magic ($(du -sh "$PREFIX" 2>/dev/null | cut -f1))"
 # ditto preserves symlinks/perms/xattrs (Tcl/Tk ships lib symlinks).
 ditto "$PREFIX" "$RES/magic"
 
-# --- 2) icon: SVG -> .icns (rsvg-convert + iconutil) -------------------------
-log "generating icon from $ICON_SVG"
-if command -v rsvg-convert >/dev/null 2>&1 && [ -f "$ICON_SVG" ]; then
+# --- 2) icon: prefer the committed static .icns (scripts/gen_magic_icns.sh
+# builds it once); fall back to converting on the fly only if it is absent -----
+if [ -f "$ICON_ICNS" ]; then
+    cp "$ICON_ICNS" "$RES/magic.icns"
+    log "icon -> $RES/magic.icns (static $ICON_ICNS)"
+elif command -v rsvg-convert >/dev/null 2>&1 && command -v iconutil >/dev/null 2>&1 && [ -f "$ICON_SVG" ]; then
+    log "static icns absent -- converting $ICON_SVG on the fly"
     iconset="$WORKDIR/Magic.iconset"; mkdir -p "$iconset"
     for s in 16 32 128 256 512; do
-        rsvg-convert -w "$s"        -h "$s"        "$ICON_SVG" -o "$iconset/icon_${s}x${s}.png"       2>/dev/null
-        rsvg-convert -w "$((s*2))"  -h "$((s*2))"  "$ICON_SVG" -o "$iconset/icon_${s}x${s}@2x.png"    2>/dev/null
+        rsvg-convert -w "$s"       -h "$s"       "$ICON_SVG" -o "$iconset/icon_${s}x${s}.png"    2>/dev/null
+        rsvg-convert -w "$((s*2))" -h "$((s*2))" "$ICON_SVG" -o "$iconset/icon_${s}x${s}@2x.png" 2>/dev/null
     done
-    if iconutil -c icns "$iconset" -o "$RES/magic.icns" 2>/dev/null; then
-        log "icon -> $RES/magic.icns"
-    else
-        log "iconutil failed -- bundle will have no custom icon"
-    fi
+    iconutil -c icns "$iconset" -o "$RES/magic.icns" 2>/dev/null \
+        && log "icon -> $RES/magic.icns (converted)" || log "iconutil failed -- no custom icon"
 else
-    log "rsvg-convert or $ICON_SVG missing -- skipping custom icon (brew install librsvg)"
+    log "no static icns ($ICON_ICNS) and no converter -- bundle will have no custom icon"
 fi
 
 # --- 3) relocate every Mach-O: absolute /opt/magic deps -> @rpath ------------

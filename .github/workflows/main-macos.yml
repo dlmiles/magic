@@ -21,7 +21,7 @@ on:
         type: string
         default: '8'
       tcl_tk_version:
-        description: 'Version for tarball/github source, e.g. 9.0.4 or 8.6.16 (blank auto-resolves the latest core-9-0-N).'
+        description: 'Tcl/Tk version for tarball/github: full (9.0.4) = that exact tag; partial (9, 9.0, 8, 8.6) = latest matching tag; blank = latest 9.0.x.'
         type: string
         default: ''
       tcl_ref:

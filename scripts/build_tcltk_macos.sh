@@ -16,7 +16,8 @@
 #
 # Configured entirely by environment variables (all optional):
 #   TCLTK_SOURCE   homebrew | tarball | github   (default: github)
-#   TCLTK_VERSION  e.g. 8.6.16 or 9.0.4           (default: latest in TCLTK_SERIES)
+#   TCLTK_VERSION  full 9.0.4 (exact tag) OR partial 9 / 9.0 / 8 / 8.6 (resolves
+#                  the latest matching tag).  Default: latest in TCLTK_SERIES.
 #   TCLTK_REF      exact tag, e.g. core-9-0-4     (default: derived / auto-resolved)
 #   TCLTK_SERIES   tag glob for auto-resolution   (default: core-9-0-*  i.e. 9.0.x)
 #   TCLTK_PREFIX   install prefix                 (default: /opt/magic)
@@ -68,7 +69,19 @@ resolve_latest_ref() {
 if [ -n "${TCLTK_REF:-}" ]; then
     REF="$TCLTK_REF"
 elif [ -n "${TCLTK_VERSION:-}" ]; then
-    REF="core-${TCLTK_VERSION//./-}"                 # 9.0.4 -> core-9-0-4
+    # Full X.Y.Z -> that exact tag.  Partial X or X.Y -> resolve the LATEST
+    # matching tag: prepend "core-", "." -> "-", then require one-or-more
+    # trailing numeric components (so betas like core-9-0-0-rc1 are excluded).
+    case "$TCLTK_VERSION" in
+	*.*.*)
+	    REF="core-${TCLTK_VERSION//./-}" ;;         # 9.0.4 -> core-9-0-4 (exact)
+	*)
+	    SERIES_GLOB="core-${TCLTK_VERSION//./-}-*"   # 9 -> core-9-* ; 9.0 -> core-9-0-*
+	    SERIES_RE="^core-${TCLTK_VERSION//./-}(-[0-9]+)+$"
+	    log "resolving latest ${SERIES_GLOB} tag shared by tcl and tk (from '$TCLTK_VERSION')"
+	    REF="$(resolve_latest_ref || true)"
+	    [ -n "$REF" ] || { echo "build_tcltk: no tag matches TCLTK_VERSION='$TCLTK_VERSION' (series $SERIES_GLOB)" 1>&2; exit 1; } ;;
+    esac
 else
     log "resolving latest ${SERIES_GLOB} tag shared by tcl and tk"
     REF="$(resolve_latest_ref || true)"

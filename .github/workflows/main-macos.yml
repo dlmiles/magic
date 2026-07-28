@@ -842,9 +842,13 @@ jobs:
           # relocation still needs @rpath/install_name_tool fix-ups -- a later
           # step; for now the private tcl-tk is captured alongside magic.)
           if [ -d /opt/magic ]; then
-            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
-            mkdir -p dist/opt
-            cp -R /opt/magic dist/opt/magic
+            echo "Staging /opt/magic (magic + private Tcl/Tk) into dist/opt/magic"
+            # magic now installs to /opt/magic too (--prefix), so `make install
+            # DESTDIR=dist` above already created dist/opt/magic -- copy the
+            # CONTENTS in (merge) rather than `cp -R /opt/magic dist/opt/magic`,
+            # which nests as dist/opt/magic/magic when the target dir exists.
+            mkdir -p dist/opt/magic
+            cp -R /opt/magic/. dist/opt/magic/
           fi
           # Diagnostic details about this build
           mkdir -p dist/BUILD-INFO
@@ -1699,9 +1703,13 @@ jobs:
           # relocation still needs @rpath/install_name_tool fix-ups -- a later
           # step; for now the private tcl-tk is captured alongside magic.)
           if [ -d /opt/magic ]; then
-            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
-            mkdir -p dist/opt
-            cp -R /opt/magic dist/opt/magic
+            echo "Staging /opt/magic (magic + private Tcl/Tk) into dist/opt/magic"
+            # magic now installs to /opt/magic too (--prefix), so `make install
+            # DESTDIR=dist` above already created dist/opt/magic -- copy the
+            # CONTENTS in (merge) rather than `cp -R /opt/magic dist/opt/magic`,
+            # which nests as dist/opt/magic/magic when the target dir exists.
+            mkdir -p dist/opt/magic
+            cp -R /opt/magic/. dist/opt/magic/
           fi
           # Diagnostic details about this build
           mkdir -p dist/BUILD-INFO
@@ -2556,9 +2564,13 @@ jobs:
           # relocation still needs @rpath/install_name_tool fix-ups -- a later
           # step; for now the private tcl-tk is captured alongside magic.)
           if [ -d /opt/magic ]; then
-            echo "Staging private Tcl/Tk from /opt/magic into dist/opt/magic"
-            mkdir -p dist/opt
-            cp -R /opt/magic dist/opt/magic
+            echo "Staging /opt/magic (magic + private Tcl/Tk) into dist/opt/magic"
+            # magic now installs to /opt/magic too (--prefix), so `make install
+            # DESTDIR=dist` above already created dist/opt/magic -- copy the
+            # CONTENTS in (merge) rather than `cp -R /opt/magic dist/opt/magic`,
+            # which nests as dist/opt/magic/magic when the target dir exists.
+            mkdir -p dist/opt/magic
+            cp -R /opt/magic/. dist/opt/magic/
           fi
           # Diagnostic details about this build
           mkdir -p dist/BUILD-INFO

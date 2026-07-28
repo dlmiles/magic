@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 #
-# macos_runtime_prereq_check.sh -- confirm the runtime prerequisites that this
-# Magic.app was BUILT against are installed on this Mac.
+# macos_runtime_prereq_check.command -- confirm the runtime prerequisites that
+# this Magic.app was BUILT against are installed on this Mac.
 #
 # Magic.app bundles magic + its private Tcl/Tk, but still links these EXTERNAL
 # libraries at run time (they are NOT inside the bundle):
@@ -10,11 +10,15 @@
 #
 # For each it prints OK (installed and >= the version this build used),
 # OUTDATED (installed but older -> shows the `brew upgrade` line), or MISSING
-# (-> shows the install line), and also shows a native pop-up with the summary.
+# (-> shows the install line).  The report is printed to the Terminal; when run
+# there it waits for a keypress before the window closes, and when run without a
+# terminal (e.g. from the app launcher) it shows the same summary in a pop-up.
 #
-# RUN IT ANY TIME (from Terminal):
-#   bash "/Applications/Magic.app/Contents/Resources/macos_runtime_prereq_check.sh"
-#   (add --no-gui to skip the pop-up.)
+# RUN IT ANY TIME:
+#   Double-click macos_runtime_prereq_check.command in Finder (opens Terminal),
+#   or from Terminal:
+#     bash "/Applications/Magic.app/Contents/Resources/macos_runtime_prereq_check.command"
+#   (add --no-gui to print once and exit, no keypress wait / pop-up.)
 #
 # The @...@ tokens below are filled in at package time with the exact versions
 # this build linked; if you see literal @CAIRO_WANT@ etc. it was run from the
@@ -82,14 +86,25 @@ else
 fi
 printf '\n%s\n' "$status"
 
-if [ "$GUI" = 1 ] && command -v osascript >/dev/null 2>&1; then
-    dlg="$(printf 'Magic runtime prerequisites\n(this build: %s)\n\n%s\n%s' \
-           "$BUILD_LABEL" "$report" "$status" | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}')"
-    osascript -e "display dialog \"$dlg\" buttons {\"OK\"} with title \"Magic\"" >/dev/null 2>&1 || true
+if [ "$GUI" = 1 ]; then
+    if [ -t 1 ]; then
+        # Interactive terminal (double-clicked .command, or run in Terminal):
+        # the report above is on screen -- wait for a keypress so the window
+        # does not vanish before it has been read.
+        printf '\nPress any key to close this window... '
+        read -n 1 -s -r _ 2>/dev/null || read -r _ 2>/dev/null || true
+        printf '\n'
+    elif command -v osascript >/dev/null 2>&1; then
+        # No controlling terminal (e.g. launched from Magic.app) -- present the
+        # same summary + commands in a native pop-up instead.
+        dlg="$(printf 'Magic runtime prerequisites\n(this build: %s)\n\n%s\n%s' \
+               "$BUILD_LABEL" "$report" "$status" | sed 's/"/\\"/g' | awk '{printf "%s\\n", $0}')"
+        osascript -e "display dialog \"$dlg\" buttons {\"OK\"} with title \"Magic\"" >/dev/null 2>&1 || true
+    fi
 fi
 
 # --- HOW TO RE-RUN THIS CHECK LATER ------------------------------------------
-# From Terminal, at any time:
-#   bash "/Applications/Magic.app/Contents/Resources/macos_runtime_prereq_check.sh"
-# (append --no-gui to print only, without the pop-up).  Copy any brew command
+# Double-click macos_runtime_prereq_check.command in Finder, or from Terminal:
+#   bash "/Applications/Magic.app/Contents/Resources/macos_runtime_prereq_check.command"
+# (append --no-gui to print once and exit).  Copy any brew command
 # shown above to install/upgrade a missing or outdated prerequisite.

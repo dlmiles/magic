@@ -30,6 +30,7 @@ SRCROOT="$(cd "$(dirname "$0")/.." && pwd)"
 VERSION="${VERSION:-$(cat "${SRCROOT}/VERSION" 2>/dev/null || echo 0.0.0)}"
 ICON_ICNS="${ICON_ICNS:-${SRCROOT}/scripts/rsc/magic.icns}"   # committed static icon
 ICON_SVG="${ICON_SVG:-${SRCROOT}/appimage/rsc/magic.svg}"     # source (fallback convert)
+PREREQ_SRC="${PREREQ_SRC:-${SRCROOT}/scripts/macos_runtime_prereq_check.sh}"
 WORKDIR="${WORKDIR:-$PWD/dmg-build}"
 : "${DMG_NAME:?DMG_NAME must be set}"
 
@@ -153,6 +154,26 @@ cat > "$APPDIR/Contents/Info.plist" <<PLIST
 </dict>
 </plist>
 PLIST
+
+# --- 4b) runtime prerequisite check, filled with THIS build's versions -------
+# Magic.app does not bundle XQuartz or cairo (external runtime deps), so ship a
+# checker that tells the user whether they are installed at the versions this
+# build linked, with the brew commands to install/upgrade.  Also placed at the
+# DMG root so it is visible without opening the bundle.
+if [ -f "$PREREQ_SRC" ]; then
+    cairo_want="$(brew list --versions cairo 2>/dev/null | awk '{print $NF}')"
+    xq_want="${XQUARTZ_ACTUAL:-$(defaults read /Applications/Utilities/XQuartz.app/Contents/Info CFBundleShortVersionString 2>/dev/null)}"
+    build_label="macOS $(sw_vers -productVersion 2>/dev/null | cut -d. -f1) $(uname -m)"
+    sed -e "s|@CAIRO_WANT@|${cairo_want}|g" \
+        -e "s|@XQUARTZ_WANT@|${xq_want}|g" \
+        -e "s|@BUILD_LABEL@|${build_label}|g" \
+        "$PREREQ_SRC" > "$RES/macos_runtime_prereq_check.sh"
+    chmod +x "$RES/macos_runtime_prereq_check.sh"
+    cp "$RES/macos_runtime_prereq_check.sh" "$STAGE/macos_runtime_prereq_check.sh"
+    log "prereq check -> Resources/macos_runtime_prereq_check.sh (cairo=${cairo_want:-?} xquartz=${xq_want:-?})"
+else
+    log "prereq check source $PREREQ_SRC missing -- not bundled"
+fi
 
 # --- 5) drag-and-drop DMG (Magic.app + /Applications) ------------------------
 ln -s /Applications "$STAGE/Applications"

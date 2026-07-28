@@ -187,9 +187,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.
-          brew install coreutils
-          _package_list="$_package_list coreutils"
+          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
+          # rasterises appimage/rsc/magic.svg into the DMG .icns.
+          brew install coreutils librsvg
+          _package_list="$_package_list coreutils librsvg"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -897,28 +898,19 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
-          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
-          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
-          # files, and that attach/detach dance is the usual cause of hdiutil
-          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
-          # directly, no mount) then convert to compressed UDZO.  Both are hard-
-          # bounded with gtimeout (coreutils) so they can never hang the job.
-          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
-          rc=0
-          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
-            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
-          if [ $rc -eq 0 ]; then
-            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
+          rm -f "${DMG_NAME}"
+          # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,
+          # @rpath-relocate the dylibs (verified with otool), add icon+launcher,
+          # and image it with /Applications for drag-and-drop.  Best-effort:
+          # on failure we skip the upload rather than fail the job.
+          if DMG_NAME="${DMG_NAME}" VERSION="${version}" PREFIX=/opt/magic \
+               scripts/package_macos_dmg.sh; then
+            echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+            echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "WARNING: DMG packaging failed -- skipping DMG upload"
           fi
-          rm -f /tmp/magic_raw.dmg
-          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
-            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
-            exit 0
-          fi
-          ls -la "${DMG_NAME}"
-          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
-          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload DMG
         # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact
@@ -1072,9 +1064,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.
-          brew install coreutils
-          _package_list="$_package_list coreutils"
+          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
+          # rasterises appimage/rsc/magic.svg into the DMG .icns.
+          brew install coreutils librsvg
+          _package_list="$_package_list coreutils librsvg"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -1782,28 +1775,19 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
-          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
-          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
-          # files, and that attach/detach dance is the usual cause of hdiutil
-          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
-          # directly, no mount) then convert to compressed UDZO.  Both are hard-
-          # bounded with gtimeout (coreutils) so they can never hang the job.
-          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
-          rc=0
-          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
-            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
-          if [ $rc -eq 0 ]; then
-            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
+          rm -f "${DMG_NAME}"
+          # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,
+          # @rpath-relocate the dylibs (verified with otool), add icon+launcher,
+          # and image it with /Applications for drag-and-drop.  Best-effort:
+          # on failure we skip the upload rather than fail the job.
+          if DMG_NAME="${DMG_NAME}" VERSION="${version}" PREFIX=/opt/magic \
+               scripts/package_macos_dmg.sh; then
+            echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+            echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "WARNING: DMG packaging failed -- skipping DMG upload"
           fi
-          rm -f /tmp/magic_raw.dmg
-          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
-            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
-            exit 0
-          fi
-          ls -la "${DMG_NAME}"
-          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
-          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload DMG
         # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact
@@ -1957,9 +1941,10 @@ jobs:
           fi
           # coreutils provides gdate (GNU date) for reproducible build dates on
           # macOS -- BSD date lacks the needed options.  See INSTALL_MacOS.md.
-          # Wanted in both homebrew and from-source modes.
-          brew install coreutils
-          _package_list="$_package_list coreutils"
+          # Wanted in both homebrew and from-source modes.  librsvg (rsvg-convert)
+          # rasterises appimage/rsc/magic.svg into the DMG .icns.
+          brew install coreutils librsvg
+          _package_list="$_package_list coreutils librsvg"
           # These seem needed maybe they are being provided from somewhere else GHA runner
           #  or brew transitive depend either way doesn't hurt to confirm they are installed.
           _package_list="$_package_list libglu freeglut"
@@ -2667,28 +2652,19 @@ jobs:
           arch=$(uname -m)                                          # arm64 | x86_64
           osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
           DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
-          echo "Building ${DMG_NAME} from /opt/magic ($(du -sh /opt/magic 2>/dev/null | cut -f1))"
-          rm -f "${DMG_NAME}" /tmp/magic_raw.dmg
-          # `hdiutil create -srcfolder` attaches/mounts a temp image to copy the
-          # files, and that attach/detach dance is the usual cause of hdiutil
-          # HANGING headlessly on CI.  Use makehybrid (writes the HFS image
-          # directly, no mount) then convert to compressed UDZO.  Both are hard-
-          # bounded with gtimeout (coreutils) so they can never hang the job.
-          TO=""; command -v gtimeout >/dev/null 2>&1 && TO="gtimeout -k 30 600"
-          rc=0
-          $TO hdiutil makehybrid -hfs -hfs-volume-name "Magic ${version}" \
-            -o /tmp/magic_raw.dmg /opt/magic || rc=$?
-          if [ $rc -eq 0 ]; then
-            $TO hdiutil convert /tmp/magic_raw.dmg -format UDZO -o "${DMG_NAME}" || rc=$?
+          echo "Packaging ${DMG_NAME} as a relocatable Magic.app drag-and-drop DMG"
+          rm -f "${DMG_NAME}"
+          # scripts/package_macos_dmg.sh: copy /opt/magic into Magic.app,
+          # @rpath-relocate the dylibs (verified with otool), add icon+launcher,
+          # and image it with /Applications for drag-and-drop.  Best-effort:
+          # on failure we skip the upload rather than fail the job.
+          if DMG_NAME="${DMG_NAME}" VERSION="${version}" PREFIX=/opt/magic \
+               scripts/package_macos_dmg.sh; then
+            echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+            echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
+          else
+            echo "WARNING: DMG packaging failed -- skipping DMG upload"
           fi
-          rm -f /tmp/magic_raw.dmg
-          if [ $rc -ne 0 ] || [ ! -f "${DMG_NAME}" ]; then
-            echo "WARNING: DMG build failed/timed out (rc=$rc) -- skipping DMG upload"
-            exit 0
-          fi
-          ls -la "${DMG_NAME}"
-          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
-          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload DMG
         # Upload the .dmg as its own artifact.  NOTE: actions/upload-artifact

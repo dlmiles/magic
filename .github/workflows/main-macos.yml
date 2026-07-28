@@ -332,6 +332,15 @@ jobs:
       - name: Install
         run: |
           sudo make -C build-tmp install
+          # magic now installs to /opt/magic/bin (--prefix), which is NOT on
+          # PATH -- resolve the installed binary once and hand it to later steps
+          # as $MAGIC_EXE (they call "$MAGIC_EXE", never a bare `magic`).  Falls
+          # back to the Homebrew-mode /usr/local location, then to PATH.
+          MAGIC_EXE=/opt/magic/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=/usr/local/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=magic
+          echo "resolved MAGIC_EXE=$MAGIC_EXE"
+          echo "MAGIC_EXE=$MAGIC_EXE" >> "$GITHUB_ENV"
 
       - name: Kick The Tyres
         run: |
@@ -377,15 +386,15 @@ jobs:
           done
 
           echo "=== magic --version"
-          magic --version
+          "$MAGIC_EXE" --version
           echo "=== magic --version --verbose"
-          magic --version --verbose
+          "$MAGIC_EXE" --version --verbose
           echo "=== magic -d help -noconsole"
-          magic -d help -noconsole
+          "$MAGIC_EXE" -d help -noconsole
           echo "=== magic -d null -noconsole -nowindow -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -T scmos
 
       - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
         # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
@@ -590,7 +599,7 @@ jobs:
           run_bounded() {
             lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
             : > "$out"
-            magic "$@" < "$stdin" > "$out" 2>&1 &
+            "$MAGIC_EXE" "$@" < "$stdin" > "$out" 2>&1 &
             p=$!
             ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
             w=$!
@@ -611,7 +620,7 @@ jobs:
           # ruled out; the deterministic HANG is the macOS-15-Intel XAllocColor bug.
           : > /tmp/diag_x11.txt
           hung=0
-          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          "$MAGIC_EXE" -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
           p=$!
           sleep 8    # let magicexec boot and (if it does) hang
           if kill -0 "$p" 2>/dev/null; then
@@ -1208,6 +1217,15 @@ jobs:
       - name: Install
         run: |
           sudo make -C build-tmp install
+          # magic now installs to /opt/magic/bin (--prefix), which is NOT on
+          # PATH -- resolve the installed binary once and hand it to later steps
+          # as $MAGIC_EXE (they call "$MAGIC_EXE", never a bare `magic`).  Falls
+          # back to the Homebrew-mode /usr/local location, then to PATH.
+          MAGIC_EXE=/opt/magic/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=/usr/local/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=magic
+          echo "resolved MAGIC_EXE=$MAGIC_EXE"
+          echo "MAGIC_EXE=$MAGIC_EXE" >> "$GITHUB_ENV"
 
       - name: Kick The Tyres
         run: |
@@ -1253,15 +1271,15 @@ jobs:
           done
 
           echo "=== magic --version"
-          magic --version
+          "$MAGIC_EXE" --version
           echo "=== magic --version --verbose"
-          magic --version --verbose
+          "$MAGIC_EXE" --version --verbose
           echo "=== magic -d help -noconsole"
-          magic -d help -noconsole
+          "$MAGIC_EXE" -d help -noconsole
           echo "=== magic -d null -noconsole -nowindow -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -T scmos
 
       - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
         # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
@@ -1466,7 +1484,7 @@ jobs:
           run_bounded() {
             lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
             : > "$out"
-            magic "$@" < "$stdin" > "$out" 2>&1 &
+            "$MAGIC_EXE" "$@" < "$stdin" > "$out" 2>&1 &
             p=$!
             ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
             w=$!
@@ -1487,7 +1505,7 @@ jobs:
           # ruled out; the deterministic HANG is the macOS-15-Intel XAllocColor bug.
           : > /tmp/diag_x11.txt
           hung=0
-          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          "$MAGIC_EXE" -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
           p=$!
           sleep 8    # let magicexec boot and (if it does) hang
           if kill -0 "$p" 2>/dev/null; then
@@ -2084,6 +2102,15 @@ jobs:
       - name: Install
         run: |
           sudo make -C build-tmp install
+          # magic now installs to /opt/magic/bin (--prefix), which is NOT on
+          # PATH -- resolve the installed binary once and hand it to later steps
+          # as $MAGIC_EXE (they call "$MAGIC_EXE", never a bare `magic`).  Falls
+          # back to the Homebrew-mode /usr/local location, then to PATH.
+          MAGIC_EXE=/opt/magic/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=/usr/local/bin/magic
+          [ -x "$MAGIC_EXE" ] || MAGIC_EXE=magic
+          echo "resolved MAGIC_EXE=$MAGIC_EXE"
+          echo "MAGIC_EXE=$MAGIC_EXE" >> "$GITHUB_ENV"
 
       - name: Kick The Tyres
         run: |
@@ -2129,15 +2156,15 @@ jobs:
           done
 
           echo "=== magic --version"
-          magic --version
+          "$MAGIC_EXE" --version
           echo "=== magic --version --verbose"
-          magic --version --verbose
+          "$MAGIC_EXE" --version --verbose
           echo "=== magic -d help -noconsole"
-          magic -d help -noconsole
+          "$MAGIC_EXE" -d help -noconsole
           echo "=== magic -d null -noconsole -nowindow -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -nowindow -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -nowindow -T scmos
           echo "=== magic -d null -noconsole -T scmos"
-          echo "version ; quit" | magic -d null -noconsole -T scmos
+          echo "version ; quit" | "$MAGIC_EXE" -d null -noconsole -T scmos
 
       - name: Diagnose X11 / Tcl-Tk libX11 (magic uses Xlib directly)
         # Confirm the x11-hang hypothesis: magic calls the X11 API directly, so
@@ -2342,7 +2369,7 @@ jobs:
           run_bounded() {
             lbl=$1; secs=$2; out=$3; stdin=$4; shift 4
             : > "$out"
-            magic "$@" < "$stdin" > "$out" 2>&1 &
+            "$MAGIC_EXE" "$@" < "$stdin" > "$out" 2>&1 &
             p=$!
             ( sleep "$secs"; kill -TERM "$p" 2>/dev/null; sleep 2; kill -KILL "$p" 2>/dev/null ) &
             w=$!
@@ -2363,7 +2390,7 @@ jobs:
           # ruled out; the deterministic HANG is the macOS-15-Intel XAllocColor bug.
           : > /tmp/diag_x11.txt
           hung=0
-          magic -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
+          "$MAGIC_EXE" -d X11 -noconsole < /tmp/cmd_x11.txt > /tmp/diag_x11.txt 2>&1 &
           p=$!
           sleep 8    # let magicexec boot and (if it does) hang
           if kill -0 "$p" 2>/dev/null; then

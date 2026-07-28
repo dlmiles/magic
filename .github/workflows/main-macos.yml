@@ -48,6 +48,10 @@ on:
           - '15'
           - '8'
         default: 'default'
+      create_dmg:
+        description: 'Build a macOS .dmg of the /opt/magic bundle (magic + its private X11 Tcl/Tk) and upload it as an artifact. Enabled by default (also on automated push/PR).'
+        type: boolean
+        default: true
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
@@ -860,6 +864,33 @@ jobs:
           done
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
+
+      - name: Build DMG (macOS bundle)
+        # Package the self-contained /opt/magic tree (magic + its private X11
+        # Tcl/Tk) into a compressed .dmg.  Enabled by default; create_dmg=false
+        # turns it off.  Skipped in Homebrew mode (no /opt/magic).  Filename
+        # mirrors the AppImage form (appimage*.yml: Magic-<ver>~<date>~<hash>-...):
+        #   Magic-<version>~<YYYYMMDD>~<hash>-<arch>-macOS<major>.dmg
+        if: always()
+        run: |
+          set +e
+          CREATE_DMG="${{ github.event.inputs.create_dmg }}"
+          [ -z "$CREATE_DMG" ] && CREATE_DMG=true      # default ON (push/PR pass no input)
+          if [ "$CREATE_DMG" != "true" ]; then echo "create_dmg=$CREATE_DMG -- skipping DMG"; exit 0; fi
+          if [ ! -d /opt/magic ]; then echo "/opt/magic absent (Homebrew mode / build failed) -- no DMG"; exit 0; fi
+          version=$(cat VERSION)                                   # 8.3.678
+          tstamp=$(git show -s --format=%cs 2>/dev/null | tr -d '-')  # YYYYMMDD (committer date)
+          hash=$(git show -s --format=%h 2>/dev/null)                # short sha
+          arch=$(uname -m)                                          # arm64 | x86_64
+          osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          echo "Building ${DMG_NAME} from /opt/magic"
+          rm -f "${DMG_NAME}"
+          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
+            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          ls -la "${DMG_NAME}"
+          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload archive magic-macos-26-intel
         if: always()
@@ -1679,6 +1710,33 @@ jobs:
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
 
+      - name: Build DMG (macOS bundle)
+        # Package the self-contained /opt/magic tree (magic + its private X11
+        # Tcl/Tk) into a compressed .dmg.  Enabled by default; create_dmg=false
+        # turns it off.  Skipped in Homebrew mode (no /opt/magic).  Filename
+        # mirrors the AppImage form (appimage*.yml: Magic-<ver>~<date>~<hash>-...):
+        #   Magic-<version>~<YYYYMMDD>~<hash>-<arch>-macOS<major>.dmg
+        if: always()
+        run: |
+          set +e
+          CREATE_DMG="${{ github.event.inputs.create_dmg }}"
+          [ -z "$CREATE_DMG" ] && CREATE_DMG=true      # default ON (push/PR pass no input)
+          if [ "$CREATE_DMG" != "true" ]; then echo "create_dmg=$CREATE_DMG -- skipping DMG"; exit 0; fi
+          if [ ! -d /opt/magic ]; then echo "/opt/magic absent (Homebrew mode / build failed) -- no DMG"; exit 0; fi
+          version=$(cat VERSION)                                   # 8.3.678
+          tstamp=$(git show -s --format=%cs 2>/dev/null | tr -d '-')  # YYYYMMDD (committer date)
+          hash=$(git show -s --format=%h 2>/dev/null)                # short sha
+          arch=$(uname -m)                                          # arm64 | x86_64
+          osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          echo "Building ${DMG_NAME} from /opt/magic"
+          rm -f "${DMG_NAME}"
+          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
+            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          ls -la "${DMG_NAME}"
+          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
+
       - name: Upload archive magic-macos-arm64
         if: always()
         uses: actions/upload-artifact@v7
@@ -2496,6 +2554,33 @@ jobs:
           done
           # Guarantee a 0 exit regardless of the best-effort copies above.
           true
+
+      - name: Build DMG (macOS bundle)
+        # Package the self-contained /opt/magic tree (magic + its private X11
+        # Tcl/Tk) into a compressed .dmg.  Enabled by default; create_dmg=false
+        # turns it off.  Skipped in Homebrew mode (no /opt/magic).  Filename
+        # mirrors the AppImage form (appimage*.yml: Magic-<ver>~<date>~<hash>-...):
+        #   Magic-<version>~<YYYYMMDD>~<hash>-<arch>-macOS<major>.dmg
+        if: always()
+        run: |
+          set +e
+          CREATE_DMG="${{ github.event.inputs.create_dmg }}"
+          [ -z "$CREATE_DMG" ] && CREATE_DMG=true      # default ON (push/PR pass no input)
+          if [ "$CREATE_DMG" != "true" ]; then echo "create_dmg=$CREATE_DMG -- skipping DMG"; exit 0; fi
+          if [ ! -d /opt/magic ]; then echo "/opt/magic absent (Homebrew mode / build failed) -- no DMG"; exit 0; fi
+          version=$(cat VERSION)                                   # 8.3.678
+          tstamp=$(git show -s --format=%cs 2>/dev/null | tr -d '-')  # YYYYMMDD (committer date)
+          hash=$(git show -s --format=%h 2>/dev/null)                # short sha
+          arch=$(uname -m)                                          # arm64 | x86_64
+          osmajor="${MACOS_MAJOR:-$(sw_vers -productVersion | cut -d. -f1)}"  # 26 | 15
+          DMG_NAME="Magic-${version}~${tstamp}~${hash}-${arch}-macOS${osmajor}.dmg"
+          echo "Building ${DMG_NAME} from /opt/magic"
+          rm -f "${DMG_NAME}"
+          hdiutil create -volname "Magic ${version}" -srcfolder /opt/magic \
+            -fs HFS+ -ov -format UDZO "${DMG_NAME}" || { echo "hdiutil create FAILED"; exit 1; }
+          ls -la "${DMG_NAME}"
+          echo "DMG_NAME=${DMG_NAME}" >> "$GITHUB_ENV"
+          echo "DMG_PATH=$(pwd)/${DMG_NAME}" >> "$GITHUB_ENV"
 
       - name: Upload archive magic-macos-15-arm64
         if: always()

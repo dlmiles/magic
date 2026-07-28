@@ -138,10 +138,13 @@ magicbin="$res/lib/magic/tcl/magicexec"
 # passes (exit 0) -- and again after an upgrade, detected by the magic binary
 # being newer than the marker (an overwrite bumps its mtime; no reset needed).
 # No terminal here, so the checker shows its osascript pop-up and blocks until
-# dismissed, then magic starts.  Set MAGIC_DISABLE_START_CHECK (non-empty) to
-# inhibit the start-up check entirely.
+# dismissed, then magic starts.  Set MAGIC_DISABLE_STARTUP_CHECK (non-empty) to
+# inhibit the start-up check entirely.  CAVEAT: a Finder-launched .app inherits
+# launchd's environment, NOT your shell's -- so exporting it in ~/.zshrc/.profile
+# only affects magic started from a terminal.  To inhibit Finder launches too:
+#   launchctl setenv MAGIC_DISABLE_STARTUP_CHECK 1      (or use a LaunchAgent)
 marker="$HOME/Library/Application Support/Magic/.prereq_ok"
-if [ -n "$MAGIC_DISABLE_START_CHECK" ]; then
+if [ -n "$MAGIC_DISABLE_STARTUP_CHECK" ]; then
     :                                        # inhibited by the environment
 elif [ -f "$marker" ] && [ "$marker" -nt "$magicbin" ]; then
     :                                        # already confirmed OK, not upgraded since
